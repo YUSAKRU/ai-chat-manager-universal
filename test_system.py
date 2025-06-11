@@ -23,6 +23,7 @@ def test_imports():
         'message_broker',
         'browser_handler',
         'memory_bank_integration',
+        'chrome_profile_manager',
         'web_ui',
         'roles.project_manager',
         'roles.lead_developer',
@@ -89,7 +90,8 @@ def test_message_broker():
         received_messages = []
         def test_callback(message):
             received_messages.append(message)
-          # Subscribe ve publish test
+        
+        # Subscribe ve publish test
         broker.subscribe("test_channel", test_callback)
         broker.publish("test_channel", "Test mesajı", sender="TestSender")
         
@@ -111,7 +113,8 @@ def test_memory_bank():
     
     try:
         from memory_bank_integration import MemoryBankIntegration
-          # Test memory bank instance
+        
+        # Test memory bank instance
         memory_bank = MemoryBankIntegration(
             project_goal="Test projesi",
             location=os.path.join(project_root, "test_memory_bank")
@@ -128,19 +131,6 @@ def test_memory_bank():
         
     except Exception as e:
         print(f"❌ Memory Bank hatası: {str(e)}")
-        return False
-
-def test_web_ui():
-    """Web UI bileşenini test et (import only)"""
-    print("\n🌐 Web UI testleri...")
-    
-    try:
-        from web_ui import WebUI
-        print("✅ Web UI import edildi")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Web UI hatası: {str(e)}")
         return False
 
 def test_chrome_profiles():
@@ -163,38 +153,24 @@ def test_chrome_profiles():
         print("✅ Chrome Profil Manager çalışıyor")
         return True
         
-    except Exception as e:        print(f"❌ Chrome Profil hatası: {str(e)}")
+    except Exception as e:
+        print(f"❌ Chrome Profil hatası: {str(e)}")
         return False
 
-def test_roles():
-    """Role sınıflarını test et"""
-    print("\n🎭 Role testleri...")
+def test_web_ui():
+    """Web UI bileşenini test et (import only)"""
+    print("\n🌐 Web UI testleri...")
     
     try:
-        from message_broker import MessageBroker
-        from browser_handler import BrowserHandler
-        from roles.project_manager import ProjectManager
-        from roles.lead_developer import LeadDeveloper
-        from roles.boss import Boss
-        
-        # Mock objeler oluştur
-        broker = MessageBroker()
-        browser = BrowserHandler()
-        
-        # Role instanceları oluştur
-        pm = ProjectManager(broker, browser)
-        ld = LeadDeveloper(broker, browser)
-        boss = Boss(broker, browser)
-        
-        print("✅ Project Manager role")
-        print("✅ Lead Developer role")
-        print("✅ Boss role")
-        
+        from web_ui import WebUI
+        print("✅ Web UI import edildi")
         return True
         
     except Exception as e:
-        print(f"❌ Roles hatası: {str(e)}")
+        print(f"❌ Web UI hatası: {str(e)}")
         return False
+
+def test_roles():
     """Role sınıflarını test et"""
     print("\n🎭 Role testleri...")
     
