@@ -553,3 +553,91 @@ Son Güncelleme: {datetime.now().strftime('%Y-%m-%d %H:%M')}
             
         except Exception as e:
             return f"❌ Özet oluşturulurken hata: {str(e)}"
+
+    # -------------------------------------------------------------
+    # 🔄 Doküman Güncelleme & Dışa Aktarma
+    # -------------------------------------------------------------
+
+    def update_document(self, document_type: str, content: str = "", regenerate: bool = False) -> str:
+        """Belirtilen dokümanı güncelle veya yeniden üret.
+
+        Args:
+            document_type: Doküman türü anahtarı (örn. "projectbrief", "productContext").
+            content: Dokümana yazılacak içerik. Boş bırakılır ve regenerate=True ise varsayılan şablonla yeniden oluşturulur.
+            regenerate: True verilirse mevcut içeriği göz ardı edip ilgili _generate_ metodundan çıkan içerik kullanılır.
+
+        Returns:
+            İşlem sonucu mesajı.
+        """
+        if not self.initialized:
+            return "Memory Bank başlatılmamış!"
+
+        # Haritalama tablosu
+        generators = {
+            "projectbrief": ("projectbrief.md", self._generate_project_brief),
+            "productcontext": ("productContext.md", self._generate_product_context),
+            "systempatterns": ("systemPatterns.md", self._generate_system_patterns),
+            "techcontext": ("techContext.md", self._generate_tech_context),
+            "activecontext": ("activeContext.md", self._generate_active_context),
+            "progress": ("progress.md", self._generate_progress),
+        }
+
+        key = document_type.lower()
+        if key not in generators:
+            return f"❌ Desteklenmeyen doküman türü: {document_type}"
+
+        filename, generator_fn = generators[key]
+        file_path = os.path.join(self.location, filename)
+
+        try:
+            # İçeriği belirle
+            if regenerate or not content:
+                content_to_write = generator_fn()
+            else:
+                content_to_write = content
+
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(content_to_write)
+
+            return f"✅ {filename} güncellendi"
+        except Exception as e:
+            return f"❌ Doküman güncellenemedi: {str(e)}"
+
+    def export_memory_bank(self, export_format: str = "json") -> str:
+        """Memory Bank klasörünü dışa aktar.
+
+        Args:
+            export_format: "json" veya "folder" (varsayılan json).
+
+        Returns:
+            Oluşturulan dosya/dizin yolu veya hata mesajı.
+        """
+        if not self.initialized:
+            return "Memory Bank başlatılmamış!"
+
+        try:
+            export_format = export_format.lower()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            if export_format == "json":
+                export_data = {}
+                for file in os.listdir(self.location):
+                    if file.endswith(".md"):
+                        with open(os.path.join(self.location, file), "r", encoding="utf-8") as f:
+                            export_data[file] = f.read()
+
+                export_path = os.path.join(self.location, f"memory_bank_export_{timestamp}.json")
+                with open(export_path, "w", encoding="utf-8") as f:
+                    json.dump(export_data, f, indent=2, ensure_ascii=False)
+
+                return f"✅ Dışa aktarıldı: {export_path}"
+
+            elif export_format == "folder":
+                # Basitçe klasör yolunu döndür
+                return f"📁 Memory Bank klasörü: {self.location}"
+
+            else:
+                return "❌ Desteklenmeyen export formatı. Sadece 'json' veya 'folder' kullanın."
+
+        except Exception as e:
+            return f"❌ Export sırasında hata: {str(e)}"

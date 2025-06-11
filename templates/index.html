@@ -152,6 +152,25 @@
                             <button class="btn btn-outline-success btn-sm" onclick="getSelectedProfiles()">
                                 <i class="fas fa-check-circle"></i> Seçilen Profiller
                             </button>
+                            <!-- 🌐 WEB UI PROFIL SEÇIMI -->
+                            <button id="open-profile-modal-btn" type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#profileSelectionModal">
+                                <i class="fas fa-user-cog"></i> Profilleri Seç
+                            </button>
+                            <button id="start-browsers-btn" type="button" class="btn btn-success btn-sm" disabled>
+                                <i class="fas fa-play"></i> Tarayıcıları Başlat
+                            </button>
+                        </div>
+
+                        <!-- Seçilen profil bilgileri -->
+                        <hr class="my-2" />
+                        <p class="mb-1"><strong>Proje Yöneticisi:</strong> <span id="pm-profile-display" class="text-primary">Seçilmedi</span></p>
+                        <p class="mb-0"><strong>Lead Developer:</strong> <span id="ld-profile-display" class="text-primary">Seçilmedi</span></p>
+                        <!-- Operasyon Günlüğü -->
+                        <div class="card mt-3">
+                            <div class="card-header p-2"><b>Operasyon Günlüğü</b></div>
+                            <div class="card-body p-2" id="status-log" style="font-family: monospace; max-height: 160px; overflow-y: auto;">
+                                <p class="text-muted mb-0">Sistem durumu burada görünecek...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -425,5 +444,107 @@
             });
         }
     </script>
+
+    <!-- ====================================================== -->
+    <!--             Profil Seçim Modalı & Toast Alanı          -->
+    <!-- ====================================================== -->
+
+    <!-- Modal -->
+    <div class="modal fade" id="profileSelectionModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="profileModalLabel">Chrome Profillerini Ata</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted">Lütfen her rol için kullanılacak Chrome profilini seçin.</p>
+            <form id="profile-selection-form">
+              <div class="mb-3">
+                <label for="pm-profile-select" class="form-label"><b>Proje Yöneticisi (AI-1)</b></label>
+                <select class="form-select" id="pm-profile-select" required>
+                  <option selected disabled value="">Yükleniyor...</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="ld-profile-select" class="form-label"><b>Lider Geliştirici (AI-2)</b></label>
+                <select class="form-select" id="ld-profile-select" required>
+                  <option selected disabled value="">Yükleniyor...</option>
+                </select>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-info" id="preview-changes-btn">Değişiklikleri Önizle</button>
+            <button type="button" class="btn btn-success" id="save-memory-btn" disabled>Değişiklikleri Kaydet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="notification-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+        <div class="toast-header">
+          <strong class="me-auto" id="toast-title">Bildirim</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toast-body"></div>
+      </div>
+    </div>
+
+    <!-- Görev Panosu ve Memory Bank Row -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mt-3">
+                <div class="card-header"><b>Görev Panosu (activeContext.md)</b></div>
+                <div class="card-body" id="task-list" style="max-height:300px; overflow-y:auto;">
+                    <p class="text-muted">Görevler yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mt-3">
+                <div class="card-header"><b>Bellek Bankası (memory_bank)</b></div>
+                <ul class="list-group list-group-flush" id="memory-file-list" style="max-height:300px; overflow-y:auto;">
+                    <li class="list-group-item text-muted">Dosyalar yükleniyor...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ana JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Memory File Modal -->
+    <div class="modal fade" id="memoryFileModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="memoryFileModalLabel">Dosya</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <textarea id="memory-file-editor" class="form-control" rows="15"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diff Modal -->
+    <div class="modal fade" id="diffModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Değişiklik Önizlemesi</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <pre><code id="diff-content" class="language-diff"></code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
 </body>
 </html>

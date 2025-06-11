@@ -219,3 +219,40 @@ class BrowserHandler:
         """Tüm pencereleri kapat"""
         for role_name in list(self.drivers.keys()):
             self.close_window(role_name)
+
+    # ------------------------------------------------------------------
+    # 🌐 WEB UI PROFIL KURULUMU
+    # ------------------------------------------------------------------
+    def setup_profiles_web(self, mapping: dict) -> bool:
+        """Web UI üzerinden gelen profil eşlemesini doğrula ve uygula.
+
+        Args:
+            mapping: {"project_manager": "Profile X", "lead_developer": "Default", ...}
+
+        Returns:
+            bool: Başarılıysa True, aksi halde False.
+        """
+        required_roles = ["project_manager", "lead_developer"]
+
+        # 1. Gerekli rollerin sunulduğunu kontrol et
+        if not all(role in mapping for role in required_roles):
+            logger.error("Eksik rol anahtarları: mapping tam değil", "BROWSER_SETUP")
+            return False
+
+        # 2. Profil isimlerinin geçerli olduğunu kontrol et
+        valid_profile_names = {p["name"] for p in self.profile_manager.available_profiles}
+
+        for role, profile_name in mapping.items():
+            if profile_name not in valid_profile_names:
+                logger.error(f"Geçersiz profil adı alındı: {profile_name}", "BROWSER_SETUP")
+                return False
+
+        # 3. Sözlüğü güncelle
+        self.selected_profiles.update(mapping)
+
+        logger.info(
+            f"Web üzerinden profiller atandı: PM -> {mapping['project_manager']} | LD -> {mapping['lead_developer']}",
+            "BROWSER_SETUP",
+        )
+
+        return True
