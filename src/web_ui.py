@@ -14,8 +14,8 @@ class WebUI:
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
         self.chat_manager = chat_manager
         
-        # Message broker'a web broadcast callback'ini ekle
-        self.chat_manager.message_broker.set_web_broadcast_callback(self.broadcast_message)
+        # Web UI için broadcast aboneliği (main.py içinde yapıldı)
+        # Mesaj broker'dan gelen tüm kanallar için yayın callback'i main.py'de abone edildi
         
         self.setup_routes()
         self.setup_socketio_events()

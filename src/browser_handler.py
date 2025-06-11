@@ -1,3 +1,6 @@
+import os
+import tempfile
+from config import Config
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -16,10 +19,31 @@ class BrowserHandler:
 
     def create_chrome_options(self, role_name):
         """Chrome seçeneklerini oluştur"""
+        # Profil klasörünü benzersiz bir temp dizini olarak oluştur
+        profile_dir = tempfile.mkdtemp(prefix=f"{role_name}_profile_")
+        
         chrome_options = Options()
+        # Remote debugging port atama (0 ile dinamik port)
+        chrome_options.add_argument("--remote-debugging-port=0")
+        # Ek güvenlik ve stabilite argümanları
+        # (remove remote debugging to avoid profile errors)
+        chrome_options.add_argument("--no-first-run")
+        chrome_options.add_argument("--no-default-browser-check")
+        chrome_options.add_argument("--disable-background-networking")
+        chrome_options.add_argument("--disable-background-timer-throttling")
+        chrome_options.add_argument("--disable-client-side-phishing-detection")
+        chrome_options.add_argument("--disable-default-apps")
+        chrome_options.add_argument("--disable-hang-monitor")
+        chrome_options.add_argument("--disable-popup-blocking")
+        chrome_options.add_argument("--disable-prompt-on-repost")
+        chrome_options.add_argument("--disable-sync")
+        chrome_options.add_argument("--metrics-recording-only")
+        chrome_options.add_argument("--safebrowsing-disable-auto-update")
+        chrome_options.add_argument("--password-store=basic")
+        chrome_options.add_argument("--use-mock-keychain")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument(f"--user-data-dir=./chrome_profiles/{role_name}")
+        chrome_options.add_argument(f"--user-data-dir={profile_dir}")
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
