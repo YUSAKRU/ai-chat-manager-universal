@@ -10,7 +10,7 @@ import traceback
 from datetime import datetime
 
 # Proje root'unu sys.path'e ekle
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(project_root, 'src'))
 
 def test_imports():
@@ -89,14 +89,9 @@ def test_message_broker():
         received_messages = []
         def test_callback(message):
             received_messages.append(message)
-        
-        # Subscribe ve publish test
+          # Subscribe ve publish test
         broker.subscribe("test_channel", test_callback)
-        broker.publish("test_channel", {
-            'sender': 'TestSender',
-            'content': 'Test mesajı',
-            'timestamp': datetime.now().isoformat()
-        })
+        broker.publish("test_channel", "Test mesajı", sender="TestSender")
         
         if len(received_messages) > 0:
             print("✅ Message Broker çalışıyor")
@@ -116,15 +111,14 @@ def test_memory_bank():
     
     try:
         from memory_bank_integration import MemoryBankIntegration
-        
-        # Test memory bank instance
+          # Test memory bank instance
         memory_bank = MemoryBankIntegration(
             project_goal="Test projesi",
             location=os.path.join(project_root, "test_memory_bank")
         )
         
         # Klasör kontrol
-        if os.path.exists(memory_bank.memory_bank_path):
+        if os.path.exists(memory_bank.location):
             print("✅ Memory Bank klasörü mevcut")
         else:
             print("⚠️ Memory Bank klasörü oluşturulacak")

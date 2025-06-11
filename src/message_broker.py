@@ -50,7 +50,8 @@ class MessageBroker:
             self.message_history.append(message_obj)
             
             # Log
-            print(f"📢 [{channel}] {sender}: {message[:100]}...")
+            content_preview = str(message)[:100] if isinstance(message, str) else str(message.get('content', message))[:100]
+            print(f"📢 [{channel}] {sender}: {content_preview}...")
             
             # Web UI'ya broadcast et
             if self.web_broadcast_callback:

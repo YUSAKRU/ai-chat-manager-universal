@@ -48,8 +48,7 @@ class WebUI:
             sender = data.get('sender', 'Web User')
             channel = data.get('channel', 'boss_to_pm')
             message = data.get('message', '')
-            
-            # Boss üzerinden mesaj gönder
+              # Boss üzerinden mesaj gönder
             if channel == 'boss_to_pm':
                 self.chat_manager.boss.send_directive(message, target='pm')
             elif channel == 'boss_to_ld':
@@ -58,7 +57,8 @@ class WebUI:
                 self.chat_manager.boss.send_directive(message, target='both')
             
             return jsonify({'status': 'sent', 'message': message})
-          @self.app.route('/api/assign_task', methods=['POST'])
+        
+        @self.app.route('/api/assign_task', methods=['POST'])
         def assign_task():
             data = request.get_json()
             task = data.get('task', '')
