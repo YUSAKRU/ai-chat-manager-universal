@@ -12,19 +12,26 @@ class MessageBroker:
         self.web_broadcast_callback = None
 
     def subscribe(self, channel, callback):
-        """Belirtilen kanala abone ol"""
+        """Belirtilen kanala mesaj dinleyicisi ekle"""
         with self.lock:
             if channel not in self.subscribers:
                 self.subscribers[channel] = []
-            self.subscribers[channel].append(callback)
-            print(f"📡 {channel} kanalına abone olundu")
+                print(f"📢 {channel} kanalı oluşturuldu")
+            
+            # Aynı callback'in tekrar eklenmesini önle
+            if callback not in self.subscribers[channel]:
+                self.subscribers[channel].append(callback)
+                callback_name = getattr(callback, '__self__', {})
+                callback_name = getattr(callback_name, '__class__', {})
+                callback_name = getattr(callback_name, '__name__', 'Unknown')
+                print(f"  ↳ {callback_name} artık {channel} kanalını dinliyor")
 
     def unsubscribe(self, channel, callback):
-        """Abonelikten çık"""
+        """Mesaj dinlemeyi durdur"""
         with self.lock:
             if channel in self.subscribers and callback in self.subscribers[channel]:
                 self.subscribers[channel].remove(callback)
-                print(f"📡 {channel} kanalından abone çıkışı yapıldı")
+                print(f"🔇 {channel} kanalından dinleme durduruldu")
 
     def publish(self, channel, message, sender=None):
         """Mesaj yayınla"""
@@ -59,6 +66,13 @@ class MessageBroker:
                         callback(message_obj)
                     except Exception as e:
                         print(f"❌ Mesaj gönderilirken hata: {str(e)}")
+            
+            # Web UI'a da broadcast et
+            if self.web_broadcast_callback:
+                try:
+                    self.web_broadcast_callback(message_obj)
+                except Exception as e:
+                    print(f"❌ Web broadcast hatası: {str(e)}")
 
     def set_web_broadcast_callback(self, callback):
         """Web broadcast callback'ini ayarla"""
@@ -101,3 +115,8 @@ class MessageBroker:
             print(f"📂 Konuşma yüklendi: {filename}")
         except Exception as e:
             print(f"❌ Konuşma yüklenirken hata: {str(e)}")
+
+    def set_web_broadcast_callback(self, callback):
+        """Web UI için yayın callback'ini ayarla"""
+        self.web_broadcast_callback = callback
+        print("🌐 Web arayüzü mesaj dinleme sistemi aktif")

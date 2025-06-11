@@ -13,9 +13,8 @@ class WebUI:
         self.app.config['SECRET_KEY'] = 'ai-chrome-chat-manager-secret'
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
         self.chat_manager = chat_manager
-        
-        # Web UI için broadcast aboneliği (main.py içinde yapıldı)
-        # Mesaj broker'dan gelen tüm kanallar için yayın callback'i main.py'de abone edildi
+          # Message broker'a web broadcast callback'ini ekle
+        self.chat_manager.message_broker.set_web_broadcast_callback(self.broadcast_message)
         
         self.setup_routes()
         self.setup_socketio_events()
@@ -59,8 +58,7 @@ class WebUI:
                 self.chat_manager.boss.send_directive(message, target='both')
             
             return jsonify({'status': 'sent', 'message': message})
-        
-        @self.app.route('/api/assign_task', methods=['POST'])
+          @self.app.route('/api/assign_task', methods=['POST'])
         def assign_task():
             data = request.get_json()
             task = data.get('task', '')
@@ -72,6 +70,64 @@ class WebUI:
         def request_status():
             self.chat_manager.boss.request_status_report()
             return jsonify({'status': 'requested'})
+        
+        # Memory Bank API Endpoints
+        @self.app.route('/api/memory_bank/query', methods=['POST'])
+        def memory_bank_query():
+            """Memory Bank'tan sorgu yap"""
+            try:
+                data = request.get_json()
+                query = data.get('query', '')
+                
+                if not query:
+                    return jsonify({'error': 'Query gerekli'}), 400
+                
+                result = self.chat_manager.memory_bank.query(query)
+                return jsonify({'result': result, 'query': query})
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory_bank/update', methods=['POST'])
+        def memory_bank_update():
+            """Memory Bank dokümantasyonunu güncelle"""
+            try:
+                data = request.get_json()
+                doc_type = data.get('documentType', '')
+                content = data.get('content', '')
+                
+                if not doc_type:
+                    return jsonify({'error': 'Document type gerekli'}), 400
+                
+                result = self.chat_manager.memory_bank.update_document(doc_type, content)
+                return jsonify({'result': result, 'documentType': doc_type})
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory_bank/export', methods=['GET'])
+        def memory_bank_export():
+            """Memory Bank'ı export et"""
+            try:
+                export_format = request.args.get('format', 'json')
+                result = self.chat_manager.memory_bank.export_memory_bank(export_format)
+                return jsonify({'result': result, 'format': export_format})
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory_bank/status')
+        def memory_bank_status():
+            """Memory Bank durumunu kontrol et"""
+            try:
+                # Memory Bank klasörünün var olup olmadığını kontrol et
+                import os
+                memory_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src', 'memory-bank')
+                status = {
+                    'initialized': os.path.exists(memory_path),
+                    'documents_count': len([f for f in os.listdir(memory_path) if f.endswith('.md')]) if os.path.exists(memory_path) else 0,
+                    'path': memory_path
+                }
+                return jsonify(status)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
 
     def setup_socketio_events(self):
         """SocketIO event'lerini ayarla"""

@@ -1,6 +1,7 @@
 import os
 import tempfile
 from config import Config
+from logger import logger, safe_execute
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options

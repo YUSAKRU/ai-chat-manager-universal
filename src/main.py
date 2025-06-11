@@ -10,10 +10,12 @@ from roles.lead_developer import LeadDeveloper
 from roles.boss import Boss
 from web_ui import WebUI
 from config import Config
+from memory_bank_integration import MemoryBankIntegration
+from logger import logger, safe_execute, validate_config
 
 class AIChromeChatManager:
     def __init__(self):
-        print("🚀 AI Chrome Chat Manager başlatılıyor...")
+        logger.info("AI Chrome Chat Manager başlatılıyor...", "SYSTEM")
         
         # Konfigürasyon ve klasörleri hazırla
         Config.ensure_directories()
@@ -29,17 +31,43 @@ class AIChromeChatManager:
         
         # Web UI'ı başlat
         self.web_ui = WebUI(self)
+        
+        # Memory Bank'ı başlat
+        self.memory_bank = MemoryBankIntegration(
+            project_goal="İki AI chat penceresi arasında akıllı köprü sistemi geliştirmek",
+            location=os.path.join(os.getcwd(), "memory-bank")
+        )
+        self.memory_bank.initialize_memory_bank()
+        
         # Mesajları Web UI'a yayınla (broadcast)
         for channel in [
             'pm_to_ld', 'ld_to_pm', 'boss_to_pm', 'boss_to_ld'
         ]:
             self.message_broker.subscribe(channel, self.web_ui.broadcast_message)
+            # Memory Bank'a da mesajları kaydet
+            self.message_broker.subscribe(channel, self._save_to_memory_bank)
         self.web_server_thread = None
         
         # Shutdown handler
         signal.signal(signal.SIGINT, self.signal_handler)
         
         print("✅ Sistem hazır!")
+
+    def _save_to_memory_bank(self, message_obj):
+        """Mesajları Memory Bank'a kaydet"""
+        try:
+            # Mesajları topla ve belirli aralıklarla kaydet
+            if hasattr(self, '_pending_messages'):
+                self._pending_messages.append(message_obj)
+            else:
+                self._pending_messages = [message_obj]
+            
+            # Her 5 mesajda bir kaydet
+            if len(self._pending_messages) >= 5:
+                self.memory_bank.save_conversation(self._pending_messages)
+                self._pending_messages = []
+        except Exception as e:
+            print(f"⚠️ Memory Bank'a kayıt sırasında hata: {str(e)}")
 
     def signal_handler(self, signum, frame):
         """Sistem kapatma sinyali yakaladığında"""
@@ -132,6 +160,8 @@ class AIChromeChatManager:
         print("3 - Durum raporu iste")
         print("4 - Conversation history")
         print("5 - Konuşmayı kaydet")
+        print("6 - Memory Bank sorgusu")
+        print("7 - Proje özeti (Memory Bank)")
         print("q - Çıkış")
         
         while True:
@@ -158,6 +188,15 @@ class AIChromeChatManager:
                 elif command == "5":
                     filename = f"conversation_{int(time.time())}.json"
                     self.message_broker.save_conversation(filename)
+                    
+                elif command == "6":
+                    query = input("🔍 Memory Bank sorgusu: ")
+                    result = self.memory_bank.query_memory_bank(query)
+                    print(f"\n📋 Sonuç:\n{result}")
+                    
+                elif command == "7":
+                    summary = self.memory_bank.get_project_summary()
+                    print(f"\n📊 Proje Özeti:\n{summary}")
                     
                 elif command.lower() == "q":
                     break
