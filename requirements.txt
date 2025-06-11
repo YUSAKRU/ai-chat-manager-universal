@@ -1,0 +1,6 @@
+selenium
+flask
+flask-socketio
+eventlet
+requests
+webdriver-manager
