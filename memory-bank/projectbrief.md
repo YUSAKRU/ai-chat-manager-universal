@@ -24,4 +24,4 @@
 - Web arayüzü üzerinden kontrolün sağlanması
 - Konuşma geçmişinin kaydedilmesi
 
-Oluşturulma: 2025-06-11 11:40
+Oluşturulma: 2025-06-11 12:11

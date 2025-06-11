@@ -95,6 +95,13 @@ class AIChromeChatManager:
 
     def start_browser_sessions(self):
         """Browser oturumlarını başlat"""
+        print("\n🎭 Chrome Profil Kurulumu")
+        
+        # Profil kurulumunu yap
+        if not self.browser_handler.setup_profiles_interactive():
+            print("❌ Profil kurulumu başarısız!")
+            return False
+        
         print("\n🌐 Chrome pencereleri açılıyor...")
         
         # Proje Yöneticisi penceresi

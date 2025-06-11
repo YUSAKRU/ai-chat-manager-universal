@@ -2,6 +2,7 @@ import os
 import tempfile
 from config import Config
 from logger import logger, safe_execute
+from chrome_profile_manager import ChromeProfileManager
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -17,68 +18,107 @@ class BrowserHandler:
     def __init__(self):
         self.drivers = {}
         self.current_windows = {}
+        self.profile_manager = ChromeProfileManager()
+        self.selected_profiles = {}  # role_name -> profile_name mapping
+
+    def setup_profiles_interactive(self):
+        """Kullanıcıdan her rol için profil seçimi al"""
+        print("\n🎭 AI Rolleri için Chrome Profil Kurulumu")
+        print("=" * 50)
+        
+        if not self.profile_manager.available_profiles:
+            print("❌ Chrome profili bulunamadı! Lütfen önce Chrome'u açıp profil oluşturun.")
+            return False
+        
+        # Profil özeti göster
+        print(self.profile_manager.get_profile_summary())
+        
+        roles = [
+            ("project_manager", "👔 Proje Yöneticisi (ChatGPT)"),
+            ("lead_developer", "👨‍💻 Lead Developer (Claude)")
+        ]
+        
+        for role_key, role_description in roles:
+            print(f"\n{role_description} için profil seçimi:")
+            selected_profile = self.profile_manager.select_profile_interactive(role_description)
+            
+            if selected_profile:
+                self.selected_profiles[role_key] = selected_profile
+                logger.info(f"{role_description} -> {selected_profile} profili atandı", "BROWSER_SETUP")
+            else:
+                print(f"❌ {role_description} için profil seçilmedi!")
+                return False
+        
+        print(f"\n✅ Profil kurulumu tamamlandı!")
+        print(f"👔 PM: {self.selected_profiles.get('project_manager', 'N/A')}")
+        print(f"👨‍💻 LD: {self.selected_profiles.get('lead_developer', 'N/A')}")
+        return True
 
     def create_chrome_options(self, role_name):
-        """Chrome seçeneklerini oluştur"""
-        # Profil klasörünü benzersiz bir temp dizini olarak oluştur
-        profile_dir = tempfile.mkdtemp(prefix=f"{role_name}_profile_")
+        """Seçilen profile göre Chrome seçenekleri oluştur"""
+        profile_name = self.selected_profiles.get(role_name)
         
-        chrome_options = Options()
-        # Remote debugging port atama (0 ile dinamik port)
-        chrome_options.add_argument("--remote-debugging-port=0")
-        # Ek güvenlik ve stabilite argümanları
-        # (remove remote debugging to avoid profile errors)
-        chrome_options.add_argument("--no-first-run")
-        chrome_options.add_argument("--no-default-browser-check")
-        chrome_options.add_argument("--disable-background-networking")
-        chrome_options.add_argument("--disable-background-timer-throttling")
-        chrome_options.add_argument("--disable-client-side-phishing-detection")
-        chrome_options.add_argument("--disable-default-apps")
-        chrome_options.add_argument("--disable-hang-monitor")
-        chrome_options.add_argument("--disable-popup-blocking")
-        chrome_options.add_argument("--disable-prompt-on-repost")
-        chrome_options.add_argument("--disable-sync")
-        chrome_options.add_argument("--metrics-recording-only")
-        chrome_options.add_argument("--safebrowsing-disable-auto-update")
-        chrome_options.add_argument("--password-store=basic")
-        chrome_options.add_argument("--use-mock-keychain")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument(f"--user-data-dir={profile_dir}")
-        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        chrome_options.add_experimental_option('useAutomationExtension', False)
-        return chrome_options
+        if profile_name:
+            logger.info(f"{role_name} için {profile_name} profili kullanılıyor", "BROWSER_HANDLER")
+            return self.profile_manager.create_minimal_chrome_options(profile_name)
+        else:
+            logger.warning(f"{role_name} için profil seçilmemiş, varsayılan kullanılıyor", "BROWSER_HANDLER")
+            return self.profile_manager.create_minimal_chrome_options()
 
     def open_window(self, role_name, url="https://chatgpt.com"):
         """Belirtilen rol için Chrome penceresi aç"""
-        try:
-            print(f"🚀 {role_name} için Chrome penceresi açılıyor...")
-            
-            # Chrome seçeneklerini ayarla
-            chrome_options = self.create_chrome_options(role_name)
-            
-            # WebDriver'ı başlat
-            service = Service(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-            
-            # Automation detection'ı engelle
-            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            
-            # URL'ye git
-            driver.get(url)
-            driver.maximize_window()
-            
-            # Driver'ı kaydet
-            self.drivers[role_name] = driver
-            self.current_windows[role_name] = driver.current_window_handle
-            
-            print(f"✅ {role_name} penceresi başarıyla açıldı: {url}")
-            return driver
-            
-        except Exception as e:
-            print(f"❌ {role_name} penceresi açılırken hata: {str(e)}")
-            return None
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                profile_name = self.selected_profiles.get(role_name, "Profil seçilmemiş")
+                logger.info(f"{role_name} için Chrome penceresi açılıyor (Profil: {profile_name})...", "BROWSER_HANDLER")
+                
+                # Chrome seçeneklerini ayarla
+                chrome_options = self.create_chrome_options(role_name)
+                
+                # WebDriver'ı başlat
+                service = Service(ChromeDriverManager().install())
+                driver = webdriver.Chrome(service=service, options=chrome_options)
+                
+                # Automation detection'ı engelle
+                driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                
+                # URL'ye git
+                driver.get(url)
+                
+                # Sayfanın yüklenmesini bekle
+                WebDriverWait(driver, 10).until(
+                    lambda d: d.execute_script("return document.readyState") == "complete"
+                )
+                
+                driver.maximize_window()
+                
+                # Driver'ı kaydet
+                self.drivers[role_name] = driver
+                self.current_windows[role_name] = driver.current_window_handle
+                
+                logger.info(f"{role_name} penceresi başarıyla açıldı: {url}", "BROWSER_HANDLER")
+                return driver
+                
+            except Exception as e:
+                retry_count += 1
+                logger.warning(f"{role_name} penceresi açılırken hata (Deneme {retry_count}/{max_retries}): {str(e)}", "BROWSER_HANDLER")
+                
+                # Eğer driver açıldıysa kapat
+                try:
+                    if 'driver' in locals():
+                        driver.quit()
+                except:
+                    pass
+                
+                if retry_count < max_retries:
+                    logger.info(f"5 saniye bekleyip tekrar denenecek...", "BROWSER_HANDLER")
+                    time.sleep(5)
+                else:
+                    logger.error(f"{role_name} penceresi {max_retries} denemeden sonra açılamadı", "BROWSER_HANDLER")
+                    return None
 
     def send_message(self, role_name, message, input_selector=None):
         """Belirtilen pencereye mesaj gönder"""

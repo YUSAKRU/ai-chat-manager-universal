@@ -132,9 +132,25 @@
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
-                        <div class="d-grid">
-                            <button class="btn btn-outline-primary btn-sm" onclick="getProjectSummary()">
+                        <div class="d-grid">                            <button class="btn btn-outline-primary btn-sm" onclick="getProjectSummary()">
                                 <i class="fas fa-file-alt"></i> Proje Özeti
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chrome Profil Yönetimi -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-user-circle"></i> Chrome Profiller</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-info btn-sm" onclick="getChromeProfiles()">
+                                <i class="fas fa-list"></i> Mevcut Profiller
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="getSelectedProfiles()">
+                                <i class="fas fa-check-circle"></i> Seçilen Profiller
                             </button>
                         </div>
                     </div>
@@ -345,10 +361,67 @@
                     };
                     addMessageToChat(summary);
                 }
-            })
-            .catch(error => {
+            })            .catch(error => {
                 console.error('Memory Bank durum hatası:', error);
                 alert('Memory Bank durumu alınamadı!');
+            });
+        }
+
+        // Chrome Profil Yönetimi Fonksiyonları
+        function getChromeProfiles() {
+            fetch('/api/chrome_profiles/list')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Hata: ' + data.error);
+                } else {
+                    let profilesList = "🔍 Mevcut Chrome Profilleri:\\n\\n";
+                    profilesList += `📁 User Data: ${data.user_data_path}\\n`;
+                    profilesList += `📊 Toplam: ${data.count} profil\\n\\n`;
+                    
+                    data.profiles.forEach(profile => {
+                        const marker = profile.is_default ? "👑" : "👤";
+                        profilesList += `${marker} ${profile.display_name}\\n`;
+                        profilesList += `   📂 ${profile.name}\\n`;
+                        profilesList += `   🕒 ${profile.last_used}\\n\\n`;
+                    });
+                    
+                    const result = {
+                        sender: 'Chrome Profil Manager',
+                        content: profilesList,
+                        timestamp: new Date().toISOString(),
+                        channel: 'chrome_profiles'
+                    };
+                    addMessageToChat(result);
+                }
+            })
+            .catch(error => {
+                console.error('Chrome profil listesi hatası:', error);
+                alert('Chrome profilleri alınamadı!');
+            });
+        }
+
+        function getSelectedProfiles() {
+            fetch('/api/chrome_profiles/selected')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Hata: ' + data.error);
+                } else {
+                    const selectedInfo = `🎭 Seçilen Chrome Profilleri:\\n\\n👔 Proje Yöneticisi: ${data.pm_profile}\\n👨‍💻 Lead Developer: ${data.ld_profile}`;
+                    
+                    const result = {
+                        sender: 'Chrome Profil Manager',
+                        content: selectedInfo,
+                        timestamp: new Date().toISOString(),
+                        channel: 'chrome_profiles'
+                    };
+                    addMessageToChat(result);
+                }
+            })
+            .catch(error => {
+                console.error('Seçilen profil hatası:', error);
+                alert('Seçilen profiller alınamadı!');
             });
         }
     </script>
