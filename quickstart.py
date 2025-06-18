@@ -77,16 +77,36 @@ def setup_environment():
         print("\n🔐 API Anahtarı Konfigürasyonu")
         print("env.example dosyası .env olarak kopyalanıyor...")
         
+        # Önce mevcut çalışma dizininde ara
         example_file = Path('env.example')
+        if not example_file.exists():
+            # Alternatif konumları dene
+            possible_paths = [
+                Path.cwd() / 'env.example',
+                Path(__file__).parent / 'env.example',
+                Path.cwd().parent / 'env.example'
+            ]
+            
+            for path in possible_paths:
+                if path.exists():
+                    example_file = path
+                    break
+        
         if example_file.exists():
             import shutil
-            shutil.copy('env.example', '.env')
-            print("✅ .env dosyası oluşturuldu!")
-            print("📝 .env dosyasını düzenleyerek API anahtarlarınızı ekleyin:")
-            print("   - GEMINI_API_KEY=your_gemini_key")
-            print("   - OPENAI_API_KEY=your_openai_key")
+            try:
+                shutil.copy(str(example_file), '.env')
+                print("✅ .env dosyası oluşturuldu!")
+                print("📝 .env dosyasını düzenleyerek API anahtarlarınızı ekleyin:")
+                print("   - GEMINI_PM_API_KEY=your_gemini_key")
+                print("   - OPENAI_PM_API_KEY=your_openai_key")
+            except Exception as e:
+                print(f"❌ Dosya kopyalama hatası: {e}")
         else:
             print("❌ env.example dosyası bulunamadı!")
+            print("💡 Manuel olarak .env dosyası oluşturun:")
+            print("   GEMINI_PM_API_KEY=your_gemini_key")
+            print("   OPENAI_PM_API_KEY=your_openai_key")
     else:
         print("✅ .env dosyası mevcut")
     
@@ -97,19 +117,58 @@ def run_tests():
     print("\n🧪 TESTLER ÇALIŞTIRILIYOR")
     print("="*30)
     
+    # Mevcut test dosyalarını tespit et
+    test_files = []
+    for file in Path('.').glob('*test*.py'):
+        if file.is_file():
+            test_files.append(str(file))
+    
+    if not test_files:
+        print("❌ Test dosyası bulunamadı!")
+        return
+    
+    print(f"📋 Bulunan test dosyaları: {', '.join(test_files)}")
+    
     try:
-        # Plugin testleri
-        result = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-v"], 
+        # Önce pytest'in yüklü olup olmadığını kontrol et
+        result = subprocess.run([sys.executable, "-c", "import pytest"], 
                               capture_output=True, text=True)
-        if result.returncode == 0:
+        
+        if result.returncode != 0:
+            print("📦 pytest yükleniyor...")
+            subprocess.run([sys.executable, "-m", "pip", "install", "pytest"], check=True)
+        
+        # Test dosyalarını tek tek çalıştır
+        success_count = 0
+        total_count = len(test_files)
+        
+        for test_file in test_files:
+            print(f"\n🔬 {test_file} çalıştırılıyor...")
+            try:
+                result = subprocess.run([sys.executable, test_file], 
+                                      capture_output=True, text=True, timeout=30)
+                if result.returncode == 0:
+                    print(f"✅ {test_file} başarılı!")
+                    success_count += 1
+                else:
+                    print(f"❌ {test_file} başarısız!")
+                    if result.stderr:
+                        print(f"   Hata: {result.stderr[:200]}...")
+            except subprocess.TimeoutExpired:
+                print(f"⏰ {test_file} zaman aşımı!")
+            except Exception as e:
+                print(f"❌ {test_file} çalıştırma hatası: {e}")
+        
+        print(f"\n📊 Test Sonuçları: {success_count}/{total_count} başarılı")
+        if success_count == total_count:
             print("✅ Tüm testler başarılı!")
         else:
             print("❌ Bazı testler başarısız!")
-            print(result.stdout)
+            
     except FileNotFoundError:
-        print("📝 Test framework'ü yükleniyor...")
-        subprocess.run([sys.executable, "-m", "pip", "install", "pytest"], check=True)
-        print("✅ Testler için hazır!")
+        print("❌ Python interpreter bulunamadı!")
+    except Exception as e:
+        print(f"❌ Test çalıştırma hatası: {e}")
 
 def run_docker():
     """Docker ile çalıştır"""
