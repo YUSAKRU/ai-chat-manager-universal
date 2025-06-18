@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chrome Chat Manager - Universal Edition</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4299e1;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --danger-color: #e53e3e;
+            --purple-color: #9f7aea;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #718096;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+        
+        .navbar {
+            background-color: var(--card-bg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .main-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Tab Navigation */
+        .nav-tabs {
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-secondary);
+            border: none;
+            padding: 12px 24px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background: none;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        /* Analytics Cards */
+        .metric-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        
+        .metric-card.cost {
+            border-top: 4px solid var(--success-color);
+        }
+        
+        .metric-card.requests {
+            border-top: 4px solid var(--primary-color);
+        }
+        
+        .metric-card.success {
+            border-top: 4px solid var(--purple-color);
+        }
+        
+        .metric-card.speed {
+            border-top: 4px solid var(--warning-color);
+        }
+        
+        .metric-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .metric-change {
+            font-size: 13px;
+            color: var(--success-color);
+        }
+        
+        .metric-change.negative {
+            color: var(--danger-color);
+        }
+        
+        /* Token Usage */
+        .token-usage-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .progress-bar-custom {
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .progress-input {
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .progress-output {
+            background: var(--success-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* AI Cards */
+        .ai-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--primary-color);
+            height: 100%;
+        }
+        
+        .ai-card.inactive {
+            opacity: 0.6;
+            border-left-color: #cbd5e0;
+        }
+        
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+        }
+        
+        .status-dot.inactive {
+            background: #cbd5e0;
+        }
+        
+        .ai-stat {
+            text-align: center;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+        
+        .ai-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .ai-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        /* Chat Interface */
+        .chat-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f7fafc;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .message-role {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .message-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        /* Live Chat Stream */
+        .live-chat-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .chat-header {
+            padding: 20px 20px 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .chat-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chat-controls .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .live-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8fafc;
+            scroll-behavior: smooth;
+        }
+        
+        .ai-message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .ai-message.project_manager {
+            text-align: left;
+        }
+        
+        .ai-message.lead_developer {
+            text-align: right;
+        }
+        
+        .message-bubble {
+            display: inline-block;
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            position: relative;
+            margin: 4px 0;
+        }
+        
+        .message-bubble.pm {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-bubble.ld {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-header-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        
+        .role-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+        }
+        
+        .role-icon.pm {
+            background: #4299e1;
+        }
+        
+        .role-icon.ld {
+            background: #ed8936;
+        }
+        
+        .message-content {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .conversation-status {
+            padding: 12px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .turn-counter {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .thinking-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-style: italic;
+            opacity: 0.7;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                🤖 AI Chrome Chat Manager <span class="badge bg-primary">Universal</span>
+            </a>
+            <div class="ms-auto">
+                <span class="text-muted" id="connection-status">
+                    <i class="bi bi-circle-fill text-success"></i> Bağlı
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button">
+                    <i class="bi bi-graph-up"></i> Analytics
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button">
+                    <i class="bi bi-chat-dots"></i> AI Konuşmaları
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button">
+                    <i class="bi bi-gear"></i> Ayarlar
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="mainTabContent">
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade show active" id="analytics" role="tabpanel">
+                <!-- Primary Metrics -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="metric-card cost">
+                            <div class="metric-label">
+                                <i class="bi bi-currency-dollar"></i> TOPLAM MALİYET
+                            </div>
+                            <div class="metric-value" id="total-cost">$0.00</div>
+                            <div class="metric-change" id="cost-change">Başlangıç</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card requests">
+                            <div class="metric-label">
+                                <i class="bi bi-arrow-repeat"></i> TOPLAM İSTEK
+                            </div>
+                            <div class="metric-value" id="total-requests">0</div>
+                            <div class="metric-change" id="requests-change">0 RPM</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card success">
+                            <div class="metric-label">
+                                <i class="bi bi-check-circle"></i> BAŞARI ORANI
+                            </div>
+                            <div class="metric-value" id="success-rate">100%</div>
+                            <div class="metric-change negative" id="error-count">0 hata</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-card speed">
+                            <div class="metric-label">
+                                <i class="bi bi-lightning"></i> ORTALAMA YANIT
+                            </div>
+                            <div class="metric-value" id="avg-response">0.0s</div>
+                            <div class="metric-change" id="fastest-model">Bekleniyor</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Token Usage -->
+                <div class="token-usage-card">
+                    <h5 class="mb-3">
+                        <i class="bi bi-bar-chart"></i> TOKEN KULLANIMI
+                    </h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Toplam: <strong id="total-tokens">0</strong> token</span>
+                        <span>
+                            Input: <span id="input-tokens">0</span> (<span id="input-percentage">0%</span>) | 
+                            Output: <span id="output-tokens">0</span> (<span id="output-percentage">0%</span>)
+                        </span>
+                    </div>
+                    <div class="progress-bar-custom">
+                        <div class="progress-input" id="progress-input" style="width: 0%">0%</div>
+                        <div class="progress-output" id="progress-output" style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <!-- Live Conversation & AI Performance -->
+                <div class="row g-4">
+                    <!-- AI Performance Cards (Left Column) -->
+                    <div class="col-lg-6">
+                        <h5 class="mb-3">AI Performans Dökümü</h5>
+                        <div class="row g-3" id="ai-cards-container">
+                            <!-- AI cards will be dynamically inserted here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Live Conversation Stream (Right Column) -->
+                    <div class="col-lg-6">
+                        <div class="live-chat-container">
+                            <div class="chat-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-chat-dots-fill"></i> Canlı AI Konuşması
+                                </h5>
+                                <div class="chat-controls">
+                                    <button class="btn btn-sm btn-success" id="start-conversation" onclick="startAIConversation()">
+                                        <i class="bi bi-play-fill"></i> Başlat
+                                    </button>
+                                    <button class="btn btn-sm btn-warning" id="pause-conversation" onclick="pauseConversation()" disabled>
+                                        <i class="bi bi-pause-fill"></i> Duraklat
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" id="clear-conversation" onclick="clearConversation()">
+                                        <i class="bi bi-trash"></i> Temizle
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="live-chat-messages" id="live-chat-messages">
+                                <div class="text-center text-muted p-4">
+                                    <i class="bi bi-robot" style="font-size: 48px; opacity: 0.3;"></i>
+                                    <p class="mt-2 mb-0">AI konuşması başlatılmayı bekliyor...</p>
+                                    <small>Yukarıdaki "Başlat" butonuna tıklayın</small>
+                                </div>
+                            </div>
+                            
+                            <div class="conversation-status" id="conversation-status">
+                                <span class="status-indicator">
+                                    <i class="bi bi-circle-fill text-secondary"></i> Beklemede
+                                </span>
+                                <span class="turn-counter" id="turn-counter">Tur: 0/0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Tab -->
+            <div class="tab-pane fade" id="chat" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chat-messages">
+                                <div class="text-center text-muted p-5">
+                                    <i class="bi bi-chat-dots" style="font-size: 48px;"></i>
+                                    <p class="mt-3">Henüz konuşma yok. Aşağıdan bir konuşma başlatın.</p>
+                                </div>
+                            </div>
+                            <div class="chat-input">
+                                <form id="chat-form">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="chat-input" placeholder="Mesajınızı yazın...">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="bi bi-send"></i> Gönder
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Hızlı İşlemler</h5>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary" onclick="startConversation()">
+                                        <i class="bi bi-play-circle"></i> Konuşma Başlat
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="clearHistory()">
+                                        <i class="bi bi-trash"></i> Geçmişi Temizle
+                                    </button>
+                                </div>
+                                
+                                <hr>
+                                
+                                <h6>Konuşma Ayarları</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Maksimum Tur Sayısı</label>
+                                    <input type="number" class="form-control" id="max-turns" value="3" min="1" max="10">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">İlk Prompt</label>
+                                    <textarea class="form-control" id="initial-prompt" rows="3">AI destekli bir proje geliştiriyoruz. Önceliklerimizi belirleyelim.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Rol Atamaları</h5>
+                                <div id="role-assignments">
+                                    <!-- Role assignments will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Sistem Durumu</h5>
+                                <div id="system-status">
+                                    <!-- System status will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/static/js/analytics.js"></script>
+</body>
+</html> 

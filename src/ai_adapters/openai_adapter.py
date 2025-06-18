@@ -3,60 +3,45 @@ OpenAI (GPT) Adapter
 """
 import openai
 import asyncio
-from typing import List, Optional
-from .base_adapter import BaseAIAdapter, AIResponse, AIConfig
-from logger import logger
+from typing import Optional, Dict, Any
+from .base_adapter import BaseAIAdapter, AIResponse
+
 
 class OpenAIAdapter(BaseAIAdapter):
-    """OpenAI API adaptörü"""
+    """OpenAI API adapter"""
     
-    def __init__(self, config: AIConfig):
-        super().__init__(config)
-        self.client = openai.AsyncOpenAI(api_key=config.api_key)
+    def __init__(self, api_key: str, model: str = "gpt-3.5-turbo"):
+        super().__init__(api_key, model)
+        self.client = openai.AsyncOpenAI(api_key=api_key)
         
-    async def send_message(
-        self, 
-        message: str, 
-        context: Optional[str] = None,
-        role_context: Optional[str] = None
-    ) -> AIResponse:
+    async def send_message(self, message: str, context: Optional[str] = None) -> AIResponse:
         """OpenAI'ye mesaj gönder"""
         
-        if not self.check_rate_limit():
-            raise Exception("Rate limit aşıldı")
+        # Rate limit kontrolü
+        rate_limit = self.check_rate_limit()
+        if not rate_limit['available']:
+            raise Exception(f"Rate limit aşıldı. {rate_limit['retry_after']} saniye bekleyin.")
         
         try:
             # Mesaj listesi oluştur
             messages = []
             
-            # System prompt
-            if role_context:
-                messages.append({
-                    "role": "system",
-                    "content": role_context
-                })
-            
             # Context varsa ekle
             if context:
                 messages.append({
                     "role": "system",
-                    "content": f"Kontext: {context}"
+                    "content": context
                 })
             
-            # Conversation history
-            for conv in self.conversation_history[-5:]:
-                messages.append({"role": "user", "content": conv['user']})
-                messages.append({"role": "assistant", "content": conv['assistant']})
-            
-            # Yeni mesaj
+            # Kullanıcı mesajı
             messages.append({"role": "user", "content": message})
             
             # API çağrısı
             response = await self.client.chat.completions.create(
-                model=self.config.model_name,
+                model=self.model,
                 messages=messages,
-                max_tokens=self.config.max_tokens,
-                temperature=self.config.temperature,
+                max_tokens=2048,
+                temperature=0.7,
                 stream=False
             )
             
@@ -64,11 +49,11 @@ class OpenAIAdapter(BaseAIAdapter):
             ai_response = response.choices[0].message.content
             usage = response.usage
             
-            # Rate limiter güncelle
-            self.rate_limiter.record_usage(usage.total_tokens)
+            # Maliyet hesapla
+            cost = self._calculate_cost(usage.prompt_tokens, usage.completion_tokens)
             
-            # History'e ekle
-            self.add_to_history(message, ai_response)
+            # İstatistikleri güncelle
+            self._update_stats(usage.total_tokens, cost)
             
             return AIResponse(
                 content=ai_response,
@@ -76,34 +61,17 @@ class OpenAIAdapter(BaseAIAdapter):
                 usage={
                     "input_tokens": usage.prompt_tokens,
                     "output_tokens": usage.completion_tokens,
-                    "total_tokens": usage.total_tokens
-                },
-                metadata={
-                    "finish_reason": response.choices[0].finish_reason,
-                    "id": response.id,
-                    "created": response.created
-                },
-                timestamp=asyncio.get_event_loop().time()
+                    "total_tokens": usage.total_tokens,
+                    "cost": cost
+                }
             )
             
         except Exception as e:
-            logger.error(f"OpenAI API hatası: {str(e)}", "OPENAI_ADAPTER", e)
-            raise
+            self.stats['errors'] += 1
+            raise Exception(f"OpenAI API hatası: {str(e)}")
     
-    def get_available_models(self) -> List[str]:
-        """Kullanılabilir OpenAI modelleri"""
-        return [
-            "gpt-4o",
-            "gpt-4o-mini",
-            "gpt-4-turbo",
-            "gpt-4-turbo-preview",
-            "gpt-4",
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k"
-        ]
-    
-    def estimate_cost(self, input_tokens: int, output_tokens: int) -> float:
-        """OpenAI maliyet tahmini"""
+    def _calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
+        """OpenAI maliyet hesaplama"""
         # Model bazlı fiyatlandırma (1M token başına $)
         costs = {
             "gpt-4o": {"input": 2.50, "output": 10.00},
@@ -114,7 +82,7 @@ class OpenAIAdapter(BaseAIAdapter):
             "gpt-3.5-turbo-16k": {"input": 3.00, "output": 4.00}
         }
         
-        model_costs = costs.get(self.config.model_name, costs["gpt-3.5-turbo"])
+        model_costs = costs.get(self.model, costs["gpt-3.5-turbo"])
         
         input_cost = (input_tokens / 1_000_000) * model_costs["input"]
         output_cost = (output_tokens / 1_000_000) * model_costs["output"]

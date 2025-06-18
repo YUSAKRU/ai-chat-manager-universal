@@ -1,249 +1,200 @@
 """
-Universal AI Adapter - Tüm AI servislerini yöneten ana sınıf
+Universal AI Adapter - Çoklu AI desteği sağlayan merkezi yönetim sistemi
 """
-from typing import Dict, List, Optional, Any
-import asyncio
+from typing import Dict, Optional, List, Any, Union
 from dataclasses import dataclass
-from .base_adapter import BaseAIAdapter, AIConfig, AIResponse
+import asyncio
+import time
+from datetime import datetime
+import uuid
+
+from .base_adapter import BaseAIAdapter, AIResponse
 from .gemini_adapter import GeminiAdapter
 from .openai_adapter import OpenAIAdapter
 from .secure_config import SecureConfigManager
-from logger import logger
 
-@dataclass
-class AdapterStats:
-    """Adapter istatistikleri"""
-    total_requests: int = 0
-    total_tokens: int = 0
-    total_cost: float = 0.0
-    error_count: int = 0
-    
+
 class UniversalAIAdapter:
-    """Tüm AI adaptörlerini yöneten merkezi sınıf"""
+    """Birden fazla AI adapter'ını yöneten merkezi sistem"""
     
-    def __init__(self):
+    def __init__(self, config_manager: SecureConfigManager):
+        self.config_manager = config_manager
         self.adapters: Dict[str, BaseAIAdapter] = {}
-        self.active_adapters: Dict[str, str] = {}  # role_id -> adapter_key
-        self.stats: Dict[str, AdapterStats] = {}
-        self.config_manager = SecureConfigManager()
-        
-        # Desteklenen adaptörler
-        self.adapter_classes = {
-            'gemini': GeminiAdapter,
-            'openai': OpenAIAdapter,
-            # Future: 'claude': ClaudeAdapter,
-            # Future: 'mistral': MistralAdapter
+        self.role_assignments: Dict[str, str] = {}  # role_id -> adapter_id
+        self.conversation_history: List[Dict[str, Any]] = []
+        self.total_stats = {
+            'total_requests': 0,
+            'total_tokens': 0,
+            'total_cost': 0.0,
+            'total_errors': 0
         }
-        
-    async def initialize_from_config(self, config_file: str = ".env"):
-        """Konfigürasyon dosyasından adaptörleri başlat"""
-        try:
-            # Güvenli config yükle
-            configs = await self.config_manager.load_secure_configs(config_file)
-            
-            for adapter_id, config_data in configs.items():
-                adapter_type = config_data.get('type', 'gemini')
-                
-                if adapter_type in self.adapter_classes:
-                    ai_config = AIConfig(
-                        api_key=config_data['api_key'],
-                        model_name=config_data.get('model', 'gemini-2.0-flash'),
-                        max_tokens=config_data.get('max_tokens', 2000),
-                        temperature=config_data.get('temperature', 0.7),
-                        rate_limit_rpm=config_data.get('rate_limit_rpm', 60),
-                        rate_limit_tpm=config_data.get('rate_limit_tpm', 1000000)
-                    )
-                    
-                    # Adapter oluştur
-                    adapter_class = self.adapter_classes[adapter_type]
-                    adapter = adapter_class(ai_config)
-                    
-                    # Kaydet
-                    self.adapters[adapter_id] = adapter
-                    self.stats[adapter_id] = AdapterStats()
-                    
-                    logger.info(f"✅ {adapter_id} adaptörü başlatıldı ({adapter_type})", "UNIVERSAL_ADAPTER")
-            
-            # Varsayılan rol atamaları
-            self._setup_default_roles()
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"Adaptör başlatma hatası: {str(e)}", "UNIVERSAL_ADAPTER", e)
-            return False
     
-    def _setup_default_roles(self):
-        """Varsayılan rol-adapter eşleşmeleri"""
-        # Gemini varsa PM olarak kullan
-        if 'gemini_pm' in self.adapters:
-            self.active_adapters['project_manager'] = 'gemini_pm'
+    def add_adapter(self, adapter_type: str, adapter_id: Optional[str] = None, **kwargs) -> str:
+        """Yeni bir AI adapter ekle"""
+        # Otomatik ID oluştur
+        if not adapter_id:
+            adapter_id = f"{adapter_type}-{str(uuid.uuid4())[:8]}"
         
-        # OpenAI varsa LD olarak kullan  
-        if 'openai_ld' in self.adapters:
-            self.active_adapters['lead_developer'] = 'openai_ld'
-        elif 'gemini_ld' in self.adapters:
-            self.active_adapters['lead_developer'] = 'gemini_ld'
-    
-    def add_adapter(self, adapter_id: str, adapter_type: str, config: AIConfig):
-        """Manuel adapter ekleme"""
-        if adapter_type not in self.adapter_classes:
+        # Adapter tipine göre oluştur
+        if adapter_type == "gemini":
+            adapter = GeminiAdapter(
+                api_key=kwargs.get('api_key'),
+                model=kwargs.get('model', 'gemini-pro')
+            )
+        elif adapter_type == "openai":
+            adapter = OpenAIAdapter(
+                api_key=kwargs.get('api_key'),
+                model=kwargs.get('model', 'gpt-3.5-turbo')
+            )
+        else:
             raise ValueError(f"Desteklenmeyen adapter tipi: {adapter_type}")
         
-        adapter_class = self.adapter_classes[adapter_type]
-        adapter = adapter_class(config)
-        
         self.adapters[adapter_id] = adapter
-        self.stats[adapter_id] = AdapterStats()
-        
-        logger.info(f"✅ {adapter_id} adaptörü eklendi ({adapter_type})", "UNIVERSAL_ADAPTER")
+        return adapter_id
+    
+    def remove_adapter(self, adapter_id: str):
+        """Bir adapter'ı kaldır"""
+        if adapter_id in self.adapters:
+            del self.adapters[adapter_id]
+            # Rol atamalarını temizle
+            for role, assigned_id in list(self.role_assignments.items()):
+                if assigned_id == adapter_id:
+                    del self.role_assignments[role]
     
     def assign_role(self, role_id: str, adapter_id: str):
         """Bir role adapter ata"""
         if adapter_id not in self.adapters:
             raise ValueError(f"Adapter bulunamadı: {adapter_id}")
-        
-        self.active_adapters[role_id] = adapter_id
-        logger.info(f"📌 {role_id} rolü -> {adapter_id} adaptörüne atandı", "UNIVERSAL_ADAPTER")
+        self.role_assignments[role_id] = adapter_id
     
-    async def send_message(
-        self, 
-        role_id: str, 
-        message: str, 
-        context: Optional[str] = None
-    ) -> Optional[AIResponse]:
-        """Role göre mesaj gönder"""
+    async def send_message(self, role_id: str, message: str, context: Optional[str] = None) -> Optional[AIResponse]:
+        """Belirli bir rol üzerinden mesaj gönder"""
+        # Role atanmış adapter'ı bul
+        adapter_id = self.role_assignments.get(role_id)
+        if not adapter_id or adapter_id not in self.adapters:
+            # Varsayılan olarak ilk adapter'ı kullan
+            if self.adapters:
+                adapter_id = list(self.adapters.keys())[0]
+            else:
+                raise ValueError("Kullanılabilir adapter yok")
         
-        # Role atanmış adapter var mı?
-        if role_id not in self.active_adapters:
-            logger.error(f"Role atanmamış: {role_id}", "UNIVERSAL_ADAPTER")
-            return None
-        
-        adapter_id = self.active_adapters[role_id]
         adapter = self.adapters[adapter_id]
         
         try:
-            # Role göre context oluştur
-            role_context = self._get_role_context(role_id)
-            
             # Mesajı gönder
-            response = await adapter.send_message(
-                message=message,
-                context=context,
-                role_context=role_context
-            )
+            response = await adapter.send_message(message, context)
             
-            # İstatistikleri güncelle
-            stats = self.stats[adapter_id]
-            stats.total_requests += 1
-            stats.total_tokens += response.usage['total_tokens']
-            stats.total_cost += adapter.estimate_cost(
-                response.usage['input_tokens'],
-                response.usage['output_tokens']
-            )
-            
-            logger.info(
-                f"✅ {role_id} yanıt verdi ({adapter_id}: {response.model})",
-                "UNIVERSAL_ADAPTER"
-            )
-            
-            return response
-            
+            if response:
+                # İstatistikleri güncelle
+                self.total_stats['total_requests'] += 1
+                self.total_stats['total_tokens'] += response.usage.get('total_tokens', 0)
+                self.total_stats['total_cost'] += response.usage.get('cost', 0)
+                
+                # Konuşma geçmişine ekle
+                self.conversation_history.append({
+                    'timestamp': datetime.now().isoformat(),
+                    'role_id': role_id,
+                    'adapter_id': adapter_id,
+                    'message': message,
+                    'response': response.content,
+                    'usage': response.usage
+                })
+                
+                return response
+                
         except Exception as e:
-            logger.error(f"❌ {role_id} mesaj hatası: {str(e)}", "UNIVERSAL_ADAPTER", e)
-            self.stats[adapter_id].error_count += 1
-            return None
+            self.total_stats['total_errors'] += 1
+            raise e
     
-    def _get_role_context(self, role_id: str) -> str:
-        """Role göre system prompt"""
-        contexts = {
-            "project_manager": """Sen bir Proje Yöneticisisin. Görevlerin:
-- Projeleri planlama ve organize etme
-- Ekip koordinasyonu sağlama  
-- İlerleme takibi yapma
-- Karar verme ve yönlendirme
-- Risk analizi ve çözüm önerme
-
-Profesyonel, yapıcı ve sonuç odaklı ol.""",
-
-            "lead_developer": """Sen bir Uzman Geliştiricissin. Görevlerin:
-- Teknik problemleri analiz etme ve çözme
-- Kod kalitesi ve mimari kararları verme
-- Teknik dokümantasyon hazırlama
-- Yeni teknolojileri araştırma
-- Best practice'leri uygulama
-
-Teknik detayları açık ve anlaşılır şekilde açıkla.""",
-
-            "boss": """Sen şirketin patronusun. Görevlerin:
-- Stratejik kararlar verme
-- Proje önceliklerini belirleme
-- Kaynak tahsisi yapma
-- Performans değerlendirme
-- Vizyon ve hedef belirleme
-
-Otoriter ama adil, sonuç odaklı ve stratejik düşün."""
-        }
+    async def send_message_to_adapter(self, adapter_id: str, message: str, context: Optional[str] = None) -> Optional[AIResponse]:
+        """Doğrudan belirli bir adapter'a mesaj gönder"""
+        if adapter_id not in self.adapters:
+            raise ValueError(f"Adapter bulunamadı: {adapter_id}")
         
-        return contexts.get(role_id, "Sen yardımcı bir AI asistanısın.")
+        adapter = self.adapters[adapter_id]
+        return await adapter.send_message(message, context)
     
-    def get_adapter_status(self, adapter_id: str = None) -> Dict[str, Any]:
-        """Adapter durumu"""
-        if adapter_id:
-            if adapter_id not in self.adapters:
-                return {"error": "Adapter bulunamadı"}
-            
-            adapter = self.adapters[adapter_id]
-            stats = self.stats[adapter_id]
-            
-            return {
-                "id": adapter_id,
-                "type": adapter.__class__.__name__,
-                "model": adapter.config.model_name,
-                "stats": {
-                    "requests": stats.total_requests,
-                    "tokens": stats.total_tokens,
-                    "cost": f"${stats.total_cost:.4f}",
-                    "errors": stats.error_count
-                },
-                "rate_limit": {
-                    "available": adapter.check_rate_limit()
-                }
+    def get_adapter_status(self) -> Dict[str, Any]:
+        """Tüm adapter'ların durumunu al"""
+        status = {}
+        for adapter_id, adapter in self.adapters.items():
+            status[adapter_id] = {
+                'type': adapter.__class__.__name__.replace('Adapter', '').lower(),
+                'model': adapter.model,
+                'rate_limit': adapter.check_rate_limit(),
+                'stats': adapter.get_stats()
             }
-        else:
-            # Tüm adaptörlerin durumu
-            return {
-                adapter_id: self.get_adapter_status(adapter_id)
-                for adapter_id in self.adapters
-            }
+        return status
     
     def get_role_assignments(self) -> Dict[str, str]:
         """Rol atamalarını döndür"""
-        return self.active_adapters.copy()
+        return self.role_assignments.copy()
     
     def get_total_stats(self) -> Dict[str, Any]:
-        """Toplam istatistikler"""
-        total_requests = sum(s.total_requests for s in self.stats.values())
-        total_tokens = sum(s.total_tokens for s in self.stats.values())
-        total_cost = sum(s.total_cost for s in self.stats.values())
-        total_errors = sum(s.error_count for s in self.stats.values())
-        
-        return {
-            "total_requests": total_requests,
-            "total_tokens": total_tokens,
-            "total_cost": f"${total_cost:.4f}",
-            "total_errors": total_errors,
-            "adapters_count": len(self.adapters),
-            "active_roles": len(self.active_adapters)
-        }
+        """Toplam istatistikleri döndür"""
+        stats = self.total_stats.copy()
+        stats['adapters_count'] = len(self.adapters)
+        stats['active_roles'] = len(self.role_assignments)
+        return stats
     
-    def clear_conversation_history(self, role_id: str = None):
+    def clear_conversation_history(self):
         """Konuşma geçmişini temizle"""
-        if role_id and role_id in self.active_adapters:
-            adapter_id = self.active_adapters[role_id]
-            self.adapters[adapter_id].clear_history()
-            logger.info(f"🗑️ {role_id} konuşma geçmişi temizlendi", "UNIVERSAL_ADAPTER")
-        else:
-            for adapter in self.adapters.values():
-                adapter.clear_history()
-            logger.info("🗑️ Tüm konuşma geçmişleri temizlendi", "UNIVERSAL_ADAPTER") 
+        self.conversation_history.clear()
+    
+    def get_conversation_history(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Konuşma geçmişini al"""
+        if limit:
+            return self.conversation_history[-limit:]
+        return self.conversation_history.copy()
+    
+    async def balance_load(self, message: str, context: Optional[str] = None) -> Optional[AIResponse]:
+        """Yük dengeleme ile mesaj gönder (en az kullanılan adapter'ı seç)"""
+        if not self.adapters:
+            raise ValueError("Kullanılabilir adapter yok")
+        
+        # En az istek alan adapter'ı bul
+        min_requests = float('inf')
+        selected_adapter_id = None
+        
+        for adapter_id, adapter in self.adapters.items():
+            stats = adapter.get_stats()
+            if stats['requests'] < min_requests and adapter.check_rate_limit()['available']:
+                min_requests = stats['requests']
+                selected_adapter_id = adapter_id
+        
+        if not selected_adapter_id:
+            # Tüm adapter'lar rate limit'te, ilk uygun olanı bekle
+            for adapter_id, adapter in self.adapters.items():
+                if adapter.check_rate_limit()['retry_after'] == 0:
+                    selected_adapter_id = adapter_id
+                    break
+        
+        if selected_adapter_id:
+            return await self.send_message_to_adapter(selected_adapter_id, message, context)
+        
+        raise Exception("Tüm adapter'lar meşgul")
+    
+    async def parallel_query(self, message: str, context: Optional[str] = None) -> Dict[str, AIResponse]:
+        """Tüm adapter'lara paralel sorgu gönder"""
+        tasks = []
+        adapter_ids = []
+        
+        for adapter_id, adapter in self.adapters.items():
+            if adapter.check_rate_limit()['available']:
+                task = self.send_message_to_adapter(adapter_id, message, context)
+                tasks.append(task)
+                adapter_ids.append(adapter_id)
+        
+        if not tasks:
+            return {}
+        
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        results = {}
+        for adapter_id, response in zip(adapter_ids, responses):
+            if isinstance(response, Exception):
+                results[adapter_id] = None
+            else:
+                results[adapter_id] = response
+        
+        return results 

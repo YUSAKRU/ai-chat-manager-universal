@@ -47,6 +47,10 @@ class MemoryBankIntegration:
         except Exception as e:
             print(f"❌ Memory Bank başlatılırken hata: {str(e)}")
             return False
+    
+    async def initialize(self):
+        """Async initialize wrapper"""
+        return self.initialize_memory_bank()
 
     def _create_memory_bank_structure(self):
         """Memory Bank dosya yapısını oluştur"""
