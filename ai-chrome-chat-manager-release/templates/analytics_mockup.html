@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analytics Dashboard - Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #2d3748;
+        }
+        
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .last-update {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        
+        .metric-card.cost {
+            border-top: 4px solid #48bb78;
+        }
+        
+        .metric-card.requests {
+            border-top: 4px solid #4299e1;
+        }
+        
+        .metric-card.success {
+            border-top: 4px solid #9f7aea;
+        }
+        
+        .metric-card.speed {
+            border-top: 4px solid #ed8936;
+        }
+        
+        .metric-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+        
+        .metric-change {
+            font-size: 13px;
+            color: #48bb78;
+        }
+        
+        .metric-change.negative {
+            color: #e53e3e;
+        }
+        
+        .token-usage {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .token-usage h3 {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .token-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            display: flex;
+        }
+        
+        .progress-input {
+            background: #4299e1;
+            width: 62%;
+        }
+        
+        .progress-output {
+            background: #48bb78;
+            width: 38%;
+        }
+        
+        .ai-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .ai-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #4299e1;
+        }
+        
+        .ai-card.inactive {
+            opacity: 0.6;
+            border-left-color: #cbd5e0;
+        }
+        
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .ai-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .ai-model {
+            font-size: 13px;
+            color: #718096;
+        }
+        
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+        
+        .status-dot.inactive {
+            background: #cbd5e0;
+        }
+        
+        .ai-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .ai-stat {
+            text-align: center;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+        
+        .ai-stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+        
+        .ai-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .live-feed {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-top: 4px solid #e53e3e;
+            margin-bottom: 20px;
+        }
+        
+        .feed-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .feed-item {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feed-time {
+            color: #718096;
+            font-size: 12px;
+        }
+        
+        .feed-content {
+            margin-left: 50px;
+            color: #2d3748;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #4a5568;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: #f7fafc;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <h1>🤖 AI Chrome Chat Manager Analytics</h1>
+            <div class="last-update">Son Güncelleme: 15:42:35</div>
+        </div>
+        
+        <!-- Primary Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card cost">
+                <div class="metric-label">💰 TOPLAM MALİYET</div>
+                <div class="metric-value">$2.47</div>
+                <div class="metric-change">↑ $0.12 (Son 1 saat)</div>
+            </div>
+            
+            <div class="metric-card requests">
+                <div class="metric-label">🔄 TOPLAM İSTEK</div>
+                <div class="metric-value">186</div>
+                <div class="metric-change">15 RPM ortalama</div>
+            </div>
+            
+            <div class="metric-card success">
+                <div class="metric-label">🎯 BAŞARI ORANI</div>
+                <div class="metric-value">98.4%</div>
+                <div class="metric-change negative">3 hata</div>
+            </div>
+            
+            <div class="metric-card speed">
+                <div class="metric-label">⚡ ORTALAMA YANIT</div>
+                <div class="metric-value">1.8s</div>
+                <div class="metric-change">En hızlı: GPT-4o-mini</div>
+            </div>
+        </div>
+        
+        <!-- Token Usage -->
+        <div class="token-usage">
+            <h3>📊 TOKEN KULLANIMI</h3>
+            <div class="token-stats">
+                <div>Toplam: 45,678 token</div>
+                <div>Input: 28,234 (62%) | Output: 17,444 (38%)</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill">
+                    <div class="progress-input"></div>
+                    <div class="progress-output"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Performance Breakdown -->
+        <div class="ai-breakdown">
+            <div class="ai-card">
+                <div class="ai-header">
+                    <div>
+                        <div class="ai-name">👔 Project Manager</div>
+                        <div class="ai-model">Gemini 2.0 Flash</div>
+                    </div>
+                    <div class="ai-status">
+                        <span class="status-dot"></span>
+                        <span>Aktif</span>
+                    </div>
+                </div>
+                <div class="ai-stats">
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">İstek</div>
+                        <div class="ai-stat-value">92</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Token</div>
+                        <div class="ai-stat-value">23.4K</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Maliyet</div>
+                        <div class="ai-stat-value">$0.00</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Hata</div>
+                        <div class="ai-stat-value">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-card">
+                <div class="ai-header">
+                    <div>
+                        <div class="ai-name">👨‍💻 Lead Developer</div>
+                        <div class="ai-model">GPT-4o-mini</div>
+                    </div>
+                    <div class="ai-status">
+                        <span class="status-dot"></span>
+                        <span>Aktif</span>
+                    </div>
+                </div>
+                <div class="ai-stats">
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">İstek</div>
+                        <div class="ai-stat-value">94</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Token</div>
+                        <div class="ai-stat-value">22.2K</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Maliyet</div>
+                        <div class="ai-stat-value">$2.47</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Hata</div>
+                        <div class="ai-stat-value">3</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ai-card inactive">
+                <div class="ai-header">
+                    <div>
+                        <div class="ai-name">🎩 Boss</div>
+                        <div class="ai-model">Henüz atanmadı</div>
+                    </div>
+                    <div class="ai-status">
+                        <span class="status-dot inactive"></span>
+                        <span>Beklemede</span>
+                    </div>
+                </div>
+                <div class="ai-stats">
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">İstek</div>
+                        <div class="ai-stat-value">0</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Token</div>
+                        <div class="ai-stat-value">0</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Maliyet</div>
+                        <div class="ai-stat-value">$0.00</div>
+                    </div>
+                    <div class="ai-stat">
+                        <div class="ai-stat-label">Hata</div>
+                        <div class="ai-stat-value">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Live Activity Feed -->
+        <div class="live-feed">
+            <div class="feed-header">
+                <span style="color: #e53e3e;">🔴</span>
+                <h3>CANLI AKTİVİTE</h3>
+            </div>
+            <div class="feed-item">
+                <span class="feed-time">15:42:35</span>
+                <div class="feed-content">👔 PM: Sprint planı istendi</div>
+            </div>
+            <div class="feed-item">
+                <span class="feed-time">15:42:33</span>
+                <div class="feed-content">👨‍💻 LD: Kod analizi tamamlandı</div>
+            </div>
+            <div class="feed-item">
+                <span class="feed-time">15:42:30</span>
+                <div class="feed-content">👔 PM: Yeni görev atandı</div>
+            </div>
+            <div class="feed-item">
+                <span class="feed-time">15:42:28</span>
+                <div class="feed-content">👨‍💻 LD: API yanıtı alındı</div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="btn btn-secondary">🗑️ İstatistikleri Sıfırla</button>
+            <button class="btn btn-secondary">💾 Rapor İndir</button>
+            <button class="btn btn-secondary">🔄 Yenile</button>
+        </div>
+    </div>
+</body>
+</html> 

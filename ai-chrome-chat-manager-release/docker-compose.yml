@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  ai-chat-manager:
+    build: .
+    container_name: ai-chrome-chat-manager
+    ports:
+      - "5000:5000"
+    environment:
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD:-AI-Chrome-Chat-Manager-2025}
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=5000
+    volumes:
+      - ./memory-bank:/app/memory-bank
+      - ./logs:/app/logs
+      - ./.env:/app/.env:ro
+      - ./config.enc:/app/config.enc:rw
+      - ./.key:/app/.key:rw
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3 
