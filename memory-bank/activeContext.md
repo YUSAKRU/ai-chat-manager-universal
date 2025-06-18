@@ -5,8 +5,7 @@ Proje temel MVP (Minimum Viable Product) aşamasını tamamlamıştır.
 
 ## Aktif Görevler
 - [ ] Web UI HTML template'lerinin tamamlanması
-- [ ] Web UI gelişmiş modüller (Görev Panosu, Memory Bank Viewer)
-- [ ] Chrome profil seçiminin Web UI üzerinden yapılması
+- [ ] Memory Bank MCP entegrasyonu
 - [ ] Hata yönetiminin iyileştirilmesi
 - [ ] Logging sisteminin eklenmesi
 - [ ] Konfigürasyon dosyası desteği
@@ -36,4 +35,4 @@ Proje temel MVP (Minimum Viable Product) aşamasını tamamlamıştır.
 - Multi-language support
 - Plugin system
 
-Son Güncelleme: 2025-06-11 12:45
+Son Güncelleme: 2025-06-18 21:56

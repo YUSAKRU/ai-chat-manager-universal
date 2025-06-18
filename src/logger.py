@@ -70,6 +70,11 @@ class AIChromeChatLogger:
 # Global logger instance
 logger = AIChromeChatLogger()
 
+def setup_logger(name: str = "ai_chrome_chat_manager", log_level: str = "INFO"):
+    """Standalone setup_logger function for easy import and use"""
+    logger_instance = AIChromeChatLogger(log_level)
+    return logger_instance
+
 def safe_execute(func, error_message: str, component: str = None, default_return=None):
     """Güvenli fonksiyon çalıştırma wrapper'ı"""
     try:

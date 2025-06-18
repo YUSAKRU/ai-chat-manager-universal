@@ -119,4 +119,61 @@ class SecureConfigManager:
             
         except Exception as e:
             print(f"❌ API anahtarı kaldırma hatası: {str(e)}")
-            return False 
+            return False
+    
+    # ===== Web UI Compatibility Methods =====
+    
+    def get_config(self) -> Dict[str, Any]:
+        """Web UI için konfigürasyon formatı"""
+        try:
+            configs = self.load_all_keys()
+            # Provider bazında organize et
+            organized_config = {}
+            
+            for provider_key, api_key in configs.items():
+                # Provider ve key name'i ayır (örn: gemini_primary -> gemini: {primary: key})
+                if '_' in provider_key:
+                    provider, key_name = provider_key.split('_', 1)
+                else:
+                    provider = provider_key
+                    key_name = 'primary'
+                
+                if provider not in organized_config:
+                    organized_config[provider] = {}
+                
+                organized_config[provider][key_name] = api_key
+            
+            return organized_config
+            
+        except Exception as e:
+            print(f"❌ Config yükleme hatası: {str(e)}")
+            return {}
+    
+    def set_key(self, provider: str, key_name: str, api_key: str) -> bool:
+        """Provider ve key name ile API anahtarı kaydet"""
+        try:
+            # Provider_keyname formatında kaydet
+            combined_key = f"{provider}_{key_name}" if key_name != 'primary' else provider
+            return self.save_api_key(combined_key, api_key)
+        except Exception as e:
+            print(f"❌ API anahtarı set hatası: {str(e)}")
+            return False
+    
+    def remove_key(self, provider: str, key_name: str) -> bool:
+        """Provider ve key name ile API anahtarı kaldır"""
+        try:
+            # Provider_keyname formatında kaldır
+            combined_key = f"{provider}_{key_name}" if key_name != 'primary' else provider
+            return self.remove_api_key(combined_key)
+        except Exception as e:
+            print(f"❌ API anahtarı remove hatası: {str(e)}")
+            return False
+    
+    def get_key(self, provider: str, key_name: str = 'primary') -> Optional[str]:
+        """Provider ve key name ile API anahtarı al"""
+        try:
+            combined_key = f"{provider}_{key_name}" if key_name != 'primary' else provider
+            return self.get_api_key(combined_key)
+        except Exception as e:
+            print(f"❌ API anahtarı get hatası: {str(e)}")
+            return None

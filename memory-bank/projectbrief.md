@@ -1,7 +1,7 @@
 # AI Chrome Chat Manager - Proje Özeti
 
 ## Proje Hedefi
-İki AI chat penceresi arasında akıllı köprü sistemi geliştirmek
+AI-powered chat management system with multi-AI orchestration and role-based automation
 
 ## Vizyon
 İki farklı AI chat penceresini yöneten ve onların birbiriyle iletişim kurmasını sağlayan Python uygulaması.
@@ -24,4 +24,4 @@
 - Web arayüzü üzerinden kontrolün sağlanması
 - Konuşma geçmişinin kaydedilmesi
 
-Oluşturulma: 2025-06-11 12:32
+Oluşturulma: 2025-06-18 21:56

@@ -11,8 +11,9 @@ import threading
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from project_memory import ProjectMemory
-from plugin_manager import plugin_manager
+# TODO: Implement these modules in future versions
+# from project_memory import ProjectMemory
+# from plugin_manager import plugin_manager
 
 class WebUIUniversal:
     """Universal AI Adapter ile uyumlu Web UI"""
@@ -36,12 +37,14 @@ class WebUIUniversal:
         self.active_conversations = {}
         self.intervention_queue = {}
         
-        # Proje hafızası
-        self.project_memory = ProjectMemory()
+        # Proje hafızası (TODO: Implement ProjectMemory)
+        # self.project_memory = ProjectMemory()
+        self.project_memory = None
         
-        # Plugin sistemi
-        plugin_manager.load_plugins()
-        print(f"🔌 Loaded plugins: {list(plugin_manager.plugins.keys())}")
+        # Plugin sistemi (TODO: Implement plugin_manager)
+        # plugin_manager.load_plugins()
+        # print(f"🔌 Loaded plugins: {list(plugin_manager.plugins.keys())}")
+        print("🔌 Plugin system disabled for this version")
         
         # Analytics verileri için cache
         self.analytics_cache = {
@@ -59,6 +62,10 @@ class WebUIUniversal:
         @self.app.route('/')
         def index():
             return render_template('index_universal.html')
+        
+        @self.app.route('/api-management')
+        def api_management():
+            return render_template('api_management.html')
         
         @self.app.route('/api/status')
         def get_status():
@@ -265,78 +272,300 @@ class WebUIUniversal:
         def get_conversation_history():
             """Konuşma geçmişini getir"""
             try:
-                limit = request.args.get('limit', 10, type=int)
-                conversations = self.project_memory.get_conversation_history(limit)
-                return jsonify(conversations)
+                # TODO: Implement ProjectMemory
+                return jsonify({'error': 'Project memory not implemented yet'}), 501
+                # limit = request.args.get('limit', 10, type=int)
+                # conversations = self.project_memory.get_conversation_history(limit)
+                # return jsonify(conversations)
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
         
         @self.app.route('/api/memory/conversations/<conversation_id>', methods=['GET'])
         def get_conversation_details(conversation_id):
             """Konuşma detaylarını getir"""
-            try:
-                conversation = self.project_memory.get_conversation_details(conversation_id)
-                if conversation:
-                    return jsonify(conversation)
-                else:
-                    return jsonify({'error': 'Konuşma bulunamadı'}), 404
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
+            return jsonify({'error': 'Project memory not implemented yet'}), 501
         
         @self.app.route('/api/memory/conversations', methods=['POST'])
         def save_conversation():
             """Konuşmayı kaydet"""
-            try:
-                data = request.get_json()
-                conversation_id = self.project_memory.save_conversation(data)
-                return jsonify({'id': conversation_id, 'status': 'saved'})
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
+            return jsonify({'error': 'Project memory not implemented yet'}), 501
         
         @self.app.route('/api/memory/tasks', methods=['GET'])
         def get_project_tasks():
             """Proje görevlerini getir"""
-            try:
-                tasks = self.project_memory.get_active_tasks()
-                return jsonify(tasks)
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
+            return jsonify({'error': 'Project memory not implemented yet'}), 501
         
         @self.app.route('/api/memory/tasks', methods=['POST'])
         def create_task():
             """Yeni görev oluştur"""
-            try:
-                data = request.get_json()
-                task_id = self.project_memory.create_task_from_message(
-                    data.get('message_id', ''),
-                    data
-                )
-                return jsonify({'id': task_id, 'status': 'created'})
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
+            return jsonify({'error': 'Project memory not implemented yet'}), 501
         
         @self.app.route('/api/memory/tasks/<task_id>/status', methods=['PATCH'])
         def update_task_status(task_id):
             """Görev durumunu güncelle"""
-            try:
-                data = request.get_json()
-                new_status = data.get('status')
-                success = self.project_memory.update_task_status(task_id, new_status)
-                if success:
-                    return jsonify({'status': 'updated'})
-                else:
-                    return jsonify({'error': 'Görev bulunamadı'}), 404
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
+            return jsonify({'error': 'Project memory not implemented yet'}), 501
         
         @self.app.route('/api/memory/search', methods=['GET'])
         def search_conversations():
             """Konuşmalarda arama yap"""
+            return jsonify({'error': 'Project memory not implemented yet'}), 501
+        
+        # === API Key Management Routes ===
+        
+        @self.app.route('/api/keys', methods=['GET'])
+        def get_api_keys():
+            """Kayıtlı API anahtarlarını listele (güvenli format)"""
             try:
-                query = request.args.get('q', '')
-                limit = request.args.get('limit', 5, type=int)
-                results = self.project_memory.search_conversations(query, limit)
-                return jsonify(results)
+                config_data = self.ai_adapter.config_manager.get_config()
+                safe_keys = {}
+                
+                for provider, keys in config_data.items():
+                    if isinstance(keys, dict):
+                        safe_keys[provider] = {}
+                        for key_name, key_value in keys.items():
+                            # API anahtarını maskele
+                            if key_value and len(key_value) > 8:
+                                masked = key_value[:4] + "*" * (len(key_value) - 8) + key_value[-4:]
+                            else:
+                                masked = "****"
+                            safe_keys[provider][key_name] = {
+                                'masked_key': masked,
+                                'has_key': bool(key_value),
+                                'key_length': len(key_value) if key_value else 0
+                            }
+                
+                return jsonify({
+                    'keys': safe_keys,
+                    'adapters': self.ai_adapter.get_adapter_status(),
+                    'roles': self.ai_adapter.get_role_assignments()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/keys/<provider>', methods=['POST'])
+        def add_api_key(provider):
+            """Yeni API anahtarı ekle"""
+            try:
+                data = request.get_json()
+                api_key = data.get('api_key', '').strip()
+                key_name = data.get('key_name', 'primary').strip()
+                model = data.get('model', '')
+                
+                if not api_key:
+                    return jsonify({'error': 'API anahtarı gerekli'}), 400
+                
+                if not model:
+                    # Varsayılan modeller
+                    if provider == 'gemini':
+                        model = 'gemini-2.5-flash'
+                    elif provider == 'openai':
+                        model = 'gpt-3.5-turbo'
+                    else:
+                        return jsonify({'error': 'Model belirtilmeli'}), 400
+                
+                # API anahtarını test et
+                test_result = self._test_api_key(provider, api_key, model)
+                if not test_result['success']:
+                    return jsonify({
+                        'error': f'API anahtarı test edilemedi: {test_result["error"]}',
+                        'test_result': test_result
+                    }), 400
+                
+                # Konfigürasyona kaydet
+                success = self.ai_adapter.config_manager.set_key(provider, key_name, api_key)
+                if not success:
+                    return jsonify({'error': 'API anahtarı kaydedilemedi'}), 500
+                
+                # Yeni adapter oluştur
+                adapter_id = f"{provider}-{key_name}"
+                try:
+                    created_adapter_id = self.ai_adapter.add_adapter(
+                        provider, 
+                        adapter_id,
+                        api_key=api_key,
+                        model=model
+                    )
+                    
+                    return jsonify({
+                        'success': True,
+                        'adapter_id': created_adapter_id,
+                        'provider': provider,
+                        'model': model,
+                        'test_result': test_result,
+                        'message': f'{provider.title()} API anahtarı başarıyla eklendi'
+                    })
+                    
+                except Exception as adapter_error:
+                    return jsonify({
+                        'error': f'Adapter oluşturulamadı: {str(adapter_error)}',
+                        'api_key_saved': True
+                    }), 500
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/keys/<provider>/<key_name>', methods=['PUT'])
+        def update_api_key(provider, key_name):
+            """API anahtarını güncelle"""
+            try:
+                data = request.get_json()
+                api_key = data.get('api_key', '').strip()
+                model = data.get('model', '')
+                
+                if not api_key:
+                    return jsonify({'error': 'API anahtarı gerekli'}), 400
+                
+                # API anahtarını test et
+                test_result = self._test_api_key(provider, api_key, model)
+                if not test_result['success']:
+                    return jsonify({
+                        'error': f'API anahtarı test edilemedi: {test_result["error"]}',
+                        'test_result': test_result
+                    }), 400
+                
+                # Konfigürasyonu güncelle
+                success = self.ai_adapter.config_manager.set_key(provider, key_name, api_key)
+                if not success:
+                    return jsonify({'error': 'API anahtarı güncellenemedi'}), 500
+                
+                # İlgili adapter'ı güncelle
+                adapter_id = f"{provider}-{key_name}"
+                if adapter_id in self.ai_adapter.adapters:
+                    # Eski adapter'ı kaldır
+                    self.ai_adapter.remove_adapter(adapter_id)
+                
+                # Yeni adapter oluştur
+                created_adapter_id = self.ai_adapter.add_adapter(
+                    provider,
+                    adapter_id,
+                    api_key=api_key,
+                    model=model
+                )
+                
+                return jsonify({
+                    'success': True,
+                    'adapter_id': created_adapter_id,
+                    'provider': provider,
+                    'model': model,
+                    'test_result': test_result,
+                    'message': f'{provider.title()} API anahtarı başarıyla güncellendi'
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/keys/<provider>/<key_name>', methods=['DELETE'])
+        def delete_api_key(provider, key_name):
+            """API anahtarını sil"""
+            try:
+                # Konfigürasyondan sil
+                success = self.ai_adapter.config_manager.remove_key(provider, key_name)
+                if not success:
+                    return jsonify({'error': 'API anahtarı silinemedi'}), 500
+                
+                # İlgili adapter'ı kaldır
+                adapter_id = f"{provider}-{key_name}"
+                if adapter_id in self.ai_adapter.adapters:
+                    self.ai_adapter.remove_adapter(adapter_id)
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'{provider.title()} API anahtarı başarıyla silindi'
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/keys/test', methods=['POST'])
+        def test_api_key():
+            """API anahtarını test et"""
+            try:
+                data = request.get_json()
+                provider = data.get('provider')
+                api_key = data.get('api_key', '').strip()
+                model = data.get('model', '')
+                
+                if not all([provider, api_key]):
+                    return jsonify({'error': 'Provider ve API anahtarı gerekli'}), 400
+                
+                test_result = self._test_api_key(provider, api_key, model)
+                return jsonify(test_result)
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/roles/<role_id>/adapter', methods=['POST'])
+        def assign_adapter_to_role(role_id):
+            """Bir role adapter ata"""
+            try:
+                data = request.get_json()
+                adapter_id = data.get('adapter_id')
+                
+                if not adapter_id:
+                    return jsonify({'error': 'Adapter ID gerekli'}), 400
+                
+                if adapter_id not in self.ai_adapter.adapters:
+                    return jsonify({'error': 'Adapter bulunamadı'}), 404
+                
+                # Role ata
+                self.ai_adapter.assign_role(role_id, adapter_id)
+                
+                return jsonify({
+                    'success': True,
+                    'role_id': role_id,
+                    'adapter_id': adapter_id,
+                    'message': f'{role_id} rolüne {adapter_id} adapter\'ı atandı'
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/models/<provider>')
+        def get_available_models(provider):
+            """Provider için mevcut modelleri listele"""
+            models = {
+                'gemini': [
+                    {'id': 'gemini-2.5-flash', 'name': 'Gemini 2.5 Flash', 'recommended': True},
+                    {'id': 'gemini-1.5-flash', 'name': 'Gemini 1.5 Flash', 'recommended': False},
+                    {'id': 'gemini-1.5-pro', 'name': 'Gemini 1.5 Pro', 'recommended': False},
+                    {'id': 'gemini-2.5-pro', 'name': 'Gemini 2.5 Pro', 'recommended': False}
+                ],
+                'openai': [
+                    {'id': 'gpt-4o-mini', 'name': 'GPT-4o Mini', 'recommended': True},
+                    {'id': 'gpt-3.5-turbo', 'name': 'GPT-3.5 Turbo', 'recommended': False},
+                    {'id': 'gpt-4o', 'name': 'GPT-4o', 'recommended': False},
+                    {'id': 'gpt-4-turbo', 'name': 'GPT-4 Turbo', 'recommended': False}
+                ]
+            }
+            
+            return jsonify({
+                'provider': provider,
+                'models': models.get(provider, [])
+            })
+        
+        @self.app.route('/api/setup')
+        def get_setup_status():
+            """Kurulum durumunu kontrol et"""
+            try:
+                adapters = self.ai_adapter.get_adapter_status()
+                roles = self.ai_adapter.get_role_assignments()
+                
+                # Temel roller tanımlı mı?
+                required_roles = ['project_manager', 'lead_developer', 'boss']
+                setup_complete = all(role in roles for role in required_roles)
+                
+                has_api_keys = len(adapters) > 0
+                
+                return jsonify({
+                    'setup_complete': setup_complete,
+                    'has_api_keys': has_api_keys,
+                    'adapters_count': len(adapters),
+                    'roles_assigned': len(roles),
+                    'required_roles': required_roles,
+                    'missing_roles': [role for role in required_roles if role not in roles]
+                })
+                
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
     
@@ -602,8 +831,9 @@ class WebUIUniversal:
                 'mcp_tools': {}  # MCP tools can be added here when available
             }
             
-            # Plugin'ları çalıştır
-            plugin_results = await plugin_manager.process_message(message, context)
+            # Plugin'ları çalıştır (TODO: Implement plugin_manager)
+            # plugin_results = await plugin_manager.process_message(message, context)
+            plugin_results = []  # Empty for now
             
             # Her plugin sonucu için WebSocket mesajı gönder
             for result in plugin_results:
@@ -641,45 +871,135 @@ class WebUIUniversal:
     async def _save_conversation_to_memory(self, session_id: str, initial_prompt: str, max_turns: int):
         """Konuşmayı proje hafızasına kaydet"""
         try:
+            # TODO: Implement ProjectMemory
+            print(f"📝 Konuşma kaydı atlandı (Project memory not implemented): {session_id}")
+            return
+            
             # Session mesajlarını topla (gerçek implementasyonda bu veriler session'dan gelecek)
             # Şimdilik bu fonksiyon temel yapıyı kuruyor
             
-            conversation_data = {
-                'title': f"AI Konuşması - {datetime.now().strftime('%d.%m.%Y %H:%M')}",
-                'initial_prompt': initial_prompt,
-                'status': 'completed',
-                'total_turns': max_turns,
-                'total_interventions': len(self.intervention_queue.get(session_id, [])),
-                'messages': [],  # Gerçek implementasyonda session'dan toplanacak
-                'metadata': {
-                    'session_id': session_id,
-                    'created_via': 'web_interface'
-                }
-            }
+            # conversation_data = {
+            #     'title': f"AI Konuşması - {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+            #     'initial_prompt': initial_prompt,
+            #     'status': 'completed',
+            #     'total_turns': max_turns,
+            #     'total_interventions': len(self.intervention_queue.get(session_id, [])),
+            #     'messages': [],  # Gerçek implementasyonda session'dan toplanacak
+            #     'metadata': {
+            #         'session_id': session_id,
+            #         'created_via': 'web_interface'
+            #     }
+            # }
             
-            # Konuşmayı kaydet
-            saved_id = self.project_memory.save_conversation(conversation_data)
+            # # Konuşmayı kaydet
+            # saved_id = self.project_memory.save_conversation(conversation_data)
             
-            # WebSocket bildirimi
-            self.socketio.emit('conversation_saved', {
-                'conversation_id': saved_id,
-                'session_id': session_id,
-                'title': conversation_data['title'],
-                'timestamp': datetime.now().isoformat()
-            })
+            # # WebSocket bildirimi
+            # self.socketio.emit('conversation_saved', {
+            #     'conversation_id': saved_id,
+            #     'session_id': session_id,
+            #     'title': conversation_data['title'],
+            #     'timestamp': datetime.now().isoformat()
+            # })
             
-            print(f"💾 Konuşma hafızaya kaydedildi: {saved_id}")
+            # print(f"💾 Konuşma hafızaya kaydedildi: {saved_id}")
             
         except Exception as e:
             print(f"⚠️ Konuşma kayıt hatası: {e}")
     
+    def _test_api_key(self, provider: str, api_key: str, model: str = "") -> dict:
+        """API anahtarını test et (sync wrapper for async operations)"""
+        try:
+            # Test mesajı
+            test_message = "Test connection - just respond with 'OK'"
+            
+            # Geçici adapter oluştur
+            if provider == 'gemini':
+                from .ai_adapters.gemini_adapter import GeminiAdapter
+                test_model = model or 'gemini-2.5-flash'
+                test_adapter = GeminiAdapter(api_key=api_key, model=test_model)
+            elif provider == 'openai':
+                from .ai_adapters.openai_adapter import OpenAIAdapter
+                test_model = model or 'gpt-3.5-turbo'
+                test_adapter = OpenAIAdapter(api_key=api_key, model=test_model)
+            else:
+                return {
+                    'success': False,
+                    'error': f'Desteklenmeyen provider: {provider}',
+                    'provider': provider
+                }
+            
+            # Async test'i sync olarak çalıştır
+            def run_test():
+                try:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    response = loop.run_until_complete(
+                        test_adapter.send_message(test_message)
+                    )
+                    loop.close()
+                    return response
+                except Exception as e:
+                    return None
+            
+            # Test'i thread'de çalıştır (timeout ile)
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(run_test)
+                try:
+                    response = future.result(timeout=10)  # 10 saniye timeout
+                    
+                    if response and response.content:
+                        return {
+                            'success': True,
+                            'message': 'API anahtarı başarıyla test edildi',
+                            'provider': provider,
+                            'model': test_model,
+                            'test_response': response.content[:100],  # İlk 100 karakter
+                            'usage': response.usage
+                        }
+                    else:
+                        return {
+                            'success': False,
+                            'error': 'API\'den geçerli yanıt alınamadı',
+                            'provider': provider
+                        }
+                        
+                except concurrent.futures.TimeoutError:
+                    return {
+                        'success': False,
+                        'error': 'API test timeout (10 saniye)',
+                        'provider': provider
+                    }
+                except Exception as e:
+                    return {
+                        'success': False,
+                        'error': f'Test hatası: {str(e)}',
+                        'provider': provider
+                    }
+                    
+        except ImportError as e:
+            return {
+                'success': False,
+                'error': f'Adapter import hatası: {str(e)}',
+                'provider': provider
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Beklenmeyen hata: {str(e)}',
+                'provider': provider
+            }
+    
     def start_background(self):
-        """Web arayüzünü arka planda başlat"""
+        """Web sunucusunu background'da başlat"""
         def run_server():
-            self.socketio.run(self.app, host=self.host, port=self.port, debug=False)
+            self.socketio.run(self.app, host=self.host, port=self.port, debug=False, allow_unsafe_werkzeug=True)
         
-        self.server_thread = threading.Thread(target=run_server)
-        self.server_thread.daemon = True
-        self.server_thread.start()
+        server_thread = threading.Thread(target=run_server)
+        server_thread.daemon = True
+        server_thread.start()
         
-        print(f"🌐 Universal Web arayüzü başlatıldı: http://{self.host}:{self.port}") 
+        print(f"🌐 Universal Web arayüzü başlatıldı: http://{self.host}:{self.port}")
+        
+        return server_thread 

@@ -7,55 +7,43 @@ Gerçek API anahtarları ile tam özellikli çalıştırıcı
 import os
 import sys
 import asyncio
+import webbrowser
+import time
 from pathlib import Path
 
 # Projeyi path'e ekle
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-def check_api_keys():
-    """API anahtarlarını kontrol et"""
-    print("🔐 API anahtarları kontrol ediliyor...")
-    
-    # .env dosyasını kontrol et
-    env_file = Path('.env')
-    if not env_file.exists():
-        print("❌ .env dosyası bulunamadı!")
-        print("📝 .env dosyası oluşturmak için:")
-        print("   1. env.example dosyasını .env olarak kopyala")
-        print("   2. Gerçek API anahtarlarınızı ekleyin")
-        return False
-    
-    # Gerekli API anahtarlarını kontrol et
-    from dotenv import load_dotenv
-    load_dotenv()
-    
-    required_keys = ['GEMINI_API_KEY', 'OPENAI_API_KEY']
-    missing_keys = []
-    
-    for key in required_keys:
-        if not os.getenv(key):
-            missing_keys.append(key)
-    
-    if missing_keys:
-        print(f"❌ Eksik API anahtarları: {', '.join(missing_keys)}")
-        print("📝 .env dosyasına ekleyin:")
-        for key in missing_keys:
-            print(f"   {key}=your_api_key_here")
-        return False
-    
-    print("✅ Tüm API anahtarları mevcut!")
-    return True
-
-async def main():
-    """Ana production fonksiyonu"""
+def print_welcome():
+    """Karşılama mesajı"""
     print("="*70)
     print("🎯 AI CHROME CHAT MANAGER - PRODUCTION MODE")
     print("="*70)
-    
-    # API anahtarlarını kontrol et
-    if not check_api_keys():
-        print("\n💡 Demo mode için: python run_demo.py")
-        return
+    print()
+    print("🆕 YENİ! Web Tabanlı API Yönetimi:")
+    print("   ✅ Grafik arayüzde API anahtarı ekleme")
+    print("   ✅ Real-time API anahtarı test etme")
+    print("   ✅ Rol bazlı API ataması")
+    print("   ✅ Güvenli şifrelenmiş saklama")
+    print()
+
+def print_instructions():
+    """Kullanım talimatları"""
+    print("📋 KULLANIM TALİMATLARI:")
+    print("="*30)
+    print("1️⃣  Web arayüzü otomatik açılacak")
+    print("2️⃣  'API Yönetimi' linkine tıklayın")
+    print("3️⃣  API anahtarlarınızı ekleyin:")
+    print("     🤖 Gemini: https://makersuite.google.com/app/apikey")
+    print("     🧠 OpenAI: https://platform.openai.com/api-keys")
+    print("4️⃣  Test edin ve kaydedin")
+    print("5️⃣  Rolleri atayın ve sistemi kullanın!")
+    print()
+
+async def main():
+    """Ana production fonksiyonu"""
+    print_welcome()
+    print_instructions()
     
     try:
         # Production modüllerini import et
@@ -63,16 +51,32 @@ async def main():
         
         print("🚀 Production mode başlatılıyor...")
         print("📊 Tüm özellikler aktif:")
-        print("  ✅ Gerçek AI API entegrasyonları")
+        print("  ✅ Web-based API management")
+        print("  ✅ Role-based AI architecture")
         print("  ✅ Memory Bank sistemi")
         print("  ✅ Plugin ecosystem")
-        print("  ✅ Role-based AI architecture")
         print("  ✅ Analytics dashboard")
         print("  ✅ Director intervention system")
         print()
         print("🌐 Web arayüzü: http://localhost:5000")
+        print("🔑 API Yönetimi: http://localhost:5000/api-management")
         print("❌ Çıkmak için: Ctrl+C")
         print("="*70)
+        
+        # 2 saniye bekle sonra tarayıcıyı aç
+        def open_browser():
+            time.sleep(2)
+            try:
+                webbrowser.open('http://localhost:5000')
+                print("🌐 Tarayıcı açıldı!")
+            except:
+                print("🌐 Tarayıcı açılamadı, manuel olarak açın: http://localhost:5000")
+        
+        # Background'da tarayıcıyı aç
+        import threading
+        browser_thread = threading.Thread(target=open_browser)
+        browser_thread.daemon = True
+        browser_thread.start()
         
         # Universal sistem başlat
         await run_universal()

@@ -94,7 +94,9 @@ class UniversalAIAdapter:
         self.token_prices = {
             'gemini-pro': {'input': 0.00025, 'output': 0.0005},
             'gemini-1.5-pro': {'input': 0.00125, 'output': 0.005},
-            'gemini-2.0-flash': {'input': 0.0001, 'output': 0.0003},
+            'gemini-1.5-flash': {'input': 0.000075, 'output': 0.0003},
+            'gemini-2.5-pro': {'input': 0.00125, 'output': 0.005},
+            'gemini-2.5-flash': {'input': 0.0, 'output': 0.0},  # Free tier
             'gpt-3.5-turbo': {'input': 0.0015, 'output': 0.002},
             'gpt-4': {'input': 0.03, 'output': 0.06},
             'gpt-4-turbo': {'input': 0.01, 'output': 0.03},
@@ -122,11 +124,18 @@ class UniversalAIAdapter:
         if not adapter_id:
             adapter_id = f"{adapter_type}-{str(uuid.uuid4())[:8]}"
         
+        # Eğer ID zaten mevcutsa, unique hale getir
+        original_id = adapter_id
+        counter = 1
+        while adapter_id in self.adapters:
+            adapter_id = f"{original_id}-{counter}"
+            counter += 1
+        
         # Adapter tipine göre oluştur
         if adapter_type == "gemini":
             adapter = GeminiAdapter(
                 api_key=kwargs.get('api_key'),
-                model=kwargs.get('model', 'gemini-pro')
+                model=kwargs.get('model', 'gemini-2.5-flash')
             )
         elif adapter_type == "openai":
             adapter = OpenAIAdapter(
@@ -316,6 +325,8 @@ class UniversalAIAdapter:
         """Toplam istatistikleri döndür - gelişmiş sürüm"""
         stats = self.global_stats.to_dict()
         stats.update({
+            'total_requests': self.global_stats.requests_count,  # Backward compatibility
+            'total_errors': self.global_stats.errors_count,    # Backward compatibility
             'adapters_count': len(self.adapters),
             'active_roles': len(self.role_assignments),
             'conversation_entries': len(self.conversation_history),

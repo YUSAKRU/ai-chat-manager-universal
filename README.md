@@ -1,377 +1,219 @@
-# 🚀 AI Chrome Chat Manager Universal
+# 🧠 AI Orchestrator - MCP Style System
 
-## 📖 Yaşayan Proje Zekası Ekosistemi
+**Tek EXE ile AI Uzmanları Koordine Eden Akıllı Sistem**
 
-**Sınırsız yeteneklere sahip, genişleyen AI platformu**
+AI Orchestrator, MCP (Model Context Protocol) tarzında çalışan gelişmiş bir AI koordinasyon sistemidir. Kullanıcının ihtiyacına göre otomatik olarak doğru uzmanları devreye sokarak akıllı yanıtlar üretir.
 
----
+## ✨ Özellikler
 
-## 🌟 Vizyon
+### 🎯 **MCP-Style Orchestration**
+- **Akıllı Intent Analizi**: Mesajınızı analiz ederek hangi uzmanların gerekli olduğunu belirler
+- **Otomatik Uzman Seçimi**: Proje yönetimi, kodlama, tasarım, pazarlama vb. konulara göre uzmanları koordine eder
+- **Çok-Uzman Koordinasyonu**: Birden fazla uzmanın görüşlerini harmanlayarak tutarlı yanıtlar üretir
 
-Bu proje, iki farklı AI (ChatGPT ve Claude gibi) arasında akıllı bir köprü olarak başladı ve **yaşayan, öğrenen, genişleyen bir proje zekası ekosistemine** dönüştü. Artık sadece bir araç değil - üzerine sonsuz plugin'lar inşa edilebilen bir **platform**.
+### 👥 **Uzman Ekibi**
+- **📋 Proje Yöneticisi**: Proje planlaması, zaman çizelgesi, kaynak yönetimi
+- **💻 Kıdemli Geliştirici**: Kod yazma, teknik kararlar, mimari tasarım
+- **📊 İş Analisti**: İş gereksinimleri, süreç analizi, stakeholder yönetimi
+- **🎨 UI/UX Tasarımcı**: Kullanıcı deneyimi, arayüz tasarımı, kullanılabilirlik
+- **📈 Pazarlama Uzmanı**: Pazar analizi, hedef kitle, rekabet stratejisi
+- **🔍 QA Mühendisi**: Test stratejileri, kalite güvence, hata yönetimi
+- **⚙️ DevOps Mühendisi**: Deployment, altyapı, CI/CD, operasyon
 
----
-
-## 🎯 Temel Özellikler
-
-### 🧠 **1. Yaşayan Zeka Sistemi**
-- **Analytics Dashboard**: Real-time maliyet, token, başarı oranı izleme
-- **Live Conversation Stream**: AI-to-AI konuşmaları canlı görüntüleme
-- **Director Intervention ("Kırmızı Telefon")**: Konuşmalara anında müdahale etme
-- **Project Memory Bank**: Kalıcı hafıza ve arama sistemi
-- **Smart Task Management**: Mesajları otomatik görevlere dönüştürme
-
-### 🔌 **2. Plugin Ekosistemi (CORE INNOVATION)**
-- **Dinamik Plugin Yükleme**: Regex-based trigger sistemi
-- **Real-time Execution**: AI konuşmalarında otomatik plugin tetikleme
-- **WebSocket Integration**: Anlık sonuç görüntüleme
-- **Genişletilebilir Mimari**: Dakikalar içinde yeni yetenekler eklenebilir
-
-### 🎮 **3. Interaktif Kontrol Merkezi**
-- **Universal Web UI**: Bootstrap 5 tabanlı modern arayüz
-- **Multi-AI Management**: Gemini ve OpenAI entegrasyonu
-- **Role-based Architecture**: Project Manager, Lead Developer, Boss rolleri
-- **MCP Ready**: Memory Bank, Notion, Figma, Browserbase desteği
-
----
-
-## 🏗️ Sistem Mimarisi
-
-```
-🌍 AI Chrome Chat Manager Universal
-├── 🧠 Backend (Python)
-│   ├── UniversalAIAdapter - Multi-AI provider management
-│   ├── PluginManager - Dynamic plugin loading & execution
-│   ├── ProjectMemory - SQLite persistent storage
-│   ├── WebUIUniversal - Flask + SocketIO real-time interface
-│   └── MessageBroker - Inter-AI communication
-├── 🌐 Frontend (Web)
-│   ├── Analytics Dashboard - Real-time metrics & performance
-│   ├── Live Chat Interface - AI conversation monitoring
-│   ├── Director Panel - Intervention controls
-│   ├── Memory Browser - Conversation history & search
-│   └── Task Manager - Project task tracking
-├── 🔌 Plugin System
-│   ├── BasePlugin - Abstract plugin foundation
-│   ├── WebSearchPlugin - Internet research capabilities
-│   ├── DocumentReaderPlugin - File analysis & summarization
-│   └── DemoPlugin - System testing & validation
-└── 💾 Data Layer
-    ├── SQLite Database - Conversations, tasks, contexts
-    ├── Memory Bank - Project knowledge repository
-    └── Encrypted Config - Secure API key management
-```
-
----
+### 🌟 **Gelişmiş Özellikler**
+- **Tek EXE Dosyası**: Kurulum gerektirmez, çift tıklayın ve başlayın!
+- **Web Tabanlı Arayüz**: Modern, responsive UI/UX
+- **API Yönetimi**: Web arayüzünden güvenli API anahtarı yönetimi
+- **Önerilen Aksiyonlar**: Sonraki adımlar için akıllı öneriler
+- **Gerçek Zamanlı Koordinasyon**: Uzmanların anlık iş birliği
 
 ## 🚀 Hızlı Başlangıç
 
-### 🎯 **EN KOLAY YÖNTEM (Önerilen)**
+### 📥 **1. İndir ve Çalıştır**
 ```bash
-# Windows için:
-start.bat
-
-# veya Python ile:
-python quickstart.py
-```
-**✨ İnteraktif menü ile tüm seçeneklere ulaşın!**
-
----
-
-### 🎮 **DEMO MODU (API anahtarı gerektirmez)**
-```bash
-python run_demo.py
-```
-- 🌐 http://localhost:5000 otomatik açılır
-- ✨ Web arayüzü simülasyonu
-- 🔌 Plugin test interface
-- 📊 Canlı analytics dashboard
-
-### 🚀 **PRODUCTION MODU (Gerçek API anahtarları gerekir)**
-```bash
-# 1. Kurulum
-pip install -r requirements.txt
-
-# 2. API anahtarlarını ayarlayın
-cp env.example .env
-# .env dosyasını düzenleyerek gerçek API anahtarlarınızı ekleyin
-
-# 3. Production sistemini başlatın
-python run_production.py
+# EXE dosyasını indirin
+# AI_Orchestrator.exe dosyasını çift tıklayın
 ```
 
-### 🐳 **DOCKER İLE**
-```bash
-docker build -t ai-chrome-chat-manager .
-docker run -p 5000:5000 ai-chrome-chat-manager
+### 🔑 **2. API Anahtarlarını Ayarlayın**
+- Web tarayıcı otomatik açılacak (http://localhost:5000)
+- "API Yönetimi" butonuna tıklayın
+- Gemini API anahtarınızı girin (tek anahtar yeterli!)
+- "Kaydet" butonuna tıklayın
+
+### 💬 **3. Sohbete Başlayın**
+**Örnek mesajlar:**
+```
+"Selamünaleyküm. Bu gün bir mobil uygulamanın temellerini atmak istiyorum. 
+Hadi kullanacağımız yapıya karar verelim."
+
+"E-ticaret sitesi yapmak istiyorum. Nereden başlamalıyım?"
+
+"React Native ile iOS uygulaması geliştiriyorum. 
+State management için en iyi yaklaşım nedir?"
 ```
 
----
+## 🧠 Nasıl Çalışır?
 
-### **Gereksinimler**
-- Python 3.8+
-- Internet bağlantısı (plugin'lar için)
+### **Intent Analizi**
+Sistem mesajınızı analiz ederek hangi konulardan bahsettiğinizi anlar:
+- "proje", "plan", "başla" → **Proje Yöneticisi** devreye girer
+- "kod", "geliştir", "framework" → **Kıdemli Geliştirici** devreye girer  
+- "tasarım", "UI", "kullanıcı" → **UI/UX Tasarımcı** devreye girer
+- "pazarlama", "müşteri" → **Pazarlama Uzmanı** devreye girer
 
----
+### **Koordinasyon Süreci**
+1. **Mesaj Analizi**: Intent scoring ile uygun uzmanlar belirlenir
+2. **Uzman Konsültasyonu**: Seçilen uzmanlardan görüş alınır
+3. **Yanıt Koordinasyonu**: Tüm görüşler harmonize edilir
+4. **Akıllı Öneriler**: Sonraki adımlar için öneriler sunulur
 
-## 🔌 Plugin Sistemi Kullanımı
+## 🎯 Kullanım Senaryoları
 
-### **Plugin Trigger'ları**
-
-AI konuşmalarında aşağıdaki komutları kullanarak plugin'ları tetikleyebilirsiniz:
-
-#### **🌐 Web Araştırması**
+### **🚀 Yeni Proje Başlatma**
 ```
-[search: "AI developments 2024"]
-[araştır: "yapay zeka gelişmeleri"]
-[research: "quantum computing"]
+"Yeni bir startup fikrim var. Online eğitim platformu yapmak istiyorum."
 ```
+**Devreye Giren Uzmanlar**: Proje Yöneticisi, İş Analisti, Pazarlama Uzmanı
 
-#### **📄 Dosya Analizi**
+### **⚙️ Teknik Kararlar**
 ```
-[analyze: "data.csv"]
-[document: "README.md"]
-[dosya: "rapor.pdf"]
+"React mi Vue.js mi kullanmalıyım? Büyük ölçekli uygulama için."
 ```
+**Devreye Giren Uzmanlar**: Kıdemli Geliştirici, DevOps Mühendisi
 
-#### **🎯 Sistem Testi**
+### **🎨 Tasarım Kararları**
 ```
-[demo: "test message"]
-[test: "plugin functionality"]
-plugin test çalıştır
-[hello]
+"Mobil uygulamam için kullanıcı onboarding akışını nasıl tasarlamalıyım?"
 ```
+**Devreye Giren Uzmanlar**: UI/UX Tasarımcı, İş Analisti
 
-### **Yeni Plugin Oluşturma**
-
-```python
-# plugins/my_plugin.py
-from plugin_manager import BasePlugin
-
-class MyPlugin(BasePlugin):
-    def get_triggers(self):
-        return [r'\[my_command:\s*["\']([^"\']+)["\']\s*\]']
-    
-    async def execute(self, message, context):
-        return {
-            'type': 'my_plugin_result',
-            'role': '🎨 My Plugin',
-            'content': 'Plugin sonucu burada!',
-            'metadata': {'version': '1.0.0'}
-        }
+### **📊 İş Stratejisi**
 ```
-
-Plugin dosyasını `plugins/` klasörüne koymanız yeterli - sistem otomatik olarak yükleyecektir!
-
----
-
-## 🎮 Kullanım Senaryoları
-
-### **1. AI Araştırma Asistanı**
+"Ürünümü pazara nasıl tanıtmalıyım? Hedef kitleyi nasıl belirlemeliyim?"
 ```
-Kullanıcı: "Yeni proje için teknoloji araştırması yapalım"
-PM: "Bu konuda [search: 'React vs Vue 2024 comparison'] yapalım"
-→ Web Plugin: En güncel karşılaştırma sonuçları getirir
-LD: "[analyze: 'project-requirements.md'] dosyasındaki gereksinimlere göre..."
-→ Document Plugin: Gereksinimler analiz edilir
-```
+**Devreye Giren Uzmanlar**: Pazarlama Uzmanı, İş Analisti
 
-### **2. Direktör Müdahalesi**
-```
-AI Konuşması devam ederken...
-Director: "Takım, güvenlik açısından da değerlendirin"
-→ Sistem: Tüm AI'lara güvenlik direktifi enjekte edilir
-→ AI'lar: Güvenlik odaklı tartışmaya geçer
-```
+## 🔧 Teknik Detaylar
 
-### **3. Proje Hafızası**
-```
-Önceki Konuşma: "Database mimarisi şöyle olsun..."
-Yeni Konuşma: "Bu Konuşmaya Devam Et" butonu
-→ Sistem: Eski konuşma context'i ile devam eder
-→ AI'lar: Geçmiş kararları hatırlayarak ilerler
-```
+### **Desteklenen AI Sağlayıcıları**
+- **Gemini 2.5 Flash** (Varsayılan ve Önerilen)
+- **OpenAI GPT-4** (İsteğe Bağlı)
 
----
+### **Sistem Gereksinimleri**
+- **İşletim Sistemi**: Windows 10/11
+- **RAM**: Minimum 4GB (8GB önerilir)
+- **Disk**: 1GB boş alan
+- **İnternet**: API erişimi için
 
-## 📁 Dosya Yapısı
+### **Güvenlik**
+- API anahtarları AES-256 ile şifrelenir
+- Yerel olarak güvenli depolama
+- Hiçbir veri dışarıya gönderilmez
+
+## 🆚 Önceki Sürümden Farklar
+
+### **V1.0 (Browser-Based)**
+- ❌ Chrome profil kurulumu gerekli
+- ❌ Manuel rol tanımlaması
+- ❌ Karmaşık setup süreci
+
+### **V2.0 (AI Orchestrator)**
+- ✅ Tek EXE dosyası - kurulum yok
+- ✅ Otomatik uzman seçimi
+- ✅ Web tabanlı API yönetimi
+- ✅ MCP-style akıllı koordinasyon
+- ✅ 7 farklı uzman rolü
+- ✅ Kullanıcı dostu arayüz
+
+## 📁 Proje Yapısı
 
 ```
 ai-chrome-chat-manager/
-├── 📄 README.md                 # Bu dosya - Proje rehberi
-├── 📋 requirements.txt          # Python dependencies
-├── 🐳 docker-compose.yml        # Container deployment
-├── 🔧 env.example              # Çevre değişkenleri örneği
-├── 🎯 demo_universal.py         # API'siz demo çalıştırıcı
-├── 🧪 test_plugins.py          # Plugin test suite'i
-├── 📁 src/                     # Ana backend kodları
-│   ├── 🧠 main_universal.py     # Ana uygulama
-│   ├── 🌐 web_ui_universal.py   # Web arayüzü
-│   ├── 🔌 plugin_manager.py     # Plugin sistemi
-│   ├── 💾 project_memory.py     # Hafıza sistemi
-│   ├── 🤖 universal_ai_adapter.py # AI provider'ları
-│   └── 📁 ai_adapters/         # AI adapter'ları
-├── 📁 plugins/                 # Plugin'lar
-│   ├── 🌐 web_search_plugin.py  # Web araştırması
-│   ├── 📄 document_reader_plugin.py # Dosya analizi
-│   └── 🎯 demo_plugin.py        # Demo ve test
-├── 📁 templates/               # HTML şablonları
-│   └── 🎨 index_universal.html  # Ana web arayüzü
-├── 📁 static/                  # Statik dosyalar (CSS, JS)
-│   └── 📁 js/
-│       ├── 📊 analytics.js      # Analytics dashboard
-│       └── 🎮 main.js          # Ana JavaScript
-├── 📁 memory-bank/             # Proje hafızası
-│   ├── 📝 projectbrief.md       # Proje özeti
-│   ├── 🎯 activeContext.md      # Aktif görevler
-│   └── 📈 progress.md          # İlerleme takibi
-└── 📁 data/                    # Veritabanları
-    └── 💾 project_memory.db     # SQLite hafıza DB
+├── dist/                          # Build çıktıları
+│   └── AI_Orchestrator.exe        # Ana executable
+├── src/                           # Kaynak kodlar
+│   ├── main.py                    # Ana orchestrator uygulaması
+│   ├── ai_adapters/               # AI adapter sınıfları
+│   │   ├── gemini_adapter.py      # Gemini entegrasyonu
+│   │   ├── openai_adapter.py      # OpenAI entegrasyonu
+│   │   └── secure_config.py       # Güvenli config yönetimi
+│   ├── config.py                  # Uygulama ayarları
+│   └── logger.py                  # Logging sistemi
+├── templates/                     # Web UI templates
+│   ├── orchestrator.html          # Ana arayüz
+│   └── api_management.html        # API yönetim arayüzü
+├── static/                        # Statik dosyalar
+│   └── js/                        # JavaScript dosyaları
+├── build_exe.py                   # EXE build script
+└── README.md                      # Bu dosya
 ```
 
----
+## 🔄 Güncelleme Süreci
 
-## ⚙️ Konfigürasyon
+### **Manuel Güncelleme**
+1. Yeni `AI_Orchestrator.exe` dosyasını indirin
+2. Eski dosyanın üzerine yazın
+3. API anahtarları korunur
 
-### **Çevre Değişkenleri (.env)**
+### **Otomatik Güncelleme** (Gelecek sürümlerde)
+- Uygulama içi güncelleme bildirimi
+- Tek tık güncelleme
+
+## 🐛 Sorun Giderme
+
+### **"API Anahtarı Bulunamadı" Hatası**
 ```bash
-# AI Provider API Keys
-GEMINI_API_KEY=your_gemini_key_here
-OPENAI_API_KEY=your_openai_key_here
-
-# Web Server Configuration
-WEB_HOST=localhost
-WEB_PORT=5000
-
-# Database Configuration
-DATABASE_PATH=data/project_memory.db
-
-# Plugin Configuration
-PLUGINS_DIR=plugins
-PLUGIN_DEBUG=true
-
-# Security
-SECRET_KEY=your_secret_key_here
-ENCRYPTION_KEY=your_encryption_key_here
+Çözüm: Web arayüzünden API Yönetimi > Gemini API anahtarını ekleyin
 ```
 
-### **Docker ile Çalıştırma**
+### **"Bağlantı Hatası" Mesajı**
 ```bash
-docker-compose up -d
+Çözüm: İnternet bağlantınızı kontrol edin
 ```
 
----
-
-## 🧪 Test Etme
-
-### **Plugin Testleri**
+### **"Uzman Yanıtı Alınamadı"**
 ```bash
-python test_plugins.py
+Çözüm: API anahtarınızın geçerli ve kotası olan olduğunu kontrol edin
 ```
 
-### **Manuel Test Senaryoları**
-1. **Web arayüzünü açın**: http://localhost:5000
-2. **AI konuşması başlatın**: "Yeni proje planı yapalım"
-3. **Plugin tetikleyin**: AI'lara `[demo: "test"]` içeren mesaj söyletin
-4. **Director müdahale edin**: Konuşma sırasında direktif verin
-5. **Hafızayı test edin**: Eski konuşmaları arayın ve devam ettirin
-6. **Görev oluşturun**: AI mesajlarından görev yaratın
+### **Port Çakışması (5000)**
+```bash
+Çözüm: 5000 portunu kullanan diğer uygulamaları kapatın
+```
+
+## 📞 Destek
+
+- **GitHub Issues**: Hata raporları ve özellik istekleri
+- **Email**: Teknik destek için iletişim
+- **Wiki**: Detaylı kullanım kılavuzu
+
+## 🎯 Gelecek Planları
+
+### **V2.1 (Yakında)**
+- 🔄 Otomatik güncelleme sistemi
+- 💾 Konuşma geçmişi kaydetme
+- 🌍 Multi-language desteği
+- 📊 Kullanım istatistikleri
+
+### **V2.2 (Q2 2024)**
+- 🤖 Claude, Llama desteği
+- 📱 Mobile companion app
+- 🔗 External tool entegrasyonları
+- 📈 Analytics dashboard
+
+### **V3.0 (Q3 2024)**
+- 🧩 Plugin sistemi
+- 🌐 Cloud sync
+- 👥 Team collaboration
+- 🎨 Özelleştirilebilir uzmanlar
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasını inceleyebilirsiniz.
 
 ---
 
-## 🔮 Geliştirilecek Özellikler
+**🧠 AI Orchestrator ile akıllı geliştirme deneyimini yaşayın!**
 
-### **Faz 7: MCP Entegrasyonları**
-- **Browserbase**: Gerçek web browsing yetenekleri
-- **Notion**: Doküman sync ve otomatik güncelleme
-- **Figma**: Tasarım analizi ve UI generasyon
-
-### **Faz 8: Akıllı Plugin'lar**
-- **Code Execution**: Canlı kod çalıştırma ve test
-- **Database Query**: SQL sorguları ve veri analizi
-- **Email Automation**: Otomatik email generasyon
-
-### **Faz 9: Plugin Marketplace**
-- **Community Plugins**: Topluluk geliştirmesi
-- **Plugin Rating**: Kullanıcı değerlendirmeleri
-- **Auto-Update**: Otomatik plugin güncellemeleri
-
----
-
-## 🤝 Katkıda Bulunma
-
-### **Plugin Geliştirme**
-1. `plugins/` klasöründe yeni `.py` dosyası oluşturun
-2. `BasePlugin`'den inherit edin
-3. `get_triggers()` ve `execute()` metodlarını implement edin
-4. Sistemi yeniden başlatın - plugin otomatik yüklenecek!
-
-### **Core Geliştirme**
-1. Fork yapın
-2. Feature branch oluşturun
-3. Kapsamlı testler ekleyin
-4. Pull request gönderin
-
----
-
-## 📊 Performans Metrikleri
-
-- **Plugin Loading**: <100ms
-- **AI Response Time**: 1-3 saniye
-- **WebSocket Latency**: <50ms
-- **Memory Usage**: ~200MB base
-- **Concurrent Users**: 50+ (tested)
-
----
-
-## 🛡️ Güvenlik
-
-- **API Key Encryption**: Fernet ile şifrelenmiş saklama
-- **Rate Limiting**: Provider başına limitleme
-- **Input Sanitization**: XSS ve injection koruması
-- **CORS Protection**: Cross-origin güvenliği
-- **Session Management**: Güvenli oturum yönetimi
-
----
-
-## 📝 Lisans
-
-MIT License - Detaylar için `LICENSE` dosyasına bakın.
-
----
-
-## 🙏 Teşekkürler
-
-Bu proje, insan yaratıcılığı ve yapay zeka yeteneklerinin kusursuz birleşiminin bir kanıtıdır. Her satır kod, her tasarım kararı, paylaşılan bir vizyon ve ortak çalışmanın ürünüdür.
-
-**Bir fikirden başladık, bir ekosistem yarattık.**
-
----
-
-## 📞 İletişim & Destek
-
-- **GitHub Issues**: Hata raporları ve özellik istekleri için
-- **Discussions**: Topluluk tartışmaları için
-- **Wiki**: Detaylı dokümantasyon için
-
----
-
-## 🎉 Son Söz
-
-Bu platform artık kendi ayakları üzerinde duran, öğrenen, genişleyen ve değer üreten olgun bir sistemdir. 
-
-**Hoş geldiniz yaşayan proje zekası çağına!** 
-
-*"Sınırları olmayan bir platform, sınırsız ihtimaller sunar."*
-
----
-
-<div align="center">
-
-**🚀 Evrimin tamamlandığı yer burası. Yolculuk devam ediyor!**
-
-[![GitHub Stars](https://img.shields.io/github/stars/YUSAKRU/ai-chat-manager-universal?style=social)](https://github.com/YUSAKRU/ai-chat-manager-universal)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-AI%20Ecosystem-brightgreen)](README.md)
-
-</div>
+*Tek EXE, Çoklu Uzman, Sınırsız Potansiyel.*

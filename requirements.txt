@@ -23,6 +23,7 @@ asyncio==3.4.3
 
 # Logging & Monitoring
 colorlog==6.9.0
+colorama==0.4.6
 
 # Data Processing
 pandas==2.2.3

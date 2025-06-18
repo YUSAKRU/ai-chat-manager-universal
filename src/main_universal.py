@@ -49,15 +49,11 @@ class UniversalChatManager:
             logger.info("🔐 Secure Config Manager başlatılıyor...")
             config_manager = SecureConfigManager("config/api_keys.enc")
             
-            # API anahtarlarını kontrol et
-            if args.setup:
-                await self._setup_api_keys(config_manager)
-            
             # UniversalAIAdapter başlat
             logger.info("🤖 Universal AI Adapter başlatılıyor...")
             self.ai_adapter = UniversalAIAdapter(config_manager)
             
-            # Örnek adapter'ları ekle (eğer yapılandırılmışsa)
+            # Mevcut API anahtarlarını yükle (web arayüzünden eklenmiş olanlar)
             await self._configure_adapters(config_manager)
             
             # Rolleri ata
@@ -80,59 +76,118 @@ class UniversalChatManager:
             logger.error(f"❌ Başlatma hatası: {e}")
             raise
     
-    async def _setup_api_keys(self, config_manager: SecureConfigManager):
-        """API anahtarlarını yapılandır"""
-        print(f"\n{Fore.CYAN}=== API Anahtarı Kurulumu ==={Style.RESET_ALL}")
-        
-        # Gemini API Key
-        print(f"\n{Fore.YELLOW}Gemini API anahtarı:{Style.RESET_ALL}")
-        gemini_key = input("API anahtarınızı girin (boş bırakılırsa atlanır): ").strip()
-        if gemini_key:
-            config_manager.save_api_key("gemini", gemini_key)
-            print(f"{Fore.GREEN}✓ Gemini API anahtarı kaydedildi{Style.RESET_ALL}")
-        
-        # OpenAI API Key
-        print(f"\n{Fore.YELLOW}OpenAI API anahtarı:{Style.RESET_ALL}")
-        openai_key = input("API anahtarınızı girin (boş bırakılırsa atlanır): ").strip()
-        if openai_key:
-            config_manager.save_api_key("openai", openai_key)
-            print(f"{Fore.GREEN}✓ OpenAI API anahtarı kaydedildi{Style.RESET_ALL}")
-        
-        print(f"\n{Fore.GREEN}API anahtarları güvenli bir şekilde şifrelendi ve kaydedildi!{Style.RESET_ALL}")
-    
     async def _configure_adapters(self, config_manager: SecureConfigManager):
-        """AI adapter'larını yapılandır"""
-        # Gemini adapter ekle
-        gemini_key = config_manager.get_api_key("gemini")
-        if gemini_key:
-            self.ai_adapter.add_adapter("gemini", api_key=gemini_key)
-            logger.info("✓ Gemini adapter eklendi")
+        """AI adapter'larını yapılandır (web arayüzünden gelen anahtarlar)"""
         
-        # OpenAI adapter ekle
-        openai_key = config_manager.get_api_key("openai")
-        if openai_key:
-            self.ai_adapter.add_adapter("openai", api_key=openai_key)
-            logger.info("✓ OpenAI adapter eklendi")
+        # Web arayüzünden eklenen tüm API anahtarlarını yükle
+        config_data = config_manager.get_config()
+        adapter_count = 0
         
-        if not gemini_key and not openai_key:
-            logger.warning("⚠️ Hiçbir API anahtarı yapılandırılmadı. --setup ile kurulum yapın.")
+        # Gemini anahtarları
+        if 'gemini' in config_data:
+            for key_name, api_key in config_data['gemini'].items():
+                if api_key and api_key.strip():
+                    adapter_id = f"gemini-{key_name}"
+                    self.ai_adapter.add_adapter("gemini", adapter_id, api_key=api_key, model="gemini-2.5-flash")
+                    logger.info(f"✓ Gemini adapter eklendi: {adapter_id}")
+                    adapter_count += 1
+        
+        # OpenAI anahtarları
+        if 'openai' in config_data:
+            for key_name, api_key in config_data['openai'].items():
+                if api_key and api_key.strip():
+                    adapter_id = f"openai-{key_name}"
+                    self.ai_adapter.add_adapter("openai", adapter_id, api_key=api_key, model="gpt-4o-mini")
+                    logger.info(f"✓ OpenAI adapter eklendi: {adapter_id}")
+                    adapter_count += 1
+        
+        # Varsayılan adapter'ları ekle (backward compatibility)
+        if adapter_count == 0:
+            # Eski .env tarzı anahtarları da kontrol et
+            gemini_key = config_manager.get_api_key("gemini")
+            if gemini_key:
+                self.ai_adapter.add_adapter("gemini", "gemini-pm", api_key=gemini_key, model="gemini-2.5-flash")
+                logger.info("✓ Gemini PM adapter eklendi: gemini-pm")
+                adapter_count += 1
+                
+                # İkinci Gemini adapter (aynı key ile)
+                self.ai_adapter.add_adapter("gemini", "gemini-ld", api_key=gemini_key, model="gemini-2.5-flash")
+                logger.info("✓ Gemini LD adapter eklendi: gemini-ld")
+                adapter_count += 1
+            
+            openai_key = config_manager.get_api_key("openai")
+            if openai_key:
+                self.ai_adapter.add_adapter("openai", "openai-boss", api_key=openai_key, model="gpt-4o-mini")
+                logger.info("✓ OpenAI Boss adapter eklendi: openai-boss")
+                adapter_count += 1
+        
+        logger.info(f"🎯 Toplam {adapter_count} AI adapter yapılandırıldı")
+        
+        if adapter_count == 0:
+            logger.warning("⚠️ Hiçbir API anahtarı bulunamadı.")
+            logger.warning("🌐 Web arayüzünden API anahtarlarınızı ekleyin: http://localhost:5000/api-management")
     
     def _assign_roles(self):
         """Rolleri AI adapter'larına ata"""
         # Mevcut adapter'ları kontrol et
         adapters = list(self.ai_adapter.adapters.keys())
+        logger.info(f"Mevcut adapter'lar: {adapters}")
         
         if len(adapters) >= 1:
-            self.ai_adapter.assign_role("project_manager", adapters[0])
-            logger.info(f"📋 Project Manager rolü atandı: {adapters[0]}")
+            # Önce belirli isimleri ara
+            pm_adapter = None
+            if "gemini-pm" in adapters:
+                pm_adapter = "gemini-pm"
+            elif any("gemini" in a for a in adapters):
+                pm_adapter = next(a for a in adapters if "gemini" in a)
+            else:
+                pm_adapter = adapters[0]
+            
+            self.ai_adapter.assign_role("project_manager", pm_adapter)
+            logger.info(f"📋 Project Manager rolü atandı: {pm_adapter}")
         
         if len(adapters) >= 2:
-            self.ai_adapter.assign_role("lead_developer", adapters[1])
-            logger.info(f"💻 Lead Developer rolü atandı: {adapters[1]}")
+            # Lead Developer için ikinci adapter
+            ld_adapter = None
+            if "gemini-ld" in adapters:
+                ld_adapter = "gemini-ld"
+            elif len([a for a in adapters if "gemini" in a]) >= 2:
+                gemini_adapters = [a for a in adapters if "gemini" in a]
+                ld_adapter = gemini_adapters[1] if len(gemini_adapters) > 1 else gemini_adapters[0]
+            else:
+                ld_adapter = adapters[1]
+            
+            self.ai_adapter.assign_role("lead_developer", ld_adapter)
+            logger.info(f"💻 Lead Developer rolü atandı: {ld_adapter}")
         
         if len(adapters) >= 3:
-            self.ai_adapter.assign_role("boss", adapters[2])
-            logger.info(f"👔 Boss rolü atandı: {adapters[2]}")
+            # Boss için üçüncü adapter (tercihen OpenAI)
+            boss_adapter = None
+            if "openai-boss" in adapters:
+                boss_adapter = "openai-boss"
+            elif any("openai" in a for a in adapters):
+                boss_adapter = next(a for a in adapters if "openai" in a)
+            else:
+                # OpenAI yoksa ilk adapter'ı kullan
+                boss_adapter = adapters[0]
+            
+            self.ai_adapter.assign_role("boss", boss_adapter)
+            logger.info(f"👔 Boss rolü atandı: {boss_adapter}")
+        
+        # Rol atamalarını göster
+        role_assignments = self.ai_adapter.get_role_assignments()
+        if role_assignments:
+            print(f"\n🎭 Rol Atamaları:")
+            for role, adapter_id in role_assignments.items():
+                role_icons = {
+                    'project_manager': '📋',
+                    'lead_developer': '💻', 
+                    'boss': '👔'
+                }
+                icon = role_icons.get(role, '🤖')
+                print(f"  {icon} {role}: {adapter_id}")
+        else:
+            logger.warning("⚠️ Hiçbir rol atanamadı - API anahtarı eksik olabilir")
     
     async def run(self):
         """Ana döngüyü çalıştır"""
