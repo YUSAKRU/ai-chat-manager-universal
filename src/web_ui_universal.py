@@ -9,6 +9,10 @@ import asyncio
 from datetime import datetime
 import threading
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from project_memory import ProjectMemory
+from plugin_manager import plugin_manager
 
 class WebUIUniversal:
     """Universal AI Adapter ile uyumlu Web UI"""
@@ -26,6 +30,17 @@ class WebUIUniversal:
         self.message_broker = message_broker
         self.memory_bank = memory_bank
         self.ai_adapter = ai_adapter
+        
+        # Müdahale sistemi için durum
+        self.active_conversations = {}
+        self.intervention_queue = {}
+        
+        # Proje hafızası
+        self.project_memory = ProjectMemory()
+        
+        # Plugin sistemi
+        plugin_manager.load_plugins()
+        print(f"🔌 Loaded plugins: {list(plugin_manager.plugins.keys())}")
         
         # Analytics verileri için cache
         self.analytics_cache = {
@@ -206,6 +221,123 @@ class WebUIUniversal:
                 'prompt': initial_prompt,
                 'max_turns': max_turns
             })
+        
+        @self.app.route('/api/ai/intervention', methods=['POST'])
+        def director_intervention():
+            """Yönetici müdahalesi gönder"""
+            data = request.get_json()
+            intervention_message = data.get('message', '').strip()
+            session_id = data.get('session_id', 'default')
+            
+            if not intervention_message:
+                return jsonify({'error': 'Müdahale mesajı gerekli'}), 400
+            
+            # Müdahaleyi sıraya ekle
+            if session_id not in self.intervention_queue:
+                self.intervention_queue[session_id] = []
+            
+            intervention_data = {
+                'message': intervention_message,
+                'timestamp': datetime.now().isoformat(),
+                'applied': False
+            }
+            
+            self.intervention_queue[session_id].append(intervention_data)
+            
+            # WebSocket üzerinden bilgilendirme
+            self.socketio.emit('intervention_received', {
+                'session_id': session_id,
+                'message': intervention_message,
+                'timestamp': intervention_data['timestamp']
+            })
+            
+            return jsonify({
+                'status': 'received',
+                'message': intervention_message,
+                'session_id': session_id,
+                'queue_position': len(self.intervention_queue[session_id])
+            })
+        
+        # === Memory & Tasks API Endpoints ===
+        
+        @self.app.route('/api/memory/conversations', methods=['GET'])
+        def get_conversation_history():
+            """Konuşma geçmişini getir"""
+            try:
+                limit = request.args.get('limit', 10, type=int)
+                conversations = self.project_memory.get_conversation_history(limit)
+                return jsonify(conversations)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory/conversations/<conversation_id>', methods=['GET'])
+        def get_conversation_details(conversation_id):
+            """Konuşma detaylarını getir"""
+            try:
+                conversation = self.project_memory.get_conversation_details(conversation_id)
+                if conversation:
+                    return jsonify(conversation)
+                else:
+                    return jsonify({'error': 'Konuşma bulunamadı'}), 404
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory/conversations', methods=['POST'])
+        def save_conversation():
+            """Konuşmayı kaydet"""
+            try:
+                data = request.get_json()
+                conversation_id = self.project_memory.save_conversation(data)
+                return jsonify({'id': conversation_id, 'status': 'saved'})
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory/tasks', methods=['GET'])
+        def get_project_tasks():
+            """Proje görevlerini getir"""
+            try:
+                tasks = self.project_memory.get_active_tasks()
+                return jsonify(tasks)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory/tasks', methods=['POST'])
+        def create_task():
+            """Yeni görev oluştur"""
+            try:
+                data = request.get_json()
+                task_id = self.project_memory.create_task_from_message(
+                    data.get('message_id', ''),
+                    data
+                )
+                return jsonify({'id': task_id, 'status': 'created'})
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory/tasks/<task_id>/status', methods=['PATCH'])
+        def update_task_status(task_id):
+            """Görev durumunu güncelle"""
+            try:
+                data = request.get_json()
+                new_status = data.get('status')
+                success = self.project_memory.update_task_status(task_id, new_status)
+                if success:
+                    return jsonify({'status': 'updated'})
+                else:
+                    return jsonify({'error': 'Görev bulunamadı'}), 404
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/memory/search', methods=['GET'])
+        def search_conversations():
+            """Konuşmalarda arama yap"""
+            try:
+                query = request.args.get('q', '')
+                limit = request.args.get('limit', 5, type=int)
+                results = self.project_memory.search_conversations(query, limit)
+                return jsonify(results)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
     
     def setup_socketio_events(self):
         """SocketIO event'lerini ayarla"""
@@ -315,24 +447,41 @@ class WebUIUniversal:
         """İki AI arasında konuşma köprüsü çalıştır"""
         try:
             current_message = initial_prompt
+            session_id = str(int(time.time()))
+            
+            # Aktif konuşmayı kaydet
+            self.active_conversations[session_id] = {
+                'status': 'active',
+                'current_turn': 0,
+                'max_turns': max_turns
+            }
             
             self.socketio.emit('conversation_started', {
                 'prompt': initial_prompt,
                 'max_turns': max_turns,
+                'session_id': session_id,
                 'timestamp': datetime.now().isoformat()
             })
             
             for turn in range(max_turns):
+                # Müdahale kontrolü
+                intervention_context = self._check_interventions(session_id)
+                
                 # PM'den yanıt al
                 self.socketio.emit('conversation_turn', {
                     'turn': turn + 1,
                     'phase': 'pm_thinking',
+                    'session_id': session_id,
                     'timestamp': datetime.now().isoformat()
                 })
                 
+                pm_prompt = current_message
+                if intervention_context:
+                    pm_prompt = f"{current_message}\n\n[YÖNETİCİ MÜDAHALESİ]: {intervention_context}"
+                
                 pm_response = await self.ai_adapter.send_message(
                     "project_manager", 
-                    current_message,
+                    pm_prompt,
                     f"Konuşma turu: {turn + 1}"
                 )
                 
@@ -347,6 +496,9 @@ class WebUIUniversal:
                         'timestamp': datetime.now().isoformat()
                     })
                     
+                    # Plugin'ları çalıştır
+                    await self._process_plugins(pm_response.content, session_id)
+                    
                     # Analytics güncellemesi
                     self.broadcast_analytics_update()
                 
@@ -356,12 +508,17 @@ class WebUIUniversal:
                 self.socketio.emit('conversation_turn', {
                     'turn': turn + 1,
                     'phase': 'ld_thinking',
+                    'session_id': session_id,
                     'timestamp': datetime.now().isoformat()
                 })
                 
+                ld_prompt = pm_response.content if pm_response else current_message
+                if intervention_context:
+                    ld_prompt = f"{ld_prompt}\n\n[YÖNETİCİ MÜDAHALESİ]: {intervention_context}"
+                
                 ld_response = await self.ai_adapter.send_message(
                     "lead_developer",
-                    pm_response.content if pm_response else current_message,
+                    ld_prompt,
                     f"PM'den gelen yanıt - Tur {turn + 1}"
                 )
                 
@@ -376,22 +533,144 @@ class WebUIUniversal:
                         'timestamp': datetime.now().isoformat()
                     })
                     
+                    # Plugin'ları çalıştır
+                    await self._process_plugins(ld_response.content, session_id)
+                    
                     # Analytics güncellemesi
                     self.broadcast_analytics_update()
                 
                 current_message = ld_response.content if ld_response else pm_response.content
                 await asyncio.sleep(2)
             
+            # Konuşmayı hafızaya kaydet
+            await self._save_conversation_to_memory(session_id, initial_prompt, max_turns)
+            
+            # Konuşma tamamlandı
+            if session_id in self.active_conversations:
+                del self.active_conversations[session_id]
+            
             self.socketio.emit('conversation_completed', {
                 'total_turns': max_turns,
+                'session_id': session_id,
                 'timestamp': datetime.now().isoformat()
             })
             
         except Exception as e:
+            # Hata durumunda temizlik
+            if session_id in self.active_conversations:
+                del self.active_conversations[session_id]
+                
             self.socketio.emit('conversation_error', {
                 'error': str(e),
+                'session_id': session_id,
                 'timestamp': datetime.now().isoformat()
             })
+    
+    def _check_interventions(self, session_id: str) -> str:
+        """Bekleyen müdahaleleri kontrol et ve uygula"""
+        if session_id not in self.intervention_queue:
+            return ""
+        
+        interventions = self.intervention_queue[session_id]
+        pending_interventions = [i for i in interventions if not i['applied']]
+        
+        if not pending_interventions:
+            return ""
+        
+        # En son müdahaleyi al ve işaretle
+        latest_intervention = pending_interventions[-1]
+        latest_intervention['applied'] = True
+        
+        # WebSocket bildirim gönder
+        self.socketio.emit('intervention_applied', {
+            'session_id': session_id,
+            'message': latest_intervention['message'],
+            'affected_ai': 'both',
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        return latest_intervention['message']
+    
+    async def _process_plugins(self, message: str, session_id: str):
+        """AI mesajını plugin'lar ile işle"""
+        try:
+            context = {
+                'session_id': session_id,
+                'timestamp': datetime.now().isoformat(),
+                'source': 'ai_conversation',
+                'mcp_tools': {}  # MCP tools can be added here when available
+            }
+            
+            # Plugin'ları çalıştır
+            plugin_results = await plugin_manager.process_message(message, context)
+            
+            # Her plugin sonucu için WebSocket mesajı gönder
+            for result in plugin_results:
+                if result and result.get('type') in ['web_search_result', 'document_analysis_result', 'demo_plugin_result']:
+                    self.socketio.emit('plugin_result', {
+                        'plugin_name': result.get('plugin_name', 'Unknown Plugin'),
+                        'role': result.get('role', '🔌 Plugin'),
+                        'content': result.get('content', 'No content'),
+                        'type': result.get('type', 'plugin_result'),
+                        'session_id': session_id,
+                        'timestamp': datetime.now().isoformat(),
+                        'metadata': result.get('metadata', {})
+                    })
+                    
+                    print(f"🔌 Plugin {result.get('plugin_name')} executed for session {session_id}")
+                
+                elif result and result.get('type') == 'plugin_error':
+                    self.socketio.emit('plugin_error', {
+                        'plugin_name': result.get('plugin_name', 'Unknown Plugin'),
+                        'error': result.get('error', 'Unknown error'),
+                        'session_id': session_id,
+                        'timestamp': datetime.now().isoformat()
+                    })
+                    
+                    print(f"⚠️ Plugin {result.get('plugin_name')} error: {result.get('error')}")
+            
+        except Exception as e:
+            print(f"🚨 Plugin processing error: {e}")
+            self.socketio.emit('plugin_error', {
+                'error': str(e),
+                'session_id': session_id,
+                'timestamp': datetime.now().isoformat()
+            })
+    
+    async def _save_conversation_to_memory(self, session_id: str, initial_prompt: str, max_turns: int):
+        """Konuşmayı proje hafızasına kaydet"""
+        try:
+            # Session mesajlarını topla (gerçek implementasyonda bu veriler session'dan gelecek)
+            # Şimdilik bu fonksiyon temel yapıyı kuruyor
+            
+            conversation_data = {
+                'title': f"AI Konuşması - {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+                'initial_prompt': initial_prompt,
+                'status': 'completed',
+                'total_turns': max_turns,
+                'total_interventions': len(self.intervention_queue.get(session_id, [])),
+                'messages': [],  # Gerçek implementasyonda session'dan toplanacak
+                'metadata': {
+                    'session_id': session_id,
+                    'created_via': 'web_interface'
+                }
+            }
+            
+            # Konuşmayı kaydet
+            saved_id = self.project_memory.save_conversation(conversation_data)
+            
+            # WebSocket bildirimi
+            self.socketio.emit('conversation_saved', {
+                'conversation_id': saved_id,
+                'session_id': session_id,
+                'title': conversation_data['title'],
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            print(f"💾 Konuşma hafızaya kaydedildi: {saved_id}")
+            
+        except Exception as e:
+            print(f"⚠️ Konuşma kayıt hatası: {e}")
     
     def start_background(self):
         """Web arayüzünü arka planda başlat"""

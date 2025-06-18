@@ -168,6 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Plugin sonuçları için WebSocket dinleyicileri
+    socketGlobal.on('plugin_result', data => {
+        displayPluginResult(data);
+    });
+
+    socketGlobal.on('plugin_error', data => {
+        displayPluginError(data);
+    });
+
     // Stop button handler
     if (stopBrowsersBtn) {
         stopBrowsersBtn.addEventListener('click', async () => {
@@ -320,6 +329,78 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveMemoryBtn.textContent = 'Değişiklikleri Kaydet';
             }
         });
+    }
+
+    // Plugin sonuçlarını görüntüleme fonksiyonları
+    function displayPluginResult(data) {
+        const chatArea = document.getElementById('live-chat-area') || document.getElementById('conversation-area');
+        if (!chatArea) return;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'mb-3 plugin-result-message';
+        
+        const roleSpan = document.createElement('span');
+        roleSpan.className = 'badge bg-info me-2';
+        roleSpan.textContent = data.role || '🔌 Plugin';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'plugin-content';
+        contentDiv.style.cssText = 'background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-left: 4px solid #0d6efd; padding: 15px; border-radius: 8px; margin-top: 5px;';
+        
+        // Convert markdown-like content to HTML
+        const formattedContent = data.content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>')
+            .replace(/🔍/g, '<span class="text-primary">🔍</span>')
+            .replace(/📄/g, '<span class="text-success">📄</span>')
+            .replace(/🔗/g, '<span class="text-info">🔗</span>');
+        
+        contentDiv.innerHTML = formattedContent;
+        
+        const timestampDiv = document.createElement('div');
+        timestampDiv.className = 'text-muted small mt-2';
+        timestampDiv.textContent = `Plugin: ${data.plugin_name} • ${new Date(data.timestamp).toLocaleTimeString()}`;
+        
+        messageDiv.appendChild(roleSpan);
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(timestampDiv);
+        
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        
+        // Toast notification
+        showToast('🔌 Plugin Sonucu', `${data.plugin_name} sonuç üretti`, false);
+    }
+
+    function displayPluginError(data) {
+        const chatArea = document.getElementById('live-chat-area') || document.getElementById('conversation-area');
+        if (!chatArea) return;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'mb-3 plugin-error-message';
+        
+        const roleSpan = document.createElement('span');
+        roleSpan.className = 'badge bg-danger me-2';
+        roleSpan.textContent = '⚠️ Plugin Hatası';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'plugin-error-content';
+        contentDiv.style.cssText = 'background: linear-gradient(135deg, #f8d7da, #f5c6cb); border-left: 4px solid #dc3545; padding: 15px; border-radius: 8px; margin-top: 5px;';
+        contentDiv.innerHTML = `<strong>${data.plugin_name || 'Unknown Plugin'}:</strong> ${data.error}`;
+        
+        const timestampDiv = document.createElement('div');
+        timestampDiv.className = 'text-muted small mt-2';
+        timestampDiv.textContent = `Error at ${new Date(data.timestamp).toLocaleTimeString()}`;
+        
+        messageDiv.appendChild(roleSpan);
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(timestampDiv);
+        
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        
+        // Toast notification
+        showToast('⚠️ Plugin Hatası', `${data.plugin_name || 'Plugin'} hatası`, true);
     }
 
     // Sayfa yüklenince ilk çağrı

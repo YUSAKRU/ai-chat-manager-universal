@@ -407,6 +407,263 @@
             0%, 100% { opacity: 0.7; }
             50% { opacity: 1; }
         }
+        
+        /* Director Intervention Panel */
+        .director-intervention {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            border: 2px solid #e17055;
+            border-radius: 12px;
+            margin: 15px 0;
+            padding: 0;
+            animation: slideDown 0.3s ease-out;
+            box-shadow: 0 4px 15px rgba(225, 112, 85, 0.3);
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .intervention-header {
+            background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .intervention-header small {
+            margin-left: auto;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .intervention-input {
+            padding: 15px;
+        }
+        
+        .intervention-input .input-group {
+            margin-bottom: 10px;
+        }
+        
+        .intervention-input textarea {
+            resize: none;
+            border-radius: 8px 0 0 8px;
+            border: 2px solid #e17055;
+            background: rgba(255, 255, 255, 0.95);
+            font-size: 13px;
+        }
+        
+        .intervention-input textarea:focus {
+            border-color: #d63031;
+            box-shadow: 0 0 0 0.2rem rgba(225, 112, 85, 0.25);
+        }
+        
+        .intervention-input .btn {
+            border-radius: 0 8px 8px 0;
+            border: 2px solid #e17055;
+            border-left: none;
+            background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+            color: white;
+            font-weight: 600;
+            padding: 8px 16px;
+            transition: all 0.2s;
+        }
+        
+        .intervention-input .btn:hover {
+            background: linear-gradient(135deg, #d63031 0%, #c0392b 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(214, 48, 49, 0.4);
+        }
+        
+        .intervention-tips {
+            font-style: italic;
+        }
+        
+        /* Director Message Bubble */
+        .ai-message.director {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .message-bubble.director {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            color: white;
+            max-width: 95%;
+            border-radius: 25px;
+            padding: 16px 24px;
+            font-weight: 600;
+            border: 3px solid #d63031;
+            box-shadow: 0 4px 15px rgba(225, 112, 85, 0.4);
+            position: relative;
+        }
+        
+        .message-bubble.director::before {
+            content: "🎯";
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #d63031;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .intervention-notification {
+            background: rgba(225, 112, 85, 0.1);
+            border: 1px solid #e17055;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 12px;
+            color: #d63031;
+            font-weight: 500;
+        }
+        
+        /* Memory & Tasks Modals */
+        .conversation-item {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .conversation-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .conversation-item.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .conversation-item-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .conversation-snippet {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .conversation-item.active .conversation-snippet {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .conversation-stats {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .memory-message {
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #e2e8f0;
+        }
+        
+        .memory-message.pm {
+            border-left-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        
+        .memory-message.ld {
+            border-left-color: #f093fb;
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+        }
+        
+        .memory-message.director {
+            border-left-color: #e17055;
+            background: linear-gradient(135deg, rgba(253, 203, 110, 0.1) 0%, rgba(225, 112, 85, 0.1) 100%);
+        }
+        
+        .role-badge {
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .task-item {
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: white;
+        }
+        
+        .task-item.task-urgent {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .task-item.task-high {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .task-item.task-medium {
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .task-item.task-low {
+            border-left: 4px solid #198754;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .task-badges {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .task-description {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+        
+        .task-meta {
+            margin-bottom: 10px;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -449,6 +706,18 @@
         <div class="tab-content" id="mainTabContent">
             <!-- Analytics Tab -->
             <div class="tab-pane fade show active" id="analytics" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">📊 Analytics Dashboard</h2>
+                    <div class="dashboard-actions">
+                        <button class="btn btn-outline-primary btn-sm me-2" onclick="showMemoryModal()">
+                            <i class="bi bi-clock-history"></i> Geçmiş Konuşmalar
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="showTasksModal()">
+                            <i class="bi bi-list-task"></i> Görev Listesi (<span id="active-tasks-count">0</span>)
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Primary Metrics -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-3">
@@ -545,11 +814,44 @@
                                 </div>
                             </div>
                             
+                            <!-- Director Intervention Panel -->
+                            <div class="director-intervention" id="director-intervention" style="display: none;">
+                                <div class="intervention-header">
+                                    <i class="bi bi-megaphone-fill"></i>
+                                    <span>Yönetici Müdahalesi</span>
+                                    <small class="text-muted">Konuşmaya doğrudan müdahale edin</small>
+                                </div>
+                                <div class="intervention-input">
+                                    <div class="input-group">
+                                        <textarea class="form-control" 
+                                                id="intervention-message" 
+                                                placeholder="AI'lara yön verin, yeni görevler atayın veya konuyu değiştirin..."
+                                                rows="2"></textarea>
+                                        <button class="btn btn-warning" 
+                                                id="send-intervention" 
+                                                onclick="sendDirectorIntervention()">
+                                            <i class="bi bi-megaphone"></i> Müdahale Et
+                                        </button>
+                                    </div>
+                                    <div class="intervention-tips">
+                                        <small class="text-muted">
+                                            💡 İpucu: "Daha teknik detaylara odaklanın" veya "Bu konuyu özetleyin ve yeni bir görev önerin"
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="conversation-status" id="conversation-status">
                                 <span class="status-indicator">
                                     <i class="bi bi-circle-fill text-secondary"></i> Beklemede
                                 </span>
                                 <span class="turn-counter" id="turn-counter">Tur: 0/0</span>
+                                <button class="btn btn-sm btn-outline-warning" 
+                                        id="toggle-intervention" 
+                                        onclick="toggleInterventionPanel()"
+                                        style="display: none;">
+                                    <i class="bi bi-megaphone"></i> Müdahale
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -633,6 +935,92 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Modal -->
+    <div class="modal fade" id="memoryModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-clock-history"></i> Konuşma Geçmişi & Proje Hafızası
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Conversation List -->
+                        <div class="col-md-4">
+                            <h6>📝 Geçmiş Konuşmalar</h6>
+                            <div class="conversation-search mb-3">
+                                <input type="text" class="form-control form-control-sm" 
+                                       id="conversation-search" placeholder="Konuşmalarda ara...">
+                            </div>
+                            <div id="conversation-list" class="conversation-list">
+                                <!-- Konuşmalar dinamik olarak eklenecek -->
+                            </div>
+                        </div>
+                        
+                        <!-- Conversation Details -->
+                        <div class="col-md-8">
+                            <div id="conversation-details" class="conversation-details">
+                                <div class="text-center text-muted p-5">
+                                    <i class="bi bi-chat-left-dots" style="font-size: 48px; opacity: 0.3;"></i>
+                                    <p class="mt-3">Görüntülemek için bir konuşma seçin</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" class="btn btn-primary" id="continue-conversation" style="display: none;">
+                        <i class="bi bi-arrow-right"></i> Bu Konuşmaya Devam Et
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Modal -->
+    <div class="modal fade" id="tasksModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-list-task"></i> Proje Görev Listesi
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="task-filters mb-3">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="task-filter" id="filter-all" checked>
+                            <label class="btn btn-outline-primary" for="filter-all">Tümü</label>
+                            
+                            <input type="radio" class="btn-check" name="task-filter" id="filter-pending">
+                            <label class="btn btn-outline-warning" for="filter-pending">Bekleyen</label>
+                            
+                            <input type="radio" class="btn-check" name="task-filter" id="filter-progress">
+                            <label class="btn btn-outline-info" for="filter-progress">Devam Eden</label>
+                            
+                            <input type="radio" class="btn-check" name="task-filter" id="filter-completed">
+                            <label class="btn btn-outline-success" for="filter-completed">Tamamlanan</label>
+                        </div>
+                    </div>
+                    
+                    <div id="tasks-list" class="tasks-list">
+                        <!-- Görevler dinamik olarak eklenecek -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" class="btn btn-success" onclick="refreshTasks()">
+                        <i class="bi bi-arrow-clockwise"></i> Yenile
+                    </button>
                 </div>
             </div>
         </div>

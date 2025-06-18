@@ -533,6 +533,7 @@ function updateConversationUI(state) {
             clearBtn.disabled = false;
             statusIndicator.innerHTML = '<i class="bi bi-circle-fill text-secondary"></i> Beklemede';
             turnCounter.textContent = 'Tur: 0/0';
+            updateInterventionAvailability(false);
             break;
             
         case 'starting':
@@ -549,6 +550,7 @@ function updateConversationUI(state) {
             clearBtn.disabled = false;
             statusIndicator.innerHTML = '<i class="bi bi-circle-fill text-success"></i> Aktif';
             turnCounter.textContent = `Tur: ${conversationState.currentTurn}/${conversationState.maxTurns}`;
+            updateInterventionAvailability(true);
             break;
             
         case 'paused':
@@ -650,4 +652,498 @@ socket.on('conversation_error', (data) => {
     addLiveChatSystemMessage(`❌ Konuşma hatası: ${data.error}`, 'error');
     conversationState.isActive = false;
     updateConversationUI('idle');
+});
+
+// === YÖNETİCİ MÜDAHALESİ SİSTEMİ ===
+
+let interventionState = {
+    panelVisible: false,
+    canIntervene: false
+};
+
+// Müdahale panelini aç/kapat
+function toggleInterventionPanel() {
+    const panel = document.getElementById('director-intervention');
+    const button = document.getElementById('toggle-intervention');
+    
+    interventionState.panelVisible = !interventionState.panelVisible;
+    
+    if (interventionState.panelVisible) {
+        panel.style.display = 'block';
+        button.innerHTML = '<i class="bi bi-x-circle"></i> Kapat';
+        button.className = 'btn btn-sm btn-outline-danger';
+        
+        // Textarea'ya odaklan
+        setTimeout(() => {
+            document.getElementById('intervention-message').focus();
+        }, 100);
+        
+    } else {
+        panel.style.display = 'none';
+        button.innerHTML = '<i class="bi bi-megaphone"></i> Müdahale';
+        button.className = 'btn btn-sm btn-outline-warning';
+    }
+}
+
+// Yönetici müdahalesi gönder
+async function sendDirectorIntervention() {
+    const messageTextarea = document.getElementById('intervention-message');
+    const message = messageTextarea.value.trim();
+    
+    if (!message || !conversationState.isActive) {
+        if (!message) {
+            addLiveChatSystemMessage('❌ Müdahale mesajı boş olamaz!', 'error');
+        }
+        if (!conversationState.isActive) {
+            addLiveChatSystemMessage('❌ Aktif bir konuşma yok. Önce konuşmayı başlatın.', 'error');
+        }
+        return;
+    }
+    
+    const sendButton = document.getElementById('send-intervention');
+    const originalText = sendButton.innerHTML;
+    
+    try {
+        // UI güncelleme
+        sendButton.disabled = true;
+        sendButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Gönderiliyor...';
+        
+        // API'ye müdahale gönder
+        const response = await fetch('/api/ai/intervention', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                session_id: conversationState.sessionId
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Başarılı müdahale bildirimini ekle
+            addDirectorInterventionMessage(message);
+            addLiveChatSystemMessage('📢 Yönetici müdahalesi iletildi! AI\'lar yeni yönergeyi alıyor...', 'info');
+            
+            // Textarea'yı temizle ve paneli kapat
+            messageTextarea.value = '';
+            toggleInterventionPanel();
+            
+            // Analytics güncellemesi
+            socket.emit('request_analytics');
+            
+        } else {
+            throw new Error('Müdahale gönderilemedi');
+        }
+        
+    } catch (error) {
+        console.error('Intervention error:', error);
+        addLiveChatSystemMessage(`❌ Müdahale hatası: ${error.message}`, 'error');
+        
+    } finally {
+        sendButton.disabled = false;
+        sendButton.innerHTML = originalText;
+    }
+}
+
+// Yönetici müdahale mesajını chat'e ekle
+function addDirectorInterventionMessage(message) {
+    const container = document.getElementById('live-chat-messages');
+    
+    // İlk mesajsa placeholder'ı kaldır
+    if (container.querySelector('.text-center')) {
+        container.innerHTML = '';
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'ai-message director';
+    messageDiv.innerHTML = `
+        <div class="message-bubble director">
+            <div class="message-header-inline">
+                <div class="role-icon director">🎯</div>
+                <span class="role-name">YÖNETİCİ MÜDAHALESİ</span>
+                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="message-content">${message}</div>
+        </div>
+    `;
+    
+    container.appendChild(messageDiv);
+    
+    // Auto scroll to bottom with highlight effect
+    container.scrollTop = container.scrollHeight;
+    
+    // Kısa bir highlight efekti
+    setTimeout(() => {
+        messageDiv.style.animation = 'pulse 0.6s ease-in-out';
+    }, 100);
+}
+
+// Konuşma durumu değiştikçe müdahale butonunu göster/gizle
+function updateInterventionAvailability(isActive) {
+    const interventionButton = document.getElementById('toggle-intervention');
+    interventionState.canIntervene = isActive;
+    
+    if (isActive) {
+        interventionButton.style.display = 'inline-block';
+    } else {
+        interventionButton.style.display = 'none';
+        // Panel açıksa kapat
+        if (interventionState.panelVisible) {
+            toggleInterventionPanel();
+        }
+    }
+}
+
+// Enter tuşu ile gönderme
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('intervention-message');
+    if (textarea) {
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendDirectorIntervention();
+            }
+        });
+    }
+});
+
+// SocketIO event listeners für müdahale sistemi
+socket.on('intervention_received', (data) => {
+    console.log('Intervention received:', data);
+    addLiveChatSystemMessage(`✅ Müdahaleniz alındı ve AI'lara iletildi.`, 'info');
+});
+
+socket.on('intervention_applied', (data) => {
+    console.log('Intervention applied:', data);
+    addLiveChatSystemMessage(`🎯 Müdahale uygulandı! ${data.affected_ai} yeni yönlendirildi.`, 'info');
+});
+
+// === PROJE HAFIZASI VE GÖREV YÖNETİMİ ===
+
+let selectedConversationId = null;
+let conversationHistory = [];
+let projectTasks = [];
+
+// Memory modal'ını göster
+function showMemoryModal() {
+    loadConversationHistory();
+    const modal = new bootstrap.Modal(document.getElementById('memoryModal'));
+    modal.show();
+}
+
+// Tasks modal'ını göster
+function showTasksModal() {
+    loadProjectTasks();
+    const modal = new bootstrap.Modal(document.getElementById('tasksModal'));
+    modal.show();
+}
+
+// Konuşma geçmişini yükle
+async function loadConversationHistory() {
+    try {
+        const response = await fetch('/api/memory/conversations');
+        if (response.ok) {
+            conversationHistory = await response.json();
+            renderConversationList();
+        } else {
+            console.error('Konuşma geçmişi yüklenemedi');
+        }
+    } catch (error) {
+        console.error('Memory load error:', error);
+    }
+}
+
+// Konuşma listesini render et
+function renderConversationList() {
+    const container = document.getElementById('conversation-list');
+    
+    if (conversationHistory.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted p-3">
+                <i class="bi bi-inbox" style="font-size: 32px; opacity: 0.5;"></i>
+                <p class="mt-2 mb-0">Henüz kayıtlı konuşma yok</p>
+                <small>İlk konuşmanızı başlatın</small>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    conversationHistory.forEach(conversation => {
+        const item = document.createElement('div');
+        item.className = 'conversation-item';
+        item.onclick = () => selectConversation(conversation.id);
+        
+        const date = new Date(conversation.created_at).toLocaleDateString('tr-TR');
+        const time = new Date(conversation.created_at).toLocaleTimeString('tr-TR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        item.innerHTML = `
+            <div class="conversation-item-header">
+                <h6 class="mb-1">${conversation.title}</h6>
+                <small class="text-muted">${date} ${time}</small>
+            </div>
+            <p class="conversation-snippet">${conversation.initial_prompt.substring(0, 80)}...</p>
+            <div class="conversation-stats">
+                <span class="badge bg-primary">${conversation.total_turns} tur</span>
+                ${conversation.total_interventions > 0 ? `<span class="badge bg-warning">${conversation.total_interventions} müdahale</span>` : ''}
+                <span class="badge bg-${conversation.status === 'completed' ? 'success' : 'secondary'}">${conversation.status}</span>
+            </div>
+        `;
+        
+        container.appendChild(item);
+    });
+}
+
+// Konuşma seç
+async function selectConversation(conversationId) {
+    selectedConversationId = conversationId;
+    
+    // UI güncellemeleri
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    event.currentTarget.classList.add('active');
+    
+    // Konuşma detaylarını yükle
+    try {
+        const response = await fetch(`/api/memory/conversations/${conversationId}`);
+        if (response.ok) {
+            const conversation = await response.json();
+            renderConversationDetails(conversation);
+            document.getElementById('continue-conversation').style.display = 'inline-block';
+        }
+    } catch (error) {
+        console.error('Conversation details load error:', error);
+    }
+}
+
+// Konuşma detaylarını render et
+function renderConversationDetails(conversation) {
+    const container = document.getElementById('conversation-details');
+    
+    container.innerHTML = `
+        <div class="conversation-header">
+            <h5>${conversation.title}</h5>
+            <div class="conversation-meta">
+                <span class="badge bg-info">${conversation.total_turns} tur</span>
+                <span class="badge bg-secondary">${new Date(conversation.created_at).toLocaleDateString('tr-TR')}</span>
+            </div>
+        </div>
+        
+        <div class="conversation-messages" style="max-height: 400px; overflow-y: auto;">
+            ${conversation.messages.map(msg => {
+                const roleInfo = {
+                    'project_manager': { name: 'Proje Yöneticisi', icon: '👔', class: 'pm' },
+                    'lead_developer': { name: 'Lead Developer', icon: '👨‍💻', class: 'ld' },
+                    'director': { name: 'YÖNETİCİ', icon: '🎯', class: 'director' }
+                };
+                
+                const info = roleInfo[msg.speaker] || { name: msg.speaker, icon: '🤖', class: 'default' };
+                
+                return `
+                    <div class="memory-message ${info.class}" data-message-id="${msg.id}">
+                        <div class="message-header">
+                            <span class="role-badge">
+                                ${info.icon} ${info.name}
+                            </span>
+                            <span class="message-time">${new Date(msg.created_at).toLocaleTimeString('tr-TR')}</span>
+                            <button class="btn btn-sm btn-outline-warning ms-2" onclick="createTaskFromMessage('${msg.id}', '${msg.content.substring(0, 50)}...')">
+                                <i class="bi bi-plus-circle"></i> Görev Yap
+                            </button>
+                        </div>
+                        <div class="message-content">${msg.content}</div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+// Mesajdan görev oluştur
+async function createTaskFromMessage(messageId, preview) {
+    const title = prompt('Görev başlığı:', preview);
+    if (!title) return;
+    
+    const description = prompt('Görev açıklaması (opsiyonel):');
+    
+    try {
+        const response = await fetch('/api/memory/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message_id: messageId,
+                title: title,
+                description: description,
+                priority: 'medium'
+            })
+        });
+        
+        if (response.ok) {
+            alert('✅ Görev başarıyla oluşturuldu!');
+            loadProjectTasks(); // Görev listesini güncelle
+        } else {
+            alert('❌ Görev oluşturulamadı');
+        }
+    } catch (error) {
+        console.error('Task creation error:', error);
+        alert('❌ Hata oluştu');
+    }
+}
+
+// Proje görevlerini yükle
+async function loadProjectTasks() {
+    try {
+        const response = await fetch('/api/memory/tasks');
+        if (response.ok) {
+            projectTasks = await response.json();
+            renderTasksList();
+            updateTasksCount();
+        }
+    } catch (error) {
+        console.error('Tasks load error:', error);
+    }
+}
+
+// Görevleri render et
+function renderTasksList() {
+    const container = document.getElementById('tasks-list');
+    
+    if (projectTasks.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted p-4">
+                <i class="bi bi-list-check" style="font-size: 32px; opacity: 0.5;"></i>
+                <p class="mt-2 mb-0">Henüz görev yok</p>
+                <small>Konuşmalardan görev oluşturabilirsiniz</small>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    projectTasks.forEach(task => {
+        const item = document.createElement('div');
+        item.className = `task-item task-${task.priority} task-${task.status}`;
+        
+        const priorityColors = {
+            'low': 'success',
+            'medium': 'primary', 
+            'high': 'warning',
+            'urgent': 'danger'
+        };
+        
+        const statusColors = {
+            'pending': 'warning',
+            'in_progress': 'info',
+            'completed': 'success',
+            'cancelled': 'secondary'
+        };
+        
+        item.innerHTML = `
+            <div class="task-header">
+                <h6 class="task-title">${task.title}</h6>
+                <div class="task-badges">
+                    <span class="badge bg-${priorityColors[task.priority]}">${task.priority}</span>
+                    <span class="badge bg-${statusColors[task.status]}">${task.status}</span>
+                </div>
+            </div>
+            
+            ${task.description ? `<p class="task-description">${task.description}</p>` : ''}
+            
+            <div class="task-meta">
+                <small class="text-muted">
+                    📅 ${new Date(task.created_at).toLocaleDateString('tr-TR')}
+                    ${task.conversation_title ? `| 💬 ${task.conversation_title}` : ''}
+                    ${task.assigned_to ? `| 👤 ${task.assigned_to}` : ''}
+                </small>
+            </div>
+            
+            <div class="task-actions mt-2">
+                ${task.status === 'pending' ? `
+                    <button class="btn btn-sm btn-info" onclick="updateTaskStatus('${task.id}', 'in_progress')">
+                        <i class="bi bi-play"></i> Başlat
+                    </button>
+                ` : ''}
+                
+                ${task.status === 'in_progress' ? `
+                    <button class="btn btn-sm btn-success" onclick="updateTaskStatus('${task.id}', 'completed')">
+                        <i class="bi bi-check"></i> Tamamla
+                    </button>
+                ` : ''}
+                
+                ${task.status !== 'completed' && task.status !== 'cancelled' ? `
+                    <button class="btn btn-sm btn-secondary" onclick="updateTaskStatus('${task.id}', 'cancelled')">
+                        <i class="bi bi-x"></i> İptal
+                    </button>
+                ` : ''}
+            </div>
+        `;
+        
+        container.appendChild(item);
+    });
+}
+
+// Görev durumunu güncelle
+async function updateTaskStatus(taskId, newStatus) {
+    try {
+        const response = await fetch(`/api/memory/tasks/${taskId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (response.ok) {
+            loadProjectTasks(); // Listeyi yenile
+        } else {
+            alert('❌ Görev durumu güncellenemedi');
+        }
+    } catch (error) {
+        console.error('Task update error:', error);
+    }
+}
+
+// Aktif görev sayısını güncelle
+function updateTasksCount() {
+    const activeCount = projectTasks.filter(t => 
+        t.status === 'pending' || t.status === 'in_progress'
+    ).length;
+    
+    document.getElementById('active-tasks-count').textContent = activeCount;
+}
+
+// Görevleri yenile
+function refreshTasks() {
+    loadProjectTasks();
+}
+
+// Konuşma aramalarını işle
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('conversation-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const filteredHistory = conversationHistory.filter(conv => 
+                conv.title.toLowerCase().includes(query) ||
+                conv.initial_prompt.toLowerCase().includes(query)
+            );
+            
+            // Geçici olarak filtrelenmiş listeyi göster
+            const originalHistory = conversationHistory;
+            conversationHistory = filteredHistory;
+            renderConversationList();
+            conversationHistory = originalHistory;
+        });
+    }
+});
+
+// Sayfa yüklendiğinde aktif görev sayısını güncelle
+document.addEventListener('DOMContentLoaded', function() {
+    loadProjectTasks();
 }); 
