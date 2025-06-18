@@ -99,6 +99,57 @@ def get_conversations():
     """Demo konuşmaları"""
     return jsonify(demo_conversations)
 
+@app.route('/api/analytics')
+def get_analytics():
+    """Analytics API endpoint"""
+    return jsonify({
+        "summary": {
+            "total_cost": 0.87,
+            "total_requests": 79,
+            "success_rate": 98.7,
+            "avg_response_time": 1.06,
+            "total_tokens": 48130,
+            "total_errors": 1
+        },
+        "adapters": demo_stats["ai_adapters"],
+        "token_usage": {
+            "total": 48130,
+            "input": 28450,
+            "output": 19680
+        },
+        "timestamp": time.strftime('%Y-%m-%d %H:%M:%S')
+    })
+
+@app.route('/api/memory/tasks')
+def get_tasks():
+    """Demo görevleri"""
+    return jsonify([
+        {
+            "id": 1,
+            "title": "Plugin sistemi implementasyonu",
+            "status": "completed",
+            "priority": "high",
+            "created_at": "2025-06-18 18:30:00",
+            "updated_at": "2025-06-18 19:15:00"
+        },
+        {
+            "id": 2,
+            "title": "Analytics dashboard geliştirme",
+            "status": "in_progress", 
+            "priority": "medium",
+            "created_at": "2025-06-18 19:00:00",
+            "updated_at": "2025-06-18 19:45:00"
+        },
+        {
+            "id": 3,
+            "title": "Memory bank entegrasyonu",
+            "status": "pending",
+            "priority": "low",
+            "created_at": "2025-06-18 19:30:00",
+            "updated_at": "2025-06-18 19:30:00"
+        }
+    ])
+
 @socketio.on('connect')
 def handle_connect():
     """WebSocket bağlantısı"""
