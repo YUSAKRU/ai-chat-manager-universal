@@ -66,39 +66,51 @@ Bu proje, iki farklı AI (ChatGPT ve Claude gibi) arasında akıllı bir köprü
 
 ## 🚀 Hızlı Başlangıç
 
-### **Gereksinimler**
+### 🎯 **EN KOLAY YÖNTEM (Önerilen)**
 ```bash
-Python 3.8+
-pip install -r requirements.txt
-```
+# Windows için:
+start.bat
 
-### **1. Kurulum**
-```bash
-git clone https://github.com/YUSAKRU/ai-chat-manager-universal.git
-cd ai-chrome-chat-manager
-pip install -r requirements.txt
+# veya Python ile:
+python quickstart.py
 ```
+**✨ İnteraktif menü ile tüm seçeneklere ulaşın!**
 
-### **2. API Anahtarları Yapılandırması**
+---
+
+### 🎮 **DEMO MODU (API anahtarı gerektirmez)**
 ```bash
+python run_demo.py
+```
+- 🌐 http://localhost:5000 otomatik açılır
+- ✨ Web arayüzü simülasyonu
+- 🔌 Plugin test interface
+- 📊 Canlı analytics dashboard
+
+### 🚀 **PRODUCTION MODU (Gerçek API anahtarları gerekir)**
+```bash
+# 1. Kurulum
+pip install -r requirements.txt
+
+# 2. API anahtarlarını ayarlayın
 cp env.example .env
-# .env dosyasında API anahtarlarınızı tanımlayın
+# .env dosyasını düzenleyerek gerçek API anahtarlarınızı ekleyin
+
+# 3. Production sistemini başlatın
+python run_production.py
 ```
 
-### **3. Demo Modda Çalıştırma (API anahtarı gerektirmez)**
+### 🐳 **DOCKER İLE**
 ```bash
-python demo_universal.py
+docker build -t ai-chrome-chat-manager .
+docker run -p 5000:5000 ai-chrome-chat-manager
 ```
 
-### **4. Production Modda Çalıştırma**
-```bash
-python src/main_universal.py --setup
-```
+---
 
-### **5. Web Arayüzüne Erişim**
-```
-http://localhost:5000
-```
+### **Gereksinimler**
+- Python 3.8+
+- Internet bağlantısı (plugin'lar için)
 
 ---
 

@@ -26,7 +26,8 @@ app = Flask(__name__,
            template_folder='templates',
            static_folder='static')
 app.config['SECRET_KEY'] = 'demo-secret-key'
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Python 3.13 uyumluluğu için threading mode kullan
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Demo verileri
 demo_stats = {

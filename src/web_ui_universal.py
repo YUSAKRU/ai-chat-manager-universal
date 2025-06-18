@@ -22,7 +22,8 @@ class WebUIUniversal:
                         template_folder='../templates',
                         static_folder='../static')
         self.app.config['SECRET_KEY'] = 'ai-chrome-chat-manager-universal-secret'
-        self.socketio = SocketIO(self.app, cors_allowed_origins="*")
+        # Python 3.13 uyumluluğu için threading mode kullan
+        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode='threading')
         
         # Sistem bileşenleri
         self.host = host
