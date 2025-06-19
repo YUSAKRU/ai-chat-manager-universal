@@ -29,6 +29,9 @@ colorama==0.4.6
 PyYAML==6.0.2
 watchdog==4.0.2
 
+# System Monitoring
+psutil==6.1.0
+
 # Data Processing
 pandas==2.2.3
 numpy==2.2.1

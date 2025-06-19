@@ -1,0 +1,79 @@
+# Memory Bank Configuration - Production Environment
+# ==================================================
+
+memory_bank:
+  # Production-grade storage
+  storage:
+    type: "file_system"
+    base_path: "/var/log/ai-chrome-chat/memory-bank"  # Absolute path for production
+    backup_enabled: true
+    backup_path: "/var/log/ai-chrome-chat/memory-bank/backups"
+    auto_backup_interval: 1800  # 30 minutes for production
+    
+  # Strict document limits for production
+  documents:
+    projectbrief:
+      max_size: 40000  # Stricter limits
+    productContext:
+      max_size: 80000
+    systemPatterns:
+      max_size: 60000
+    techContext:
+      max_size: 60000
+    activeContext:
+      max_size: 20000
+    progress:
+      max_size: 40000
+
+  # Optimized search for production
+  search:
+    model: "gemini-2.5-pro"  # More powerful model for production
+    embedding_cache: true
+    cache_ttl: 7200  # 2 hours
+    max_results: 5  # Focused results
+    similarity_threshold: 0.8  # Higher threshold for precision
+    
+  # High-performance settings
+  performance:
+    enable_caching: true
+    cache_size: 2000  # MB - larger cache for production
+    preload_documents: true  # Faster response times
+    concurrent_operations: 5  # Higher concurrency
+    timeout: 15  # Shorter timeout for responsiveness
+    
+  # Minimal logging for production
+  logging:
+    level: "WARNING"  # Only important messages
+    include_performance_metrics: true
+    log_file_operations: false  # Reduce log volume
+    log_search_queries: false
+    log_api_calls: true  # Still track API usage
+    sensitive_data_mask: true  # Always mask in production
+    
+  # Maximum security for production
+  security:
+    encryption_enabled: true
+    backup_encryption: true
+    access_logging: true
+    integrity_checks: true
+    max_file_age: 43200  # 12 hours - tighter control
+    
+  # Production integrations
+  integrations:
+    gemini_api:
+      timeout: 15  # Fast timeout
+      retry_attempts: 3
+      rate_limit: 120  # Higher rate limit for production
+      
+    notification:
+      enabled: true
+      webhook_url: "${MEMORY_BANK_WEBHOOK_URL}"
+      
+  # Robust error handling for production
+  error_handling:
+    auto_retry: true
+    max_retries: 3
+    retry_delay: 2  # Longer delay between retries
+    fallback_mode: true
+    emergency_backup: true
+    corruption_detection: true 

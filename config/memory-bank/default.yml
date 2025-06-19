@@ -1,0 +1,105 @@
+# Memory Bank Configuration - Default Template
+# ================================================
+
+memory_bank:
+  # Storage Configuration
+  storage:
+    type: "file_system"  # Options: file_system, database, cloud
+    base_path: "memory-bank"
+    backup_enabled: true
+    backup_path: "memory-bank/backups"
+    auto_backup_interval: 3600  # seconds
+    
+  # Document Types Configuration
+  documents:
+    projectbrief:
+      filename: "projectbrief.md"
+      max_size: 50000  # bytes
+      auto_save: true
+      version_control: true
+      
+    productContext:
+      filename: "productContext.md"
+      max_size: 100000
+      auto_save: true
+      version_control: true
+      
+    systemPatterns:
+      filename: "systemPatterns.md"
+      max_size: 75000
+      auto_save: true
+      version_control: true
+      
+    techContext:
+      filename: "techContext.md"
+      max_size: 75000
+      auto_save: true
+      version_control: true
+      
+    activeContext:
+      filename: "activeContext.md"
+      max_size: 25000
+      auto_save: true
+      version_control: false  # Changes frequently
+      
+    progress:
+      filename: "progress.md"
+      max_size: 50000
+      auto_save: true
+      version_control: true
+
+  # Search & Query Configuration
+  search:
+    enabled: true
+    provider: "gemini"  # Options: gemini, openai, local
+    model: "${GEMINI_MODEL_NAME:gemini-2.5-flash}"
+    embedding_cache: true
+    cache_ttl: 3600  # seconds
+    max_results: 10
+    similarity_threshold: 0.7
+    
+  # Performance Configuration
+  performance:
+    enable_caching: true
+    cache_size: 1000  # MB
+    preload_documents: false
+    concurrent_operations: 3
+    timeout: 30  # seconds
+    
+  # Logging Configuration
+  logging:
+    level: "INFO"
+    include_performance_metrics: true
+    log_file_operations: true
+    log_search_queries: true
+    log_api_calls: true
+    sensitive_data_mask: true
+    
+  # Security Configuration
+  security:
+    encryption_enabled: false
+    backup_encryption: false
+    access_logging: true
+    integrity_checks: true
+    max_file_age: 86400  # seconds (24 hours)
+    
+  # Integration Configuration
+  integrations:
+    gemini_api:
+      api_key: "${GEMINI_API_KEY}"
+      timeout: 30
+      retry_attempts: 3
+      rate_limit: 60  # requests per minute
+      
+    notification:
+      enabled: false
+      webhook_url: "${MEMORY_BANK_WEBHOOK_URL:}"
+      
+  # Error Handling Configuration
+  error_handling:
+    auto_retry: true
+    max_retries: 3
+    retry_delay: 1  # seconds
+    fallback_mode: true
+    emergency_backup: true
+    corruption_detection: true 

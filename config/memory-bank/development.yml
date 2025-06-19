@@ -1,0 +1,76 @@
+# Memory Bank Configuration - Development Environment
+# ===================================================
+
+memory_bank:
+  # Development-optimized storage
+  storage:
+    base_path: "memory-bank"
+    backup_enabled: false  # Disable for faster development
+    auto_backup_interval: 0
+    
+  # Relaxed document limits for development
+  documents:
+    projectbrief:
+      max_size: 100000  # Larger for development
+    productContext:
+      max_size: 200000
+    systemPatterns:
+      max_size: 150000
+    techContext:
+      max_size: 150000
+    activeContext:
+      max_size: 50000
+    progress:
+      max_size: 100000
+
+  # Enhanced search for development
+  search:
+    model: "gemini-2.5-flash"  # Fast model for development
+    embedding_cache: false  # Fresh results for testing
+    cache_ttl: 300  # 5 minutes only
+    max_results: 20  # More results for analysis
+    similarity_threshold: 0.5  # Lower threshold for broader results
+    
+  # Development performance settings
+  performance:
+    enable_caching: false  # Disable for testing
+    cache_size: 100  # MB - smaller cache
+    preload_documents: true  # Faster startup
+    concurrent_operations: 1  # Simpler debugging
+    timeout: 60  # Longer timeout for debugging
+    
+  # Verbose logging for development
+  logging:
+    level: "DEBUG"
+    include_performance_metrics: true
+    log_file_operations: true
+    log_search_queries: true
+    log_api_calls: true
+    sensitive_data_mask: false  # Show full data in dev
+    
+  # Relaxed security for development
+  security:
+    encryption_enabled: false
+    backup_encryption: false
+    access_logging: true
+    integrity_checks: false  # Faster development
+    max_file_age: 604800  # 7 days
+    
+  # Development integrations
+  integrations:
+    gemini_api:
+      timeout: 60  # Longer timeout for debugging
+      retry_attempts: 1  # Fail fast in development
+      rate_limit: 30  # Lower rate limit
+      
+    notification:
+      enabled: true  # Enable for testing
+      
+  # Aggressive error handling for development
+  error_handling:
+    auto_retry: false  # Don't retry - show errors immediately
+    max_retries: 0
+    retry_delay: 0
+    fallback_mode: false  # Test real functionality
+    emergency_backup: false
+    corruption_detection: true 

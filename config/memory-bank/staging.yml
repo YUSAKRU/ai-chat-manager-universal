@@ -1,0 +1,77 @@
+# Memory Bank Configuration - Staging Environment
+# ================================================
+
+memory_bank:
+  # Staging storage - production-like but with test data
+  storage:
+    base_path: "staging-memory-bank"
+    backup_enabled: true
+    backup_path: "staging-memory-bank/backups"
+    auto_backup_interval: 3600  # 1 hour
+    
+  # Production-like document limits
+  documents:
+    projectbrief:
+      max_size: 45000
+    productContext:
+      max_size: 90000
+    systemPatterns:
+      max_size: 70000
+    techContext:
+      max_size: 70000
+    activeContext:
+      max_size: 25000
+    progress:
+      max_size: 45000
+
+  # Balanced search for staging
+  search:
+    model: "gemini-2.5-flash"  # Fast but reliable for testing
+    embedding_cache: true
+    cache_ttl: 1800  # 30 minutes
+    max_results: 10
+    similarity_threshold: 0.7
+    
+  # Balanced performance settings
+  performance:
+    enable_caching: true
+    cache_size: 500  # MB - moderate cache
+    preload_documents: true
+    concurrent_operations: 3
+    timeout: 20
+    
+  # Detailed logging for staging testing
+  logging:
+    level: "INFO"
+    include_performance_metrics: true
+    log_file_operations: true
+    log_search_queries: true
+    log_api_calls: true
+    sensitive_data_mask: true
+    
+  # Production-like security for staging
+  security:
+    encryption_enabled: false  # Test without encryption complexity
+    backup_encryption: false
+    access_logging: true
+    integrity_checks: true
+    max_file_age: 86400  # 24 hours
+    
+  # Staging integrations
+  integrations:
+    gemini_api:
+      timeout: 25
+      retry_attempts: 2
+      rate_limit: 90
+      
+    notification:
+      enabled: true  # Test notifications
+      
+  # Standard error handling for staging
+  error_handling:
+    auto_retry: true
+    max_retries: 2
+    retry_delay: 1
+    fallback_mode: true
+    emergency_backup: true
+    corruption_detection: true 
