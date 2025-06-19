@@ -17,6 +17,9 @@ from src.memory_bank_integration import MemoryBankIntegration
 from src.web_ui_universal import WebUIUniversal
 from src.logger import setup_logger
 
+# Hata yönetimi sistemi
+from src.error_handler import safe_execute, async_safe_execute, AIChromeChatError, ErrorTypes
+
 # Colorama'yı başlat
 init(autoreset=True)
 
@@ -37,31 +40,69 @@ class UniversalChatManager:
         # Sistem durumu
         self.is_running = False
         
+    @async_safe_execute(
+        component="main_universal_init",
+        error_type=ErrorTypes.SYSTEM_OVERLOAD,
+        user_message="Sistem başlatılamadı. Lütfen ayarlarınızı kontrol edin.",
+        raise_on_error=True
+    )
     async def initialize_components(self, args):
         """Sistem bileşenlerini başlat"""
+        # Memory Bank başlat
+        logger.info("📚 Memory Bank başlatılıyor...")
+        project_goal = "AI Chrome Chat Manager - Universal AI destekli proje yönetimi ve chat sistemi"
+        
         try:
-            # Memory Bank başlat
-            logger.info("📚 Memory Bank başlatılıyor...")
-            project_goal = "AI Chrome Chat Manager - Universal AI destekli proje yönetimi ve chat sistemi"
             self.memory_bank = MemoryBankIntegration(project_goal)
             await self.memory_bank.initialize()
-            
-            # Secure Config Manager
-            logger.info("🔐 Secure Config Manager başlatılıyor...")
+        except Exception as e:
+            raise AIChromeChatError(
+                f"Memory Bank başlatılamadı: {str(e)}",
+                error_type=ErrorTypes.DEPENDENCY_ERROR,
+                component="main_universal_memory_bank",
+                user_message="Hafıza sistemi başlatılamadı. Dosya izinlerini kontrol edin.",
+                original_exception=e
+            )
+        
+        # Secure Config Manager
+        logger.info("🔐 Secure Config Manager başlatılıyor...")
+        try:
             config_manager = SecureConfigManager("config/api_keys.enc")
-            
-            # UniversalAIAdapter başlat
-            logger.info("🤖 Universal AI Adapter başlatılıyor...")
+        except Exception as e:
+            raise AIChromeChatError(
+                f"Config Manager başlatılamadı: {str(e)}",
+                error_type=ErrorTypes.CONFIG_MISSING,
+                component="main_universal_config",
+                user_message="Yapılandırma sistemi başlatılamadı. Config klasörünü kontrol edin.",
+                original_exception=e
+            )
+        
+        # UniversalAIAdapter başlat
+        logger.info("🤖 Universal AI Adapter başlatılıyor...")
+        try:
             self.ai_adapter = UniversalAIAdapter(config_manager)
-            
-            # Mevcut API anahtarlarını yükle (web arayüzünden eklenmiş olanlar)
-            await self._configure_adapters(config_manager)
-            
-            # Rolleri ata
-            self._assign_roles()
-            
-            # Web UI başlat
-            logger.info("🌐 Web UI başlatılıyor...")
+        except Exception as e:
+            raise AIChromeChatError(
+                f"AI Adapter başlatılamadı: {str(e)}",
+                error_type=ErrorTypes.ADAPTER_UNAVAILABLE,
+                component="main_universal_ai_adapter",
+                user_message="AI sistemi başlatılamadı. Sistem gereksinimlerini kontrol edin.",
+                original_exception=e
+            )
+        
+        # Mevcut API anahtarlarını yükle (web arayüzünden eklenmiş olanlar)
+        adapter_count = await self._configure_adapters(config_manager)
+        
+        if adapter_count == 0:
+            logger.warning("⚠️ Hiçbir API anahtarı bulunamadı.")
+            logger.warning("🌐 Web arayüzünden API anahtarlarınızı ekleyin: http://localhost:5000/api-management")
+        
+        # Rolleri ata
+        self._assign_roles()
+        
+        # Web UI başlat
+        logger.info("🌐 Web UI başlatılıyor...")
+        try:
             self.web_ui = WebUIUniversal(
                 host="0.0.0.0",
                 port=5000,
@@ -70,12 +111,16 @@ class UniversalChatManager:
                 ai_adapter=self.ai_adapter
             )
             self.web_ui.start_background()
-            
-            logger.info(f"{Fore.GREEN}✅ Tüm bileşenler başarıyla başlatıldı!{Style.RESET_ALL}")
-            
         except Exception as e:
-            logger.error(f"❌ Başlatma hatası: {e}")
-            raise
+            raise AIChromeChatError(
+                f"Web UI başlatılamadı: {str(e)}",
+                error_type=ErrorTypes.SYSTEM_OVERLOAD,
+                component="main_universal_web_ui",
+                user_message="Web arayüzü başlatılamadı. Port 5000 kullanımda olabilir.",
+                original_exception=e
+            )
+        
+        logger.info(f"{Fore.GREEN}✅ Tüm bileşenler başarıyla başlatıldı!{Style.RESET_ALL}")
     
     async def _configure_adapters(self, config_manager: SecureConfigManager):
         """AI adapter'larını yapılandır (sadece kullanıcı tarafından eklenenler)"""
@@ -269,11 +314,14 @@ class UniversalChatManager:
         
         # Bileşenleri temizle
         if self.memory_bank:
-            # Memory Bank'i kaydet
-            await self.memory_bank.update_document("progress", """
-            Son oturum kapatıldı.
-            Sistem başarıyla sonlandırıldı.
-            """)
+            # Memory Bank'i kaydet (await kullanmadan)
+            try:
+                self.memory_bank.update_document("progress", """
+                Son oturum kapatıldı.
+                Sistem başarıyla sonlandırıldı.
+                """)
+            except Exception as e:
+                logger.error(f"Memory bank güncelleme hatası: {e}", component="shutdown")
         
         logger.info("👋 Sistem kapatıldı. Görüşmek üzere!")
 

@@ -1,4 +1,4 @@
 
-            Son oturum kapatıldı.
-            Sistem başarıyla sonlandırıldı.
-            
+                Son oturum kapatıldı.
+                Sistem başarıyla sonlandırıldı.
+                

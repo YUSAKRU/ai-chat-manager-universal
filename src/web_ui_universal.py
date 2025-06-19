@@ -11,6 +11,10 @@ import threading
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Hata yönetimi sistemi
+from .error_handler import central_error_handler, safe_execute, async_safe_execute, AIChromeChatError, ErrorTypes
+
 # TODO: Implement these modules in future versions
 # from project_memory import ProjectMemory
 # from plugin_manager import plugin_manager
@@ -25,6 +29,9 @@ class WebUIUniversal:
         self.app.config['SECRET_KEY'] = 'ai-chrome-chat-manager-universal-secret'
         # Python 3.13 uyumluluğu için threading mode kullan
         self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode='threading')
+        
+        # Merkezi hata yönetimi sistemini entegre et
+        central_error_handler.init_app(self.app)
         
         # Sistem bileşenleri
         self.host = host
@@ -79,7 +86,16 @@ class WebUIUniversal:
         @self.app.route('/api/analytics')
         def get_analytics():
             """Analytics verilerini döndür"""
-            try:
+            @safe_execute(component="web_ui_analytics", error_type=ErrorTypes.API_CONNECTION_ERROR)
+            def _get_analytics():
+                if not self.ai_adapter:
+                    raise AIChromeChatError(
+                        "AI adapter bulunamadı",
+                        error_type=ErrorTypes.ADAPTER_UNAVAILABLE,
+                        component="web_ui_analytics",
+                        user_message="AI sistemi henüz hazır değil. Lütfen API anahtarlarınızı kontrol edin."
+                    )
+                
                 # Toplam istatistikler
                 total_stats = self.ai_adapter.get_total_stats()
                 
@@ -112,7 +128,8 @@ class WebUIUniversal:
                         'input': 0,  # Detaylı token bilgisi için güncelleme gerekecek
                         'output': 0
                     },
-                    'timestamp': datetime.now().isoformat()
+                    'timestamp': datetime.now().isoformat(),
+                    'error_stats': central_error_handler.get_error_stats()  # Hata istatistikleri eklendi
                 }
                 
                 # Her adapter için detaylı bilgi
@@ -145,20 +162,41 @@ class WebUIUniversal:
                 }
                 
                 return jsonify(analytics_data)
-                
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
+            
+            return _get_analytics()
         
         @self.app.route('/api/ai/send_message', methods=['POST'])
         def send_ai_message():
             """AI'ya mesaj gönder"""
-            data = request.get_json()
-            role_id = data.get('role_id', 'project_manager')
-            message = data.get('message', '')
-            context = data.get('context', '')
+            @safe_execute(component="web_ui_ai_message", error_type=ErrorTypes.INVALID_INPUT, raise_on_error=True)
+            def _validate_and_process():
+                data = request.get_json()
+                if not data:
+                    raise AIChromeChatError(
+                        "Geçersiz JSON verisi",
+                        error_type=ErrorTypes.INVALID_INPUT,
+                        component="web_ui_ai_message",
+                        user_message="Lütfen geçerli bir mesaj gönderin."
+                    )
+                
+                role_id = data.get('role_id', 'project_manager')
+                message = data.get('message', '').strip()
+                context = data.get('context', '')
+                
+                if not message:
+                    raise AIChromeChatError(
+                        "Mesaj boş olamaz",
+                        error_type=ErrorTypes.MISSING_PARAMETER,
+                        component="web_ui_ai_message",
+                        user_message="Lütfen bir mesaj yazın."
+                    )
+                
+                return role_id, message, context
             
-            if not message:
-                return jsonify({'error': 'Mesaj gerekli'}), 400
+            try:
+                role_id, message, context = _validate_and_process()
+            except AIChromeChatError as e:
+                return jsonify(e.to_dict()), 400
             
             # Async mesajı background'da çalıştır
             def run_async():
@@ -375,14 +413,36 @@ class WebUIUniversal:
         @self.app.route('/api/keys/<provider>', methods=['POST'])
         def add_api_key(provider):
             """Yeni API anahtarı ekle"""
-            try:
+            @safe_execute(component="web_ui_api_keys", error_type=ErrorTypes.CONFIG_INVALID, raise_on_error=True)
+            def _process_api_key():
                 data = request.get_json()
+                if not data:
+                    raise AIChromeChatError(
+                        "Geçersiz JSON verisi",
+                        error_type=ErrorTypes.INVALID_INPUT,
+                        component="web_ui_api_keys",
+                        user_message="Lütfen geçerli veriler gönderin."
+                    )
+                
                 api_key = data.get('api_key', '').strip()
                 key_name = data.get('key_name', 'primary').strip()
                 model = data.get('model', '')
                 
                 if not api_key:
-                    return jsonify({'error': 'API anahtarı gerekli'}), 400
+                    raise AIChromeChatError(
+                        "API anahtarı boş olamaz",
+                        error_type=ErrorTypes.MISSING_PARAMETER,
+                        component="web_ui_api_keys",
+                        user_message="Lütfen geçerli bir API anahtarı girin."
+                    )
+                
+                if provider not in ['gemini', 'openai']:
+                    raise AIChromeChatError(
+                        f"Desteklenmeyen provider: {provider}",
+                        error_type=ErrorTypes.INVALID_INPUT,
+                        component="web_ui_api_keys",
+                        user_message="Sadece Gemini ve OpenAI desteklenmektedir."
+                    )
                 
                 if not model:
                     # Varsayılan modeller
@@ -391,20 +451,32 @@ class WebUIUniversal:
                     elif provider == 'openai':
                         model = 'gpt-3.5-turbo'
                     else:
-                        return jsonify({'error': 'Model belirtilmeli'}), 400
+                        raise AIChromeChatError(
+                            "Model belirtilmeli",
+                            error_type=ErrorTypes.MISSING_PARAMETER,
+                            component="web_ui_api_keys",
+                            user_message="Lütfen geçerli bir model seçin."
+                        )
                 
                 # API anahtarını test et
                 test_result = self._test_api_key(provider, api_key, model)
                 if not test_result['success']:
-                    return jsonify({
-                        'error': f'API anahtarı test edilemedi: {test_result["error"]}',
-                        'test_result': test_result
-                    }), 400
+                    raise AIChromeChatError(
+                        f"API anahtarı test edilemedi: {test_result['error']}",
+                        error_type=ErrorTypes.API_INVALID_KEY,
+                        component="web_ui_api_keys",
+                        user_message="API anahtarı geçersiz. Lütfen doğru anahtarı girdiğinizden emin olun."
+                    )
                 
                 # Konfigürasyona kaydet
                 success = self.ai_adapter.config_manager.set_key(provider, key_name, api_key)
                 if not success:
-                    return jsonify({'error': 'API anahtarı kaydedilemedi'}), 500
+                    raise AIChromeChatError(
+                        "API anahtarı kaydedilemedi",
+                        error_type=ErrorTypes.CONFIG_INVALID,
+                        component="web_ui_api_keys",
+                        user_message="Yapılandırma hatası. Sistem ayarlarını kontrol edin."
+                    )
                 
                 # Yeni adapter oluştur
                 adapter_id = f"{provider}-{key_name}"
@@ -426,13 +498,18 @@ class WebUIUniversal:
                     })
                     
                 except Exception as adapter_error:
-                    return jsonify({
-                        'error': f'Adapter oluşturulamadı: {str(adapter_error)}',
-                        'api_key_saved': True
-                    }), 500
-                
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
+                    raise AIChromeChatError(
+                        f"Adapter oluşturulamadı: {str(adapter_error)}",
+                        error_type=ErrorTypes.ADAPTER_UNAVAILABLE,
+                        component="web_ui_api_keys",
+                        user_message="AI adapter oluşturulamadı. API anahtarını tekrar kontrol edin.",
+                        original_exception=adapter_error
+                    )
+            
+            try:
+                return _process_api_key()
+            except AIChromeChatError as e:
+                return jsonify(e.to_dict()), 400
         
         @self.app.route('/api/keys/<provider>/<key_name>', methods=['PUT'])
         def update_api_key(provider, key_name):
