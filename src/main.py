@@ -485,7 +485,7 @@ class OrchestratorWebApp:
         
         @self.app.route('/')
         def index():
-            return render_template('orchestrator.html')
+            return render_template('index_universal.html')
             
         @self.app.route('/orchestrate', methods=['POST'])
         def orchestrate():
