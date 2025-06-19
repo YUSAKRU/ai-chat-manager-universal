@@ -1002,12 +1002,15 @@ async function loadProjectTasks() {
     try {
         const response = await fetch('/api/memory/tasks');
         if (response.ok) {
-            projectTasks = await response.json();
+            const data = await response.json();
+            // Backend'den gelen format: {success: true, tasks: [...], total: 2}
+            projectTasks = data.tasks || data || []; // tasks array'ini extract et
             renderTasksList();
             updateTasksCount();
         }
     } catch (error) {
         console.error('Tasks load error:', error);
+        projectTasks = []; // Hata durumunda boş array
     }
 }
 
