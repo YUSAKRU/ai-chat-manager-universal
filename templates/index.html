@@ -4,171 +4,575 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chrome Chat Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Socket.IO -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
     <style>
-        .chat-container {
-            height: 500px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            background-color: #f8f9fa;
+        body {
+            background: var(--bg-secondary);
+            font-family: var(--font-family-base);
         }
-        .message {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+        .main-container {
+            padding: var(--space-6);
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .message.pm { background-color: #e3f2fd; border-left: 4px solid #2196f3; }
-        .message.ld { background-color: #f3e5f5; border-left: 4px solid #9c27b0; }
-        .message.boss { background-color: #fff3e0; border-left: 4px solid #ff9800; }
-        .message-header {
-            font-weight: bold;
-            margin-bottom: 5px;
+
+        .navbar-modern {
+            background: var(--bg-surface);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-primary);
+            padding: var(--space-4) 0;
+            position: sticky;
+            top: 0;
+            z-index: var(--z-sticky);
+            transition: all var(--transition-base);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .navbar-brand:hover {
+            color: var(--primary-600);
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-left: auto;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--danger-500);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: var(--success-500);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: var(--space-8);
+            margin-top: var(--space-8);
+        }
+
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .stats-card-modern {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stats-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-4);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            line-height: 1;
+            margin-bottom: var(--space-1);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            opacity: 0.9;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+        }
+
+        .memory-bank-section {
+            border-top: 1px solid var(--border-primary);
+            padding-top: var(--space-4);
+        }
+
+        .input-group-modern {
+            display: flex;
+            gap: var(--space-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .input-modern {
+            flex: 1;
+            padding: var(--space-3);
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .input-modern:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .chrome-profiles-section {
+            padding: var(--space-4);
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+        }
+
+        .profile-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: var(--space-2) 0;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
         }
-        .timestamp {
-            font-size: 0.8em;
-            color: #666;
+
+        .profile-info strong {
+            color: var(--text-primary);
         }
-        .status-indicator {
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
+
+        .profile-value {
+            color: var(--primary-600);
+            font-weight: var(--font-weight-medium);
         }
-        .status-online { background-color: #4caf50; }
-        .status-offline { background-color: #f44336; }
-        .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .operation-log {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            height: 200px;
+            overflow-y: auto;
+            font-family: var(--font-family-mono);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .chat-container-modern {
+            height: 500px;
+            overflow-y: auto;
+            padding: var(--space-6);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            position: relative;
+        }
+
+        .chat-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .chat-empty-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+
+        .message-modern {
+            display: flex;
+            margin-bottom: var(--space-4);
+            animation: messageSlideIn 0.3s var(--transition-bounce);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            font-size: var(--font-size-sm);
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+        }
+
+        .message-avatar.pm {
+            background: var(--gradient-pm);
+        }
+
+        .message-avatar.ld {
+            background: var(--gradient-dev);
+        }
+
+        .message-avatar.boss {
+            background: var(--gradient-marketing);
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-1);
+        }
+
+        .message-sender {
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        .message-timestamp {
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+        }
+
+        .message-text {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: var(--space-3);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+            line-height: var(--line-height-relaxed);
+            word-wrap: break-word;
+        }
+
+        .message-input-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+        }
+
+        .message-input-row {
+            display: grid;
+            grid-template-columns: 200px 1fr auto;
+            gap: var(--space-3);
+            align-items: center;
+        }
+
+        .message-select {
+            padding: var(--space-3);
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        .message-select:focus {
+            outline: none;
+            border-color: var(--primary-500);
+        }
+
+        .last-update {
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: var(--space-6);
+            }
+            
+            .message-input-row {
+                grid-template-columns: 1fr;
+                gap: var(--space-2);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .navbar-content {
+                padding: 0 var(--space-4);
+            }
+            
+            .main-container {
+                padding: var(--space-4);
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Custom Scrollbar */
+        .chat-container-modern::-webkit-scrollbar,
+        .operation-log::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container-modern::-webkit-scrollbar-track,
+        .operation-log::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+
+        .chat-container-modern::-webkit-scrollbar-thumb,
+        .operation-log::-webkit-scrollbar-thumb {
+            background: var(--border-secondary);
+            border-radius: var(--radius-sm);
+        }
+
+        .chat-container-modern::-webkit-scrollbar-thumb:hover,
+        .operation-log::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-400);
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Header -->
-            <div class="col-12">
-                <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-                    <div class="container-fluid">
-                        <a class="navbar-brand" href="#">
-                            <i class="fas fa-robot"></i> AI Chrome Chat Manager
-                        </a>
-                        <div class="navbar-nav ms-auto">
-                            <span class="nav-item">
-                                <span class="status-indicator" id="statusIndicator"></span>
-                                <span id="connectionStatus">Bağlanıyor...</span>
-                            </span>
-                        </div>
-                    </div>
-                </nav>
+    <!-- Navigation -->
+    <nav class="navbar-modern">
+        <div class="navbar-content">
+            <a href="/" class="navbar-brand">
+                <div class="brand-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <span>AI Chrome Chat Manager</span>
+            </a>
+            
+            <div class="navbar-actions">
+                <div class="connection-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span id="connectionStatus">Bağlanıyor...</span>
+                </div>
             </div>
         </div>
+    </nav>
 
-        <div class="row mt-3">
-            <!-- Sol Panel - Kontrol -->
-            <div class="col-md-4">
-                <!-- Sistem Durumu -->
-                <div class="stats-card">
-                    <h5><i class="fas fa-chart-line"></i> Sistem Durumu</h5>
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="text-center">
-                                <h3 id="messageCount">0</h3>
-                                <small>Toplam Mesaj</small>
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="dashboard-grid">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <!-- System Stats -->
+                <div class="card-modern">
+                    <div class="card-body">
+                        <div class="stats-card-modern">
+                            <div class="stats-header">
+                                <i class="bi bi-bar-chart"></i>
+                                <span>Sistem Durumu</span>
                             </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="text-center">
-                                <h3 id="activeChannels">0</h3>
-                                <small>Aktif Kanal</small>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="messageCount">0</div>
+                                    <div class="stat-label">Toplam Mesaj</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="activeChannels">0</div>
+                                    <div class="stat-label">Aktif Kanal</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Hızlı Aksiyonlar -->
-                <div class="card">
+                <!-- Quick Actions -->
+                <div class="card-modern" data-animate="fadeInLeft">
                     <div class="card-header">
-                        <h5><i class="fas fa-lightning-bolt"></i> Hızlı Aksiyonlar</h5>
+                        <div class="section-header">
+                            <i class="bi bi-lightning"></i>
+                            <span>Hızlı Aksiyonlar</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary" onclick="requestStatus()">
-                                <i class="fas fa-clipboard-check"></i> Durum Raporu İste
+                        <div class="quick-actions">
+                            <button class="btn-modern btn-primary" onclick="requestStatus()">
+                                <i class="bi bi-clipboard-check"></i>
+                                <span>Durum Raporu İste</span>
                             </button>
-                            <button class="btn btn-success" onclick="showTaskModal()">
-                                <i class="fas fa-tasks"></i> Görev Ata
+                            <button class="btn-modern btn-success" onclick="showTaskModal()">
+                                <i class="bi bi-list-task"></i>
+                                <span>Görev Ata</span>
                             </button>
-                            <button class="btn btn-warning" onclick="showBossModal()">
-                                <i class="fas fa-crown"></i> Boss Müdahalesi
+                            <button class="btn-modern btn-warning" onclick="showBossModal()">
+                                <i class="bi bi-crown"></i>
+                                <span>Boss Müdahalesi</span>
                             </button>
-                            <button class="btn btn-info" onclick="refreshMessages()">
-                                <i class="fas fa-sync"></i> Mesajları Yenile
+                            <button class="btn-modern btn-secondary" onclick="refreshMessages()">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                <span>Mesajları Yenile</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Memory Bank -->
-                <div class="card mt-3">
+                <div class="card-modern" data-animate="fadeInLeft" data-delay="100">
                     <div class="card-header">
-                        <h5><i class="fas fa-database"></i> Memory Bank</h5>
+                        <div class="section-header">
+                            <i class="bi bi-database"></i>
+                            <span>Memory Bank</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="input-group mb-2">
-                            <input type="text" class="form-control" id="memoryQuery" placeholder="Memory Bank'ı sorgula...">
-                            <button class="btn btn-outline-secondary" onclick="queryMemoryBank()">
-                                <i class="fas fa-search"></i>
+                        <div class="input-group-modern">
+                            <input type="text" class="input-modern" id="memoryQuery" placeholder="Memory Bank'ı sorgula...">
+                            <button class="btn-modern btn-secondary" onclick="queryMemoryBank()">
+                                <i class="bi bi-search"></i>
                             </button>
                         </div>
-                        <div class="d-grid">                            <button class="btn btn-outline-primary btn-sm" onclick="getProjectSummary()">
-                                <i class="fas fa-file-alt"></i> Proje Özeti
-                            </button>
-                        </div>
+                        <button class="btn-modern btn-primary btn-sm w-100" onclick="getProjectSummary()">
+                            <i class="bi bi-file-text"></i>
+                            <span>Proje Özeti</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Chrome Profil Yönetimi -->
-                <div class="card mt-3">
+                <!-- Chrome Profiles -->
+                <div class="card-modern" data-animate="fadeInLeft" data-delay="200">
                     <div class="card-header">
-                        <h5><i class="fas fa-user-circle"></i> Chrome Profiller</h5>
+                        <div class="section-header">
+                            <i class="bi bi-person-circle"></i>
+                            <span>Chrome Profiller</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-outline-info btn-sm" onclick="getChromeProfiles()">
-                                <i class="fas fa-list"></i> Mevcut Profiller
+                        <div class="quick-actions">
+                            <button class="btn-modern btn-secondary btn-sm" onclick="getChromeProfiles()">
+                                <i class="bi bi-list"></i>
+                                <span>Mevcut Profiller</span>
                             </button>
-                            <button class="btn btn-outline-success btn-sm" onclick="getSelectedProfiles()">
-                                <i class="fas fa-check-circle"></i> Seçilen Profiller
+                            <button class="btn-modern btn-secondary btn-sm" onclick="getSelectedProfiles()">
+                                <i class="bi bi-check-circle"></i>
+                                <span>Seçilen Profiller</span>
                             </button>
-                            <!-- 🌐 WEB UI PROFIL SEÇIMI -->
-                            <button id="open-profile-modal-btn" type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#profileSelectionModal">
-                                <i class="fas fa-user-cog"></i> Profilleri Seç
+                            <button class="btn-modern btn-primary btn-sm" id="open-profile-modal-btn" data-bs-toggle="modal" data-bs-target="#profileSelectionModal">
+                                <i class="bi bi-gear"></i>
+                                <span>Profilleri Seç</span>
                             </button>
-                            <button id="start-browsers-btn" type="button" class="btn btn-success btn-sm" disabled>
-                                <i class="fas fa-play"></i> Tarayıcıları Başlat
+                            <button class="btn-modern btn-success btn-sm" id="start-browsers-btn" disabled>
+                                <i class="bi bi-play-circle"></i>
+                                <span>Tarayıcıları Başlat</span>
                             </button>
                         </div>
 
-                        <!-- Seçilen profil bilgileri -->
-                        <hr class="my-2" />
-                        <p class="mb-1"><strong>Proje Yöneticisi:</strong> <span id="pm-profile-display" class="text-primary">Seçilmedi</span></p>
-                        <p class="mb-0"><strong>Lead Developer:</strong> <span id="ld-profile-display" class="text-primary">Seçilmedi</span></p>
-                        <!-- Operasyon Günlüğü -->
-                        <div class="card mt-3">
-                            <div class="card-header p-2"><b>Operasyon Günlüğü</b></div>
-                            <div class="card-body p-2" id="status-log" style="font-family: monospace; max-height: 160px; overflow-y: auto;">
+                        <div class="chrome-profiles-section">
+                            <div class="profile-info">
+                                <strong>Proje Yöneticisi:</strong>
+                                <span class="profile-value" id="pm-profile-display">Seçilmedi</span>
+                            </div>
+                            <div class="profile-info">
+                                <strong>Lead Developer:</strong>
+                                <span class="profile-value" id="ld-profile-display">Seçilmedi</span>
+                            </div>
+                        </div>
+
+                        <div class="memory-bank-section">
+                            <h6 class="section-header">
+                                <i class="bi bi-journal-text"></i>
+                                <span>Operasyon Günlüğü</span>
+                            </h6>
+                            <div class="operation-log" id="status-log">
                                 <p class="text-muted mb-0">Sistem durumu burada görünecek...</p>
                             </div>
                         </div>
@@ -176,65 +580,66 @@
                 </div>
             </div>
 
-            <!-- Sağ Panel - Chat -->
-            <div class="col-md-8">
-                <div class="card">
+            <!-- Chat Panel -->
+            <div class="chat-panel">
+                <!-- Chat Container -->
+                <div class="card-modern" data-animate="fadeInRight">
                     <div class="card-header">
-                        <h5><i class="fas fa-comments"></i> Canlı Konuşma</h5>
-                        <div class="float-end">
-                            <small class="text-muted">Son güncelleme: <span id="lastUpdate">-</span></small>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="section-header">
+                                <i class="bi bi-chat-dots"></i>
+                                <span>Canlı Konuşma</span>
+                            </div>
+                            <div class="last-update">
+                                Son güncelleme: <span id="lastUpdate">-</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div id="chatContainer" class="chat-container">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-comments fa-3x mb-3"></i>
+                    <div class="card-body" style="padding: 0;">
+                        <div id="chatContainer" class="chat-container-modern">
+                            <div class="chat-empty-state">
+                                <div class="chat-empty-icon">💬</div>
                                 <p>Henüz mesaj yok. Konuşma başladığında burası güncellenecek.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Mesaj Gönderme -->
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <select class="form-select" id="messageTarget">
-                                    <option value="boss_to_both">Her ikisine (Boss)</option>
-                                    <option value="boss_to_pm">Proje Yöneticisi'ne</option>
-                                    <option value="boss_to_ld">Lead Developer'a</option>
-                                </select>
-                            </div>
-                            <div class="col-md-7">
-                                <input type="text" class="form-control" id="messageInput" placeholder="Mesaj yazın..." onkeypress="handleKeyPress(event)">
-                            </div>
-                            <div class="col-md-2">
-                                <button class="btn btn-primary w-100" onclick="sendMessage()">
-                                    <i class="fas fa-paper-plane"></i> Gönder
-                                </button>
-                            </div>
-                        </div>
+                <!-- Message Input -->
+                <div class="message-input-section" data-animate="fadeInRight" data-delay="100">
+                    <div class="message-input-row">
+                        <select class="message-select" id="messageTarget">
+                            <option value="boss_to_both">Her ikisine (Boss)</option>
+                            <option value="boss_to_pm">Proje Yöneticisi'ne</option>
+                            <option value="boss_to_ld">Lead Developer'a</option>
+                        </select>
+                        <input type="text" class="input-modern" id="messageInput" placeholder="Mesaj yazın..." onkeypress="handleKeyPress(event)">
+                        <button class="btn-modern btn-primary" onclick="sendMessage()">
+                            <i class="bi bi-send"></i>
+                            <span>Gönder</span>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals and JavaScript here -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Include Theme Manager and Animation Utils -->
+    <script src="/static/js/theme-manager.js"></script>
+    <script src="/static/js/animation-utils.js"></script>
+
     <script>
         // Socket.IO bağlantısı
         const socket = io();
         let messageHistory = [];
 
         socket.on('connect', function() {
-            document.getElementById('statusIndicator').className = 'status-indicator status-online';
+            document.getElementById('statusIndicator').className = 'status-indicator connected';
             document.getElementById('connectionStatus').textContent = 'Bağlı';
         });
 
         socket.on('disconnect', function() {
-            document.getElementById('statusIndicator').className = 'status-indicator status-offline';
+            document.getElementById('statusIndicator').className = 'status-indicator';
             document.getElementById('connectionStatus').textContent = 'Bağlantı Kesildi';
         });
 
@@ -252,18 +657,26 @@
             const senderClass = getSenderClass(message.sender);
             const timestamp = new Date(message.timestamp).toLocaleTimeString();
 
-            messageDiv.className = `message ${senderClass}`;
+            messageDiv.className = 'message-modern';
             messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span><i class="${getSenderIcon(message.sender)}"></i> ${message.sender}</span>
-                    <span class="timestamp">${timestamp}</span>
+                <div class="message-avatar ${senderClass}">
+                    <i class="${getSenderIcon(message.sender)}"></i>
                 </div>
-                <div>${message.content}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-sender">${message.sender}</span>
+                        <span class="message-timestamp">${timestamp}</span>
+                    </div>
+                    <div class="message-text">${message.content}</div>
+                </div>
             `;
 
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             messageHistory.push(message);
+            
+            document.getElementById('lastUpdate').textContent = timestamp;
+            document.getElementById('messageCount').textContent = messageHistory.length;
         }
 
         function getSenderClass(sender) {
@@ -274,10 +687,10 @@
         }
 
         function getSenderIcon(sender) {
-            if (sender.includes('Proje') || sender.includes('Project')) return 'fas fa-user-tie';
-            if (sender.includes('Developer') || sender.includes('Geliştirici')) return 'fas fa-code';
-            if (sender.includes('Boss') || sender.includes('Patron')) return 'fas fa-crown';
-            return 'fas fa-user';
+            if (sender.includes('Proje') || sender.includes('Project')) return 'bi bi-person-badge';
+            if (sender.includes('Developer') || sender.includes('Geliştirici')) return 'bi bi-code-slash';
+            if (sender.includes('Boss') || sender.includes('Patron')) return 'bi bi-crown';
+            return 'bi bi-person';
         }
 
         function sendMessage() {
@@ -324,8 +737,8 @@
                     
                     if (messages.length === 0) {
                         chatContainer.innerHTML = `
-                            <div class="text-center text-muted">
-                                <i class="fas fa-comments fa-3x mb-3"></i>
+                            <div class="chat-empty-state">
+                                <div class="chat-empty-icon">💬</div>
                                 <p>Henüz mesaj yok. Konuşma başladığında burası güncellenecek.</p>
                             </div>
                         `;
@@ -333,7 +746,9 @@
                         messages.forEach(message => addMessageToChat(message));
                     }
                 });
-        }        function queryMemoryBank() {
+        }
+
+        function queryMemoryBank() {
             const query = document.getElementById('memoryQuery').value.trim();
             if (!query) return;
             
@@ -349,7 +764,6 @@
                 if (data.error) {
                     alert('Hata: ' + data.error);
                 } else {
-                    // Sonucu chat alanına ekle
                     const result = {
                         sender: 'Memory Bank',
                         content: `🧠 Sorgu: "${query}"\n📋 Sonuç: ${data.result}`,
@@ -380,13 +794,13 @@
                     };
                     addMessageToChat(summary);
                 }
-            })            .catch(error => {
+            })
+            .catch(error => {
                 console.error('Memory Bank durum hatası:', error);
                 alert('Memory Bank durumu alınamadı!');
             });
         }
 
-        // Chrome Profil Yönetimi Fonksiyonları
         function getChromeProfiles() {
             fetch('/api/chrome_profiles/list')
             .then(response => response.json())
@@ -394,15 +808,15 @@
                 if (data.error) {
                     alert('Hata: ' + data.error);
                 } else {
-                    let profilesList = "🔍 Mevcut Chrome Profilleri:\\n\\n";
-                    profilesList += `📁 User Data: ${data.user_data_path}\\n`;
-                    profilesList += `📊 Toplam: ${data.count} profil\\n\\n`;
+                    let profilesList = "🔍 Mevcut Chrome Profilleri:\n\n";
+                    profilesList += `📁 User Data: ${data.user_data_path}\n`;
+                    profilesList += `📊 Toplam: ${data.count} profil\n\n`;
                     
                     data.profiles.forEach(profile => {
                         const marker = profile.is_default ? "👑" : "👤";
-                        profilesList += `${marker} ${profile.display_name}\\n`;
-                        profilesList += `   📂 ${profile.name}\\n`;
-                        profilesList += `   🕒 ${profile.last_used}\\n\\n`;
+                        profilesList += `${marker} ${profile.display_name}\n`;
+                        profilesList += `   📂 ${profile.name}\n`;
+                        profilesList += `   🕒 ${profile.last_used}\n\n`;
                     });
                     
                     const result = {
@@ -427,7 +841,7 @@
                 if (data.error) {
                     alert('Hata: ' + data.error);
                 } else {
-                    const selectedInfo = `🎭 Seçilen Chrome Profilleri:\\n\\n👔 Proje Yöneticisi: ${data.pm_profile}\\n👨‍💻 Lead Developer: ${data.ld_profile}`;
+                    const selectedInfo = `🎭 Seçilen Chrome Profilleri:\n\n👔 Proje Yöneticisi: ${data.pm_profile}\n👨‍💻 Lead Developer: ${data.ld_profile}`;
                     
                     const result = {
                         sender: 'Chrome Profil Manager',
@@ -443,108 +857,9 @@
                 alert('Seçilen profiller alınamadı!');
             });
         }
+
+        // Update active channels count
+        document.getElementById('activeChannels').textContent = '2';
     </script>
-
-    <!-- ====================================================== -->
-    <!--             Profil Seçim Modalı & Toast Alanı          -->
-    <!-- ====================================================== -->
-
-    <!-- Modal -->
-    <div class="modal fade" id="profileSelectionModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="profileModalLabel">Chrome Profillerini Ata</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-muted">Lütfen her rol için kullanılacak Chrome profilini seçin.</p>
-            <form id="profile-selection-form">
-              <div class="mb-3">
-                <label for="pm-profile-select" class="form-label"><b>Proje Yöneticisi (AI-1)</b></label>
-                <select class="form-select" id="pm-profile-select" required>
-                  <option selected disabled value="">Yükleniyor...</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="ld-profile-select" class="form-label"><b>Lider Geliştirici (AI-2)</b></label>
-                <select class="form-select" id="ld-profile-select" required>
-                  <option selected disabled value="">Yükleniyor...</option>
-                </select>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-            <button type="button" class="btn btn-info" id="preview-changes-btn">Değişiklikleri Önizle</button>
-            <button type="button" class="btn btn-success" id="save-memory-btn" disabled>Değişiklikleri Kaydet</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div id="notification-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
-        <div class="toast-header">
-          <strong class="me-auto" id="toast-title">Bildirim</strong>
-          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body" id="toast-body"></div>
-      </div>
-    </div>
-
-    <!-- Görev Panosu ve Memory Bank Row -->
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mt-3">
-                <div class="card-header"><b>Görev Panosu (activeContext.md)</b></div>
-                <div class="card-body" id="task-list" style="max-height:300px; overflow-y:auto;">
-                    <p class="text-muted">Görevler yükleniyor...</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card mt-3">
-                <div class="card-header"><b>Bellek Bankası (memory_bank)</b></div>
-                <ul class="list-group list-group-flush" id="memory-file-list" style="max-height:300px; overflow-y:auto;">
-                    <li class="list-group-item text-muted">Dosyalar yükleniyor...</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- Ana JS -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-    <!-- Memory File Modal -->
-    <div class="modal fade" id="memoryFileModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="memoryFileModalLabel">Dosya</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <textarea id="memory-file-editor" class="form-control" rows="15"></textarea>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Diff Modal -->
-    <div class="modal fade" id="diffModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Değişiklik Önizlemesi</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <pre><code id="diff-content" class="language-diff"></code></pre>
-          </div>
-        </div>
-      </div>
-    </div>
 </body>
 </html>

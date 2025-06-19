@@ -4,1160 +4,1192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Yönetimi - AI Chrome Chat Manager</title>
+    <meta name="theme-color" content="#ffffff">
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Design System -->
+    <link rel="stylesheet" href="/static/css/design-system.css">
     
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     
-    <!-- Custom CSS -->
     <style>
-        :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #6366f1;
-            --success-color: #059669;
-            --warning-color: #d97706;
-            --danger-color: #dc2626;
-            --info-color: #0891b2;
-            --light-bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-        }
-        
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-secondary);
+            font-family: var(--font-family-base);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        .navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
+        .navbar-modern {
+            background: var(--bg-surface);
             backdrop-filter: blur(10px);
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--border-primary);
+            padding: var(--space-4) 0;
+            position: sticky;
+            top: 0;
+            z-index: var(--z-sticky);
+            transition: all var(--transition-base);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .navbar-brand:hover {
+            color: var(--primary-600);
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            transition: all var(--transition-fast);
+        }
+
+        .nav-link:hover {
+            color: var(--primary-600);
+            background: var(--bg-tertiary);
+        }
+
+        .nav-link.active {
+            color: var(--primary-600);
+            background: rgba(59, 130, 246, 0.1);
         }
         
         .main-container {
-            margin-top: 100px;
-            margin-bottom: 50px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6);
         }
         
-        .api-card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: none;
+        .page-header {
+            text-align: center;
+            margin-bottom: var(--space-10);
+        }
+
+        .page-title {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+        }
+
+        .page-subtitle {
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+        }
+        
+        .api-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: var(--space-8);
+            margin-bottom: var(--space-10);
+        }
+        
+        .api-provider-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
             overflow: hidden;
-            margin-bottom: 30px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
         }
-        
-        .api-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+
+        .api-provider-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--border-secondary);
         }
         
         .api-card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: var(--gradient-primary);
             color: white;
-            padding: 20px;
-            border: none;
+            padding: var(--space-6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .api-card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
         
-        .api-card-body {
-            padding: 30px;
-        }
-        
-        .api-provider {
+        .api-provider-info {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: var(--space-4);
+            position: relative;
+            z-index: 1;
         }
         
         .provider-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: var(--font-size-2xl);
             color: white;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
         
-        .provider-icon.gemini {
-            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
-        }
-        
-        .provider-icon.openai {
-            background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%);
+        .provider-details h3 {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            margin: 0 0 var(--space-1) 0;
         }
         
         .status-badge {
-            font-size: 12px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: var(--font-size-xs);
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-full);
+            font-weight: var(--font-weight-semibold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .status-active {
-            background: rgba(5, 150, 105, 0.1);
-            color: var(--success-color);
-            border: 1px solid rgba(5, 150, 105, 0.3);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-600);
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
         
         .status-inactive {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--danger-color);
-            border: 1px solid rgba(220, 38, 38, 0.3);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-600);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        .api-card-body {
+            padding: var(--space-8);
+        }
+        
+        .gemini-keys-container {
+            margin-bottom: var(--space-6);
+        }
+
+        .key-form-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-4);
+        }
+
+        .key-form-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+
+        .key-badge {
+            background: var(--gradient-primary);
+            color: white;
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            text-transform: uppercase;
+        }
+
+        .key-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
         }
         
         .input-group-modern {
-            position: relative;
-            margin-bottom: 20px;
+            margin-bottom: var(--space-4);
         }
         
-        .input-group-modern input {
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px;
-            font-size: 16px;
-            background: var(--light-bg);
-            transition: all 0.3s ease;
+        .input-modern {
+            width: 100%;
+            padding: var(--space-4);
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: var(--font-size-base);
+            font-family: var(--font-family-mono);
+            transition: all var(--transition-fast);
         }
         
-        .input-group-modern input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
-            background: white;
+        .input-modern:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: var(--bg-surface);
+        }
+
+        .input-modern::placeholder {
+            color: var(--text-muted);
+            font-family: var(--font-family-base);
         }
         
-        .btn-modern {
-            border-radius: 12px;
-            padding: 12px 25px;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            border: none;
-        }
-        
-        .btn-test {
-            background: linear-gradient(135deg, var(--info-color) 0%, #0369a1 100%);
-            color: white;
-        }
-        
-        .btn-test:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(8, 145, 178, 0.4);
-            color: white;
-        }
-        
-        .btn-save {
-            background: linear-gradient(135deg, var(--success-color) 0%, #047857 100%);
-            color: white;
-        }
-        
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.4);
-            color: white;
-        }
-        
-        .btn-delete {
-            background: linear-gradient(135deg, var(--danger-color) 0%, #b91c1c 100%);
-            color: white;
-        }
-        
-        .btn-delete:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
-            color: white;
+        .btn-actions {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
         }
         
         .test-result {
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 14px;
+            margin-top: var(--space-4);
+            padding: var(--space-4);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
             display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .test-success {
-            background: rgba(5, 150, 105, 0.1);
-            color: var(--success-color);
-            border: 1px solid rgba(5, 150, 105, 0.3);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-700);
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
         
         .test-error {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--danger-color);
-            border: 1px solid rgba(220, 38, 38, 0.3);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-700);
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
         
-        .quick-links {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        .api-help-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            margin-top: var(--space-4);
+        }
+
+        .api-help-link a {
+            color: var(--primary-600);
+            text-decoration: none;
+            font-weight: var(--font-weight-medium);
+        }
+
+        .api-help-link a:hover {
+            color: var(--primary-700);
+            text-decoration: underline;
         }
         
-        .quick-link {
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-10);
+        }
+        
+        .quick-action-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+        }
+
+        .quick-action-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-secondary);
+        }
+        
+        .quick-action-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px;
-            border-radius: 8px;
+            gap: var(--space-3);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
             color: var(--text-primary);
-            text-decoration: none;
-            transition: all 0.3s ease;
+            margin-bottom: var(--space-4);
         }
         
-        .quick-link:hover {
-            background: var(--light-bg);
-            color: var(--primary-color);
-            transform: translateX(5px);
+        .quick-action-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
         }
 
-        .role-assignment-card {
-            background: var(--light-bg);
-            border-radius: 12px;
-            padding: 20px;
-            height: 100%;
-            transition: all 0.3s ease;
+        .quick-action-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .quick-action-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--primary-600);
+            transform: translateX(4px);
         }
 
-        .role-assignment-card:hover {
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        .info-text {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            line-height: var(--line-height-relaxed);
+        }
+
+        .info-text strong {
+            color: var(--text-primary);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-2) 0;
+            font-size: var(--font-size-sm);
+        }
+
+        .status-label {
+            color: var(--text-secondary);
+        }
+
+        .role-assignment-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .role-assignment-header {
+            background: var(--gradient-secondary);
+            color: var(--text-primary);
+            padding: var(--space-6);
+        }
+
+        .role-assignment-body {
+            padding: var(--space-8);
+        }
+
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .role-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            transition: all var(--transition-base);
+        }
+
+        .role-card:hover {
+            background: var(--bg-surface);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--border-secondary);
+        }
+
+        .role-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
         }
 
         .role-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: var(--font-size-xl);
             color: white;
         }
 
         .role-icon.pm {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background: var(--gradient-pm);
         }
 
         .role-icon.ld {
-            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            background: var(--gradient-dev);
         }
 
         .role-icon.boss {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: var(--gradient-marketing);
+        }
+
+        .role-details h6 {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+            margin: 0 0 var(--space-1) 0;
+        }
+
+        .role-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+        }
+
+        .role-select {
+            width: 100%;
+            padding: var(--space-3);
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--space-3);
+        }
+
+        .role-select:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .current-assignment {
-            padding: 8px 12px;
-            background: rgba(79, 70, 229, 0.1);
-            border-radius: 8px;
-            border-left: 3px solid var(--primary-color);
+            padding: var(--space-3);
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--primary-500);
         }
 
-        .role-assignment-card .form-select {
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-            background: white;
+        .current-assignment .assignment-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+            margin-bottom: var(--space-1);
         }
 
-        .role-assignment-card .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+        .current-assignment .assignment-value {
+            font-size: var(--font-size-sm);
+            color: var(--primary-700);
+            font-weight: var(--font-weight-medium);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-content {
+                padding: 0 var(--space-4);
+            }
+            
+            .main-container {
+                padding: var(--space-6) var(--space-4);
+            }
+            
+            .api-cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .roles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg fixed-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                🤖 AI Chrome Chat Manager
+    <!-- Navigation -->
+    <nav class="navbar-modern">
+        <div class="navbar-content">
+            <a href="/" class="navbar-brand">
+                <div class="brand-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <span>AI Chrome Chat Manager</span>
             </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/">
-                    <i class="bi bi-house"></i> Ana Sayfa
+            <div class="navbar-nav">
+                <a href="/" class="nav-link">
+                    <i class="bi bi-house"></i>
+                    <span>Ana Sayfa</span>
                 </a>
-                <a class="nav-link active" href="/api-management">
-                    <i class="bi bi-key"></i> API Yönetimi
+                <a href="/api-management" class="nav-link active">
+                    <i class="bi bi-key"></i>
+                    <span>API Yönetimi</span>
                 </a>
             </div>
         </div>
     </nav>
 
     <!-- Main Container -->
-    <div class="container main-container">
-        <!-- Header -->
-        <div class="text-center mb-5">
-            <h1 class="text-white fw-bold mb-3">🔑 API Anahtar Yönetimi</h1>
-            <p class="text-white-50 lead">AI modelleri için API anahtarlarınızı güvenli bir şekilde yönetin</p>
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header" data-animate="fadeInUp">
+            <h1 class="page-title">🔑 API Anahtar Yönetimi</h1>
+            <p class="page-subtitle">AI modelleri için API anahtarlarınızı güvenli bir şekilde yönetin</p>
         </div>
 
-        <div class="row">
+        <!-- API Provider Cards -->
+        <div class="api-cards-grid">
             <!-- Google Gemini -->
-            <div class="col-lg-6 mb-4">
-                <div class="api-card">
-                    <div class="api-card-header">
-                        <div class="api-provider">
-                            <div class="provider-icon gemini">
-                                <i class="bi bi-google"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-1">Google Gemini</h5>
-                                <span class="status-badge status-inactive" id="gemini-status">Yapılandırılmadı</span>
-                            </div>
-                            <div class="ms-auto">
-                                <button type="button" class="btn btn-sm btn-outline-light" onclick="addGeminiKey()" title="Yeni Gemini Key Ekle">
-                                    <i class="bi bi-plus-circle"></i>
-                                </button>
+            <div class="api-provider-card" data-animate="fadeInLeft">
+                <div class="api-card-header">
+                    <div class="api-provider-info">
+                        <div class="provider-icon">
+                            <i class="bi bi-google"></i>
+                        </div>
+                        <div class="provider-details">
+                            <h3>Google Gemini</h3>
+                            <div class="status-badge status-inactive" id="gemini-status">
+                                <div class="status-dot"></div>
+                                <span>Yapılandırılmadı</span>
                             </div>
                         </div>
                     </div>
-                    <div class="api-card-body">
-                        <div id="gemini-keys-container">
-                            <!-- İlk Gemini key formu -->
-                            <div class="gemini-key-form mb-3" data-key-name="primary">
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="badge bg-primary me-2">Primary</span>
-                                    <small class="text-muted">Ana Gemini API anahtarı</small>
-                                </div>
-                                <div class="input-group-modern">
-                                    <input type="password" 
-                                           class="form-control gemini-key-input" 
-                                           id="gemini-primary-key" 
-                                           placeholder="Gemini API anahtarınızı girin..."
-                                           autocomplete="off">
-                                </div>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <button type="button" class="btn btn-test btn-modern" onclick="testGeminiAPI('primary')">
-                                        <i class="bi bi-lightning"></i> Test Et
-                                    </button>
-                                    <button type="button" class="btn btn-save btn-modern" onclick="saveGeminiAPI('primary')">
-                                        <i class="bi bi-check-circle"></i> Kaydet
-                                    </button>
-                                    <button type="button" class="btn btn-delete btn-modern" onclick="deleteGeminiAPI('primary')">
-                                        <i class="bi bi-trash"></i> Sil
-                                    </button>
-                                </div>
-                                <div class="test-result" id="gemini-primary-result"></div>
+                </div>
+                <div class="api-card-body">
+                    <div id="gemini-keys-container" class="gemini-keys-container">
+                        <!-- Primary Gemini key form -->
+                        <div class="key-form-section gemini-key-form" data-key-name="primary">
+                            <div class="key-form-header">
+                                <span class="key-badge">Primary</span>
+                                <span class="key-description">Ana Gemini API anahtarı</span>
                             </div>
+                            <div class="input-group-modern">
+                                <input type="password" 
+                                       class="input-modern gemini-key-input" 
+                                       id="gemini-primary-key" 
+                                       placeholder="Gemini API anahtarınızı girin..."
+                                       autocomplete="off">
+                            </div>
+                            <div class="btn-actions">
+                                <button type="button" class="btn-modern btn-primary" onclick="testGeminiAPI('primary')">
+                                    <i class="bi bi-lightning"></i>
+                                    <span>Test Et</span>
+                                </button>
+                                <button type="button" class="btn-modern btn-success" onclick="saveGeminiAPI('primary')">
+                                    <i class="bi bi-check-circle"></i>
+                                    <span>Kaydet</span>
+                                </button>
+                                <button type="button" class="btn-modern btn-danger" onclick="deleteGeminiAPI('primary')">
+                                    <i class="bi bi-trash"></i>
+                                    <span>Sil</span>
+                                </button>
+                            </div>
+                            <div class="test-result" id="gemini-primary-result"></div>
                         </div>
-                        
-                        <div class="mt-3">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i>
-                                API anahtarı almak için: <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-decoration-none">Google AI Studio</a>
-                            </small>
-                        </div>
+                    </div>
+                    
+                    <div class="api-help-link">
+                        <i class="bi bi-info-circle"></i>
+                        <span>API anahtarı almak için: 
+                            <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                        </span>
                     </div>
                 </div>
             </div>
 
             <!-- OpenAI -->
-            <div class="col-lg-6 mb-4">
-                <div class="api-card">
-                    <div class="api-card-header">
-                        <div class="api-provider">
-                            <div class="provider-icon openai">
-                                <i class="bi bi-robot"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-1">OpenAI GPT</h5>
-                                <span class="status-badge status-inactive" id="openai-status">Yapılandırılmadı</span>
+            <div class="api-provider-card" data-animate="fadeInRight">
+                <div class="api-card-header">
+                    <div class="api-provider-info">
+                        <div class="provider-icon">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div class="provider-details">
+                            <h3>OpenAI GPT</h3>
+                            <div class="status-badge status-inactive" id="openai-status">
+                                <div class="status-dot"></div>
+                                <span>Yapılandırılmadı</span>
                             </div>
                         </div>
                     </div>
-                    <div class="api-card-body">
-                        <form id="openai-form">
-                            <div class="input-group-modern">
-                                <input type="password" 
-                                       class="form-control" 
-                                       id="openai-key" 
-                                       placeholder="OpenAI API anahtarınızı girin..."
-                                       autocomplete="off">
-                            </div>
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button type="button" class="btn btn-test btn-modern" onclick="testAPI('openai')">
-                                    <i class="bi bi-lightning"></i> Test Et
-                                </button>
-                                <button type="button" class="btn btn-save btn-modern" onclick="saveAPI('openai')">
-                                    <i class="bi bi-check-circle"></i> Kaydet
-                                </button>
-                                <button type="button" class="btn btn-delete btn-modern" onclick="deleteAPI('openai')">
-                                    <i class="bi bi-trash"></i> Sil
-                                </button>
-                            </div>
-                            <div class="test-result" id="openai-result"></div>
-                        </form>
-                        
-                        <div class="mt-3">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i>
-                                API anahtarı almak için: <a href="https://platform.openai.com/api-keys" target="_blank" class="text-decoration-none">OpenAI Platform</a>
-                            </small>
+                </div>
+                <div class="api-card-body">
+                    <form id="openai-form">
+                        <div class="input-group-modern">
+                            <input type="password" 
+                                   class="input-modern" 
+                                   id="openai-key" 
+                                   placeholder="OpenAI API anahtarınızı girin..."
+                                   autocomplete="off">
                         </div>
+                        <div class="btn-actions">
+                            <button type="button" class="btn-modern btn-primary" onclick="testAPI('openai')">
+                                <i class="bi bi-lightning"></i>
+                                <span>Test Et</span>
+                            </button>
+                            <button type="button" class="btn-modern btn-success" onclick="saveAPI('openai')">
+                                <i class="bi bi-check-circle"></i>
+                                <span>Kaydet</span>
+                            </button>
+                            <button type="button" class="btn-modern btn-danger" onclick="deleteAPI('openai')">
+                                <i class="bi bi-trash"></i>
+                                <span>Sil</span>
+                            </button>
+                        </div>
+                        <div class="test-result" id="openai-result"></div>
+                    </form>
+                    
+                    <div class="api-help-link">
+                        <i class="bi bi-info-circle"></i>
+                        <span>API anahtarı almak için: 
+                            <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="row mt-4">
-            <div class="col-lg-4">
-                <div class="quick-links">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-lightning-charge"></i> Hızlı İşlemler</h6>
-                    <a href="#" class="quick-link" onclick="loadExistingKeys()">
+        <!-- Quick Actions Grid -->
+        <div class="quick-actions-grid">
+            <!-- Quick Operations -->
+            <div class="quick-action-card" data-animate="fadeInUp" data-delay="100">
+                <div class="quick-action-header">
+                    <i class="bi bi-lightning-charge"></i>
+                    <span>Hızlı İşlemler</span>
+                </div>
+                <div class="quick-action-list">
+                    <div class="quick-action-item" onclick="loadExistingKeys()">
                         <i class="bi bi-arrow-clockwise"></i>
                         <span>Mevcut Anahtarları Yükle</span>
-                    </a>
-                    <a href="#" class="quick-link" onclick="clearAllKeys()">
+                    </div>
+                    <div class="quick-action-item" onclick="clearAllKeys()">
                         <i class="bi bi-trash"></i>
                         <span>Tüm Anahtarları Temizle</span>
-                    </a>
+                    </div>
                 </div>
             </div>
             
-            <div class="col-lg-4">
-                <div class="quick-links">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-info-circle"></i> Bilgilendirme</h6>
-                    <div class="small text-muted">
-                        <p><strong>Güvenlik:</strong> API anahtarlarınız şifrelenmiş olarak saklanır.</p>
-                        <p><strong>Test:</strong> Anahtarları kaydetmeden önce test edebilirsiniz.</p>
-                        <p><strong>Kullanım:</strong> En az bir API anahtarı gereklidir.</p>
-                    </div>
+            <!-- Information -->
+            <div class="quick-action-card" data-animate="fadeInUp" data-delay="200">
+                <div class="quick-action-header">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Bilgilendirme</span>
+                </div>
+                <div class="info-text">
+                    <p><strong>Güvenlik:</strong> API anahtarlarınız şifrelenmiş olarak saklanır.</p>
+                    <p><strong>Test:</strong> Anahtarları kaydetmeden önce test edebilirsiniz.</p>
+                    <p><strong>Kullanım:</strong> En az bir API anahtarı gereklidir.</p>
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <div class="quick-links">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-gear"></i> Sistem Durumu</h6>
-                    <div id="system-status">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small">Gemini:</span>
-                            <span class="status-badge status-inactive" id="status-gemini">Kapalı</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small">OpenAI:</span>
-                            <span class="status-badge status-inactive" id="status-openai">Kapalı</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="small">Sistem:</span>
-                            <span class="status-badge status-active">Çalışıyor</span>
-                        </div>
-                    </div>
+            <!-- System Status -->
+            <div class="quick-action-card" data-animate="fadeInUp" data-delay="300">
+                <div class="quick-action-header">
+                    <i class="bi bi-gear"></i>
+                    <span>Sistem Durumu</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Rol Atama Bölümü -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="api-card">
-                    <div class="api-card-header">
-                        <h5 class="mb-0">
-                            <i class="bi bi-people"></i> Rol Atamaları
-                        </h5>
-                        <p class="mb-0 mt-2 opacity-75">AI asistanlarına roller atayın</p>
+                <div id="system-status">
+                    <div class="status-item">
+                        <span class="status-label">Gemini:</span>
+                        <span class="status-badge status-inactive" id="status-gemini">
+                            <div class="status-dot"></div>
+                            <span>Kapalı</span>
+                        </span>
                     </div>
-                    <div class="api-card-body">
-                        <div class="row">
-                            <!-- Project Manager -->
-                            <div class="col-md-4 mb-3">
-                                <div class="role-assignment-card">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="role-icon pm">
-                                            <i class="bi bi-clipboard-check"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1">Project Manager</h6>
-                                            <small class="text-muted">Proje yönetimi ve planlama</small>
-                                        </div>
-                                    </div>
-                                    <select class="form-select" id="role-project-manager" onchange="assignRole('project_manager', this.value)">
-                                        <option value="">Seçiniz...</option>
-                                    </select>
-                                    <div class="current-assignment mt-2">
-                                        <small class="text-muted">Mevcut: <span id="current-project-manager">Atanmamış</span></small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Lead Developer -->
-                            <div class="col-md-4 mb-3">
-                                <div class="role-assignment-card">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="role-icon ld">
-                                            <i class="bi bi-code-slash"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1">Lead Developer</h6>
-                                            <small class="text-muted">Yazılım geliştirme ve mimari</small>
-                                        </div>
-                                    </div>
-                                    <select class="form-select" id="role-lead-developer" onchange="assignRole('lead_developer', this.value)">
-                                        <option value="">Seçiniz...</option>
-                                    </select>
-                                    <div class="current-assignment mt-2">
-                                        <small class="text-muted">Mevcut: <span id="current-lead-developer">Atanmamış</span></small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Boss -->
-                            <div class="col-md-4 mb-3">
-                                <div class="role-assignment-card">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="role-icon boss">
-                                            <i class="bi bi-award"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1">Boss</h6>
-                                            <small class="text-muted">Üst düzey karar verme</small>
-                                        </div>
-                                    </div>
-                                    <select class="form-select" id="role-boss" onchange="assignRole('boss', this.value)">
-                                        <option value="">Seçiniz...</option>
-                                    </select>
-                                    <div class="current-assignment mt-2">
-                                        <small class="text-muted">Mevcut: <span id="current-boss">Atanmamış</span></small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <button type="button" class="btn btn-save btn-modern" onclick="loadRoleAssignments()">
-                                <i class="bi bi-arrow-clockwise"></i> Atamaları Yenile
-                            </button>
-                            <button type="button" class="btn btn-delete btn-modern ms-2" onclick="clearAllRoles()">
-                                <i class="bi bi-x-circle"></i> Tüm Atamaları Temizle
-                            </button>
-                        </div>
+                    <div class="status-item">
+                        <span class="status-label">OpenAI:</span>
+                        <span class="status-badge status-inactive" id="status-openai">
+                            <div class="status-dot"></div>
+                            <span>Kapalı</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Sistem:</span>
+                        <span class="status-badge status-active">
+                            <div class="status-dot"></div>
+                            <span>Çalışıyor</span>
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="text-center mt-5">
-            <a href="/" class="btn btn-outline-light btn-lg">
-                <i class="bi bi-arrow-left"></i> Ana Sayfaya Dön
-            </a>
+        <!-- Role Assignment Section -->
+        <div class="role-assignment-section" data-animate="fadeInUp" data-delay="400">
+            <div class="role-assignment-header">
+                <div class="quick-action-header">
+                    <i class="bi bi-people"></i>
+                    <span>Rol Atamaları</span>
+                </div>
+                <p style="margin: var(--space-2) 0 0 0; opacity: 0.8;">AI asistanlarına roller atayın</p>
+            </div>
+            <div class="role-assignment-body">
+                <div class="roles-grid">
+                    <!-- Project Manager -->
+                    <div class="role-card">
+                        <div class="role-header">
+                            <div class="role-icon pm">
+                                <i class="bi bi-clipboard-check"></i>
+                            </div>
+                            <div class="role-details">
+                                <h6>Project Manager</h6>
+                                <p class="role-description">Proje yönetimi ve planlama</p>
+                            </div>
+                        </div>
+                        <select class="role-select" id="role-project-manager" onchange="assignRole('project_manager', this.value)">
+                            <option value="">Seçiniz...</option>
+                        </select>
+                        <div class="current-assignment">
+                            <div class="assignment-label">Mevcut Atama:</div>
+                            <div class="assignment-value" id="current-project-manager">Atanmamış</div>
+                        </div>
+                    </div>
+
+                    <!-- Lead Developer -->
+                    <div class="role-card">
+                        <div class="role-header">
+                            <div class="role-icon ld">
+                                <i class="bi bi-code-slash"></i>
+                            </div>
+                            <div class="role-details">
+                                <h6>Lead Developer</h6>
+                                <p class="role-description">Teknik geliştirme ve kod incelemesi</p>
+                            </div>
+                        </div>
+                        <select class="role-select" id="role-lead-developer" onchange="assignRole('lead_developer', this.value)">
+                            <option value="">Seçiniz...</option>
+                        </select>
+                        <div class="current-assignment">
+                            <div class="assignment-label">Mevcut Atama:</div>
+                            <div class="assignment-value" id="current-lead-developer">Atanmamış</div>
+                        </div>
+                    </div>
+
+                    <!-- Boss -->
+                    <div class="role-card">
+                        <div class="role-header">
+                            <div class="role-icon boss">
+                                <i class="bi bi-crown"></i>
+                            </div>
+                            <div class="role-details">
+                                <h6>Boss</h6>
+                                <p class="role-description">Stratejik kararlar ve yönlendirme</p>
+                            </div>
+                        </div>
+                        <select class="role-select" id="role-boss" onchange="assignRole('boss', this.value)">
+                            <option value="">Seçiniz...</option>
+                        </select>
+                        <div class="current-assignment">
+                            <div class="assignment-label">Mevcut Atama:</div>
+                            <div class="assignment-value" id="current-boss">Atanmamış</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <!-- Include Theme Manager and Animation Utils -->
+    <script src="/static/js/theme-manager.js"></script>
+    <script src="/static/js/animation-utils.js"></script>
+
     <script>
-        // API management functions - REAL IMPLEMENTATION
-        function showResult(provider, message, isSuccess) {
-            const resultDiv = document.getElementById(provider + '-result');
-            resultDiv.className = `test-result ${isSuccess ? 'test-success' : 'test-error'}`;
-            resultDiv.innerHTML = `<i class="bi bi-${isSuccess ? 'check-circle' : 'x-circle'}"></i> ${message}`;
-            resultDiv.style.display = 'block';
+        // API Management JavaScript
+        function testGeminiAPI(keyName) {
+            const input = document.getElementById(`gemini-${keyName}-key`);
+            const resultDiv = document.getElementById(`gemini-${keyName}-result`);
+            const apiKey = input.value.trim();
+
+            if (!apiKey) {
+                showResult(resultDiv, 'Lütfen API anahtarını girin.', 'error');
+                return;
+            }
+
+            showResult(resultDiv, 'Test ediliyor...', 'info');
+
+            // Test API call
+            fetch('/api/test-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    provider: 'gemini',
+                    key: apiKey,
+                    keyName: keyName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(resultDiv, `✅ Test başarılı! Model: ${data.model}`, 'success');
+                    updateStatus('gemini', 'active');
+                } else {
+                    showResult(resultDiv, `❌ Test başarısız: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(resultDiv, `❌ Bağlantı hatası: ${error.message}`, 'error');
+            });
         }
 
-        function updateStatus(provider, status, text) {
-            const statusElement = document.getElementById(provider + '-status');
-            statusElement.className = `status-badge status-${status}`;
-            statusElement.textContent = text;
+        function saveGeminiAPI(keyName) {
+            const input = document.getElementById(`gemini-${keyName}-key`);
+            const resultDiv = document.getElementById(`gemini-${keyName}-result`);
+            const apiKey = input.value.trim();
+
+            if (!apiKey) {
+                showResult(resultDiv, 'Lütfen API anahtarını girin.', 'error');
+                return;
+            }
+
+            fetch('/api/save-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    provider: 'gemini',
+                    key: apiKey,
+                    keyName: keyName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(resultDiv, '✅ API anahtarı kaydedildi!', 'success');
+                    updateStatus('gemini', 'active');
+                } else {
+                    showResult(resultDiv, `❌ Kaydetme başarısız: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(resultDiv, `❌ Kaydetme hatası: ${error.message}`, 'error');
+            });
+        }
+
+        function deleteGeminiAPI(keyName) {
+            if (!confirm('Bu API anahtarını silmek istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            const resultDiv = document.getElementById(`gemini-${keyName}-result`);
+
+            fetch('/api/delete-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    provider: 'gemini',
+                    keyName: keyName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(resultDiv, '✅ API anahtarı silindi!', 'success');
+                    document.getElementById(`gemini-${keyName}-key`).value = '';
+                    updateStatus('gemini', 'inactive');
+                } else {
+                    showResult(resultDiv, `❌ Silme başarısız: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(resultDiv, `❌ Silme hatası: ${error.message}`, 'error');
+            });
+        }
+
+        function testAPI(provider) {
+            const input = document.getElementById(`${provider}-key`);
+            const resultDiv = document.getElementById(`${provider}-result`);
+            const apiKey = input.value.trim();
+
+            if (!apiKey) {
+                showResult(resultDiv, 'Lütfen API anahtarını girin.', 'error');
+                return;
+            }
+
+            showResult(resultDiv, 'Test ediliyor...', 'info');
+
+            fetch('/api/test-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    provider: provider,
+                    key: apiKey
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(resultDiv, `✅ Test başarılı! Model: ${data.model}`, 'success');
+                    updateStatus(provider, 'active');
+                } else {
+                    showResult(resultDiv, `❌ Test başarısız: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(resultDiv, `❌ Bağlantı hatası: ${error.message}`, 'error');
+            });
+        }
+
+        function saveAPI(provider) {
+            const input = document.getElementById(`${provider}-key`);
+            const resultDiv = document.getElementById(`${provider}-result`);
+            const apiKey = input.value.trim();
+
+            if (!apiKey) {
+                showResult(resultDiv, 'Lütfen API anahtarını girin.', 'error');
+                return;
+            }
+
+            fetch('/api/save-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    provider: provider,
+                    key: apiKey
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(resultDiv, '✅ API anahtarı kaydedildi!', 'success');
+                    updateStatus(provider, 'active');
+                } else {
+                    showResult(resultDiv, `❌ Kaydetme başarısız: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(resultDiv, `❌ Kaydetme hatası: ${error.message}`, 'error');
+            });
+        }
+
+        function deleteAPI(provider) {
+            if (!confirm('Bu API anahtarını silmek istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            const resultDiv = document.getElementById(`${provider}-result`);
+
+            fetch('/api/delete-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    provider: provider
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(resultDiv, '✅ API anahtarı silindi!', 'success');
+                    document.getElementById(`${provider}-key`).value = '';
+                    updateStatus(provider, 'inactive');
+                } else {
+                    showResult(resultDiv, `❌ Silme başarısız: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showResult(resultDiv, `❌ Silme hatası: ${error.message}`, 'error');
+            });
+        }
+
+        function showResult(element, message, type) {
+            element.textContent = message;
+            element.className = `test-result test-${type}`;
+            element.style.display = 'block';
+
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateStatus(provider, status) {
+            const statusElement = document.getElementById(`${provider}-status`);
+            const systemStatusElement = document.getElementById(`status-${provider}`);
             
-            // Update system status sidebar
-            const systemStatusElement = document.getElementById('status-' + provider);
-            if (systemStatusElement) {
-                systemStatusElement.className = `status-badge status-${status}`;
-                systemStatusElement.textContent = status === 'active' ? 'Aktif' : 'Kapalı';
-            }
-        }
-
-        async function testAPI(provider) {
-            const keyInput = document.getElementById(provider + '-key');
-            const apiKey = keyInput.value.trim();
-
-            if (!apiKey) {
-                showResult(provider, 'Lütfen API anahtarını girin', false);
-                return;
-            }
-
-            showResult(provider, 'API anahtarı test ediliyor...', true);
-
-            try {
-                const response = await fetch('/api/keys/test', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        provider: provider,
-                        api_key: apiKey,
-                        model: provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini'
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showResult(provider, `✅ Test başarılı! ${result.details}`, true);
-                    updateStatus(provider, 'active', 'Test Başarılı');
-                } else {
-                    showResult(provider, `❌ Test başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
-                    updateStatus(provider, 'inactive', 'Test Başarısız');
+            if (status === 'active') {
+                statusElement.className = 'status-badge status-active';
+                statusElement.innerHTML = '<div class="status-dot"></div><span>Aktif</span>';
+                if (systemStatusElement) {
+                    systemStatusElement.className = 'status-badge status-active';
+                    systemStatusElement.innerHTML = '<div class="status-dot"></div><span>Aktif</span>';
                 }
-            } catch (error) {
-                console.error('Test error:', error);
-                showResult(provider, `❌ Test sırasında hata: ${error.message}`, false);
-                updateStatus(provider, 'inactive', 'Hata');
-            }
-        }
-
-        async function saveAPI(provider) {
-            const keyInput = document.getElementById(provider + '-key');
-            const apiKey = keyInput.value.trim();
-
-            if (!apiKey) {
-                showResult(provider, 'Lütfen API anahtarını girin', false);
-                return;
-            }
-
-            showResult(provider, 'API anahtarı kaydediliyor...', true);
-
-            try {
-                const response = await fetch(`/api/keys/${provider}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        api_key: apiKey,
-                        model: provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini'
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showResult(provider, `✅ API anahtarı başarıyla kaydedildi!`, true);
-                    updateStatus(provider, 'active', 'Aktif');
-                    keyInput.value = ''; // Clear the input after successful save
-                } else {
-                    showResult(provider, `❌ Kaydetme başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
+            } else {
+                statusElement.className = 'status-badge status-inactive';
+                statusElement.innerHTML = '<div class="status-dot"></div><span>Yapılandırılmadı</span>';
+                if (systemStatusElement) {
+                    systemStatusElement.className = 'status-badge status-inactive';
+                    systemStatusElement.innerHTML = '<div class="status-dot"></div><span>Kapalı</span>';
                 }
-            } catch (error) {
-                console.error('Save error:', error);
-                showResult(provider, `❌ Kaydetme sırasında hata: ${error.message}`, false);
             }
         }
 
-        async function deleteAPI(provider) {
-            if (!confirm(`${provider.toUpperCase()} API anahtarını silmek istediğinizden emin misiniz?`)) {
-                return;
-            }
-
-            try {
-                // First get the key name for deletion
-                const getResponse = await fetch('/api/keys');
-                const keysResult = await getResponse.json();
-                
-                let keyToDelete = null;
-                if (keysResult.success && keysResult.adapters) {
-                    // Find the first key for this provider
-                    for (const adapterId in keysResult.adapters) {
-                        const adapter = keysResult.adapters[adapterId];
-                        if (adapter.provider === provider) {
-                            keyToDelete = adapter.key_name || 'primary';
-                            break;
+        function loadExistingKeys() {
+            fetch('/api/load-keys')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Load keys into inputs
+                    Object.keys(data.keys).forEach(provider => {
+                        const input = document.getElementById(`${provider}-key`);
+                        if (input && data.keys[provider]) {
+                            input.value = '••••••••••••••••';
+                            updateStatus(provider, 'active');
                         }
-                    }
-                }
-                
-                if (!keyToDelete) {
-                    keyToDelete = 'primary'; // Default key name
-                }
-
-                const response = await fetch(`/api/keys/${provider}/${keyToDelete}`, {
-                    method: 'DELETE'
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showResult(provider, '✅ API anahtarı başarıyla silindi', true);
-                    updateStatus(provider, 'inactive', 'Yapılandırılmadı');
+                    });
+                    alert('Mevcut anahtarlar yüklendi!');
                 } else {
-                    showResult(provider, `❌ Silme başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
+                    alert('Anahtar yükleme başarısız!');
                 }
-            } catch (error) {
-                console.error('Delete error:', error);
-                showResult(provider, `❌ Silme sırasında hata: ${error.message}`, false);
-            }
+            })
+            .catch(error => {
+                alert('Anahtar yükleme hatası!');
+            });
         }
 
-        async function loadExistingKeys() {
-            try {
-                const response = await fetch('/api/keys');
-                const result = await response.json();
-
-                if (result.success) {
-                    let geminiFound = false;
-                    let openaiFound = false;
-
-                    // Check which providers are configured
-                    if (result.adapters) {
-                        for (const adapterId in result.adapters) {
-                            const adapter = result.adapters[adapterId];
-                            if (adapter.type === 'gemini') {
-                                geminiFound = true;
-                                updateStatus('gemini', 'active', 'Aktif');
-                            } else if (adapter.type === 'openai') {
-                                openaiFound = true;
-                                updateStatus('openai', 'active', 'Aktif');
-                            }
-                        }
-                    }
-
-                    if (!geminiFound) {
-                        updateStatus('gemini', 'inactive', 'Yapılandırılmadı');
-                    }
-                    if (!openaiFound) {
-                        updateStatus('openai', 'inactive', 'Yapılandırılmadı');
-                    }
-
-                    // Sadece manuel tıklamada bilgi göster (alert'i kaldırdık)
-                    console.log(`API Keys loaded: Gemini: ${geminiFound ? 'Active' : 'None'}, OpenAI: ${openaiFound ? 'Active' : 'None'}`);
-                } else {
-                    console.warn('Failed to load existing keys:', result.error);
-                }
-            } catch (error) {
-                console.error('Load error:', error);
-                // Sadece gerçek hatalarda uyarı göster, boş sistem normal
-            }
-        }
-
-        async function clearAllKeys() {
+        function clearAllKeys() {
             if (!confirm('Tüm API anahtarlarını silmek istediğinizden emin misiniz?')) {
                 return;
             }
 
-            try {
-                const providers = ['gemini', 'openai'];
-                let deleteCount = 0;
-
-                for (const provider of providers) {
-                    try {
-                        // Try to delete with 'primary' key name
-                        const response = await fetch(`/api/keys/${provider}/primary`, {
-                            method: 'DELETE'
-                        });
-                        
-                        const result = await response.json();
-                        if (result.success) {
-                            deleteCount++;
-                            updateStatus(provider, 'inactive', 'Yapılandırılmadı');
-                        }
-                    } catch (error) {
-                        console.warn(`Could not delete ${provider}:`, error);
-                    }
+            fetch('/api/clear-all-keys', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear all inputs
+                    document.querySelectorAll('input[type="password"]').forEach(input => {
+                        input.value = '';
+                    });
+                    
+                    // Update all status
+                    updateStatus('gemini', 'inactive');
+                    updateStatus('openai', 'inactive');
+                    
+                    alert('Tüm API anahtarları temizlendi!');
+                } else {
+                    alert('Temizleme başarısız!');
                 }
-
-                alert(`${deleteCount} API anahtarı temizlendi`);
-            } catch (error) {
-                console.error('Clear all error:', error);
-                alert('Anahtarları temizlerken hata oluştu: ' + error.message);
-            }
+            })
+            .catch(error => {
+                alert('Temizleme hatası!');
+            });
         }
 
-        // Load existing keys on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        function assignRole(role, provider) {
+            if (!provider) return;
+
+            fetch('/api/assign-role', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    role: role,
+                    provider: provider
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`current-${role.replace('_', '-')}`).textContent = provider;
+                    alert(`${role} rolü ${provider} provider'ına atandı!`);
+                } else {
+                    alert('Rol atama başarısız!');
+                }
+            })
+            .catch(error => {
+                alert('Rol atama hatası!');
+            });
+        }
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', () => {
             loadExistingKeys();
-            loadRoleAssignments();
-        });
-
-        // ===== ROL ATAMA FONKSİYONLARI =====
-
-        async function loadRoleAssignments() {
-            try {
-                console.log('🔄 Rol atamaları yükleniyor...');
-                
-                // Mevcut adapter'ları yükle
-                const keysResponse = await fetch('/api/keys');
-                const keysResult = await keysResponse.json();
-                
-                console.log('📊 API Keys Response:', keysResult);
-
-                // Dropdown'ları temizle ve doldur
-                const roleSelects = ['role-project-manager', 'role-lead-developer', 'role-boss'];
-                roleSelects.forEach(selectId => {
-                    const select = document.getElementById(selectId);
-                    select.innerHTML = '<option value="">Seçiniz...</option>';
-
-                    if (keysResult.success && keysResult.adapters) {
-                        console.log(`📋 ${selectId} için adapter'lar ekleniyor:`, keysResult.adapters);
-                        for (const adapterId in keysResult.adapters) {
-                            const adapter = keysResult.adapters[adapterId];
-                            const option = document.createElement('option');
-                            option.value = adapterId;
-                            option.textContent = `${adapter.type.toUpperCase()} - ${adapter.model} (${adapterId})`;
-                            select.appendChild(option);
-                        }
-                    } else {
-                        console.warn(`⚠️ ${selectId} için adapter bulunamadı`);
-                    }
-                });
-
-                // Mevcut rol atamalarını yükle (kısa bir gecikme ile DOM'un güncellenmesini bekle)
-                if (keysResult.success && keysResult.roles) {
-                    console.log('🎭 Mevcut rol atamaları:', keysResult.roles);
-                    
-                    // DOM güncellemesini beklemek için kısa bir gecikme
-                    setTimeout(() => {
-                        const roleMapping = {
-                            'project_manager': 'current-project-manager',
-                            'lead_developer': 'current-lead-developer',
-                            'boss': 'current-boss'
-                        };
-
-                        for (const role in roleMapping) {
-                            const elementId = roleMapping[role];
-                            const currentElement = document.getElementById(elementId);
-                            const selectElement = document.getElementById(`role-${role.replace('_', '-')}`);
-                            
-                            if (keysResult.roles[role]) {
-                                console.log(`✅ ${role} atanmış: ${keysResult.roles[role]}`);
-                                currentElement.textContent = keysResult.roles[role];
-                                if (selectElement) {
-                                    // Force set the value
-                                    selectElement.value = keysResult.roles[role];
-                                    console.log(`🔧 ${role} dropdown değeri ayarlandı: ${selectElement.value}`);
-                                }
-                            } else {
-                                console.log(`❌ ${role} atanmamış`);
-                                currentElement.textContent = 'Atanmamış';
-                                if (selectElement) {
-                                    selectElement.value = '';
-                                }
-                            }
-                        }
-                    }, 100); // 100ms gecikme ile DOM güncellemesini bekle
-                } else {
-                    console.warn('⚠️ Roles bilgisi bulunamadı:', keysResult);
-                }
-
-            } catch (error) {
-                console.error('❌ Rol atamaları yüklenirken hata:', error);
-                alert('Rol atamaları yüklenirken hata oluştu: ' + error.message);
-            }
-        }
-
-        async function assignRole(roleId, adapterId) {
-            console.log(`🎯 Rol atama çağrısı: ${roleId} → ${adapterId}`);
             
-            if (!adapterId) {
-                // Boş seçim - rol atamasını kaldır
-                try {
-                    console.log(`🗑️ ${roleId} rolü kaldırılıyor...`);
-                    const response = await fetch(`/api/roles/${roleId}/adapter`, {
-                        method: 'DELETE'
-                    });
-
-                    const result = await response.json();
-                    console.log(`📥 Kaldırma yanıtı:`, result);
-                    
-                    if (result.success) {
-                        document.getElementById(`current-${roleId.replace('_', '-')}`).textContent = 'Atanmamış';
-                        alert(`${roleId.replace('_', ' ').toUpperCase()} rolü kaldırıldı`);
-                    } else {
-                        alert('Rol kaldırma başarısız: ' + result.error);
+            // Populate role selectors
+            const providers = ['gemini', 'openai'];
+            providers.forEach(provider => {
+                ['role-project-manager', 'role-lead-developer', 'role-boss'].forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        const option = document.createElement('option');
+                        option.value = provider;
+                        option.textContent = provider.charAt(0).toUpperCase() + provider.slice(1);
+                        select.appendChild(option);
                     }
-                } catch (error) {
-                    console.error('❌ Rol kaldırma hatası:', error);
-                    alert('Rol kaldırma sırasında hata: ' + error.message);
-                }
-                return;
-            }
-
-            try {
-                console.log(`🔄 ${roleId} rolüne ${adapterId} atanıyor...`);
-                
-                const requestBody = {
-                    adapter_id: adapterId
-                };
-                console.log(`📤 Request body:`, requestBody);
-                
-                const response = await fetch(`/api/roles/${roleId}/adapter`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody)
                 });
-
-                console.log(`📨 Response status: ${response.status}`);
-                const result = await response.json();
-                console.log(`📥 Response body:`, result);
-
-                if (result.success) {
-                    document.getElementById(`current-${roleId.replace('_', '-')}`).textContent = adapterId;
-                    console.log(`✅ Rol atama başarılı: ${roleId} → ${adapterId}`);
-                    alert(`✅ ${roleId.replace('_', ' ').toUpperCase()} rolü ${adapterId} adapter'ına atandı!`);
-                } else {
-                    console.error(`❌ Rol atama başarısız:`, result.error);
-                    alert('❌ Rol atama başarısız: ' + result.error);
-                    // Seçimi geri al
-                    document.getElementById(`role-${roleId.replace('_', '-')}`).value = '';
-                }
-            } catch (error) {
-                console.error('❌ Rol atama hatası:', error);
-                alert('❌ Rol atama sırasında hata: ' + error.message);
-                // Seçimi geri al
-                document.getElementById(`role-${roleId.replace('_', '-')}`).value = '';
-            }
-        }
-
-        async function clearAllRoles() {
-            if (!confirm('Tüm rol atamalarını kaldırmak istediğinizden emin misiniz?')) {
-                return;
-            }
-
-            const roles = ['project_manager', 'lead_developer', 'boss'];
-            let clearedCount = 0;
-
-            for (const role of roles) {
-                try {
-                    const response = await fetch(`/api/roles/${role}/adapter`, {
-                        method: 'DELETE'
-                    });
-
-                    const result = await response.json();
-                    if (result.success) {
-                        clearedCount++;
-                        document.getElementById(`current-${role.replace('_', '-')}`).textContent = 'Atanmamış';
-                        document.getElementById(`role-${role.replace('_', '-')}`).value = '';
-                    }
-                } catch (error) {
-                    console.warn(`${role} rolü kaldırılamadı:`, error);
-                }
-            }
-
-            alert(`${clearedCount} rol ataması temizlendi`);
-        }
-
-        // ===== MULTIPLE GEMINI KEY MANAGEMENT =====
-        
-        let geminiKeyCounter = 1; // primary'den sonra secondary, third, vs.
-        const geminiKeyNames = ['primary', 'secondary', 'third', 'fourth', 'fifth'];
-
-        function addGeminiKey() {
-            if (geminiKeyCounter >= geminiKeyNames.length) {
-                alert('Maksimum 5 Gemini API anahtarı ekleyebilirsiniz');
-                return;
-            }
-
-            const keyName = geminiKeyNames[geminiKeyCounter];
-            const container = document.getElementById('gemini-keys-container');
-
-            const keyForm = document.createElement('div');
-            keyForm.className = 'gemini-key-form mb-3';
-            keyForm.setAttribute('data-key-name', keyName);
-
-            keyForm.innerHTML = `
-                <div class="d-flex align-items-center mb-2">
-                    <span class="badge bg-secondary me-2">${keyName.charAt(0).toUpperCase() + keyName.slice(1)}</span>
-                    <small class="text-muted">${keyName === 'secondary' ? 'İkinci' : keyName === 'third' ? 'Üçüncü' : keyName === 'fourth' ? 'Dördüncü' : 'Beşinci'} Gemini API anahtarı</small>
-                    <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeGeminiKeyForm('${keyName}')" title="Bu formu kaldır">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-                <div class="input-group-modern">
-                    <input type="password" 
-                           class="form-control gemini-key-input" 
-                           id="gemini-${keyName}-key" 
-                           placeholder="Gemini API anahtarınızı girin..."
-                           autocomplete="off">
-                </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <button type="button" class="btn btn-test btn-modern" onclick="testGeminiAPI('${keyName}')">
-                        <i class="bi bi-lightning"></i> Test Et
-                    </button>
-                    <button type="button" class="btn btn-save btn-modern" onclick="saveGeminiAPI('${keyName}')">
-                        <i class="bi bi-check-circle"></i> Kaydet
-                    </button>
-                    <button type="button" class="btn btn-delete btn-modern" onclick="deleteGeminiAPI('${keyName}')">
-                        <i class="bi bi-trash"></i> Sil
-                    </button>
-                </div>
-                <div class="test-result" id="gemini-${keyName}-result"></div>
-            `;
-
-            container.appendChild(keyForm);
-            geminiKeyCounter++;
-        }
-
-        function removeGeminiKeyForm(keyName) {
-            const form = document.querySelector(`[data-key-name="${keyName}"]`);
-            if (form) {
-                form.remove();
-                const existingForms = document.querySelectorAll('.gemini-key-form');
-                geminiKeyCounter = existingForms.length;
-            }
-        }
-
-        async function testGeminiAPI(keyName) {
-            const keyInput = document.getElementById(`gemini-${keyName}-key`);
-            const apiKey = keyInput.value.trim();
-
-            if (!apiKey) {
-                showGeminiResult(keyName, 'Lütfen API anahtarını girin', false);
-                return;
-            }
-
-            showGeminiResult(keyName, 'API anahtarı test ediliyor...', true);
-
-            try {
-                const response = await fetch('/api/keys/test', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        provider: 'gemini',
-                        api_key: apiKey,
-                        model: 'gemini-2.5-flash'
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showGeminiResult(keyName, `✅ Test başarılı! ${result.details || result.message}`, true);
-                } else {
-                    showGeminiResult(keyName, `❌ Test başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
-                }
-            } catch (error) {
-                console.error('Test error:', error);
-                showGeminiResult(keyName, `❌ Test sırasında hata: ${error.message}`, false);
-            }
-        }
-
-        async function saveGeminiAPI(keyName) {
-            const keyInput = document.getElementById(`gemini-${keyName}-key`);
-            const apiKey = keyInput.value.trim();
-
-            if (!apiKey) {
-                showGeminiResult(keyName, 'Lütfen API anahtarını girin', false);
-                return;
-            }
-
-            showGeminiResult(keyName, 'API anahtarı kaydediliyor...', true);
-
-            try {
-                const response = await fetch('/api/keys/gemini', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        api_key: apiKey,
-                        key_name: keyName,
-                        model: 'gemini-2.5-flash'
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showGeminiResult(keyName, `✅ ${keyName.toUpperCase()} API anahtarı başarıyla kaydedildi!`, true);
-                    keyInput.value = '';
-                    updateGeminiStatus();
-                    loadRoleAssignments();
-                } else {
-                    showGeminiResult(keyName, `❌ Kaydetme başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-                showGeminiResult(keyName, `❌ Kaydetme sırasında hata: ${error.message}`, false);
-            }
-        }
-
-        async function deleteGeminiAPI(keyName) {
-            if (!confirm(`${keyName.toUpperCase()} Gemini API anahtarını silmek istediğinizden emin misiniz?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/keys/gemini/${keyName}`, {
-                    method: 'DELETE'
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showGeminiResult(keyName, `✅ ${keyName.toUpperCase()} API anahtarı başarıyla silindi`, true);
-                    updateGeminiStatus();
-                    loadRoleAssignments();
-                } else {
-                    showGeminiResult(keyName, `❌ Silme başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-                showGeminiResult(keyName, `❌ Silme sırasında hata: ${error.message}`, false);
-            }
-        }
-
-        function showGeminiResult(keyName, message, isSuccess) {
-            const resultDiv = document.getElementById(`gemini-${keyName}-result`);
-            resultDiv.className = `test-result ${isSuccess ? 'test-success' : 'test-error'}`;
-            resultDiv.innerHTML = `<i class="bi bi-${isSuccess ? 'check-circle' : 'x-circle'}"></i> ${message}`;
-            resultDiv.style.display = 'block';
-        }
-
-        async function updateGeminiStatus() {
-            try {
-                const response = await fetch('/api/keys');
-                const result = await response.json();
-
-                let geminiCount = 0;
-                if (result.success && result.adapters) {
-                    for (const adapterId in result.adapters) {
-                        const adapter = result.adapters[adapterId];
-                        if (adapter.type === 'gemini') {
-                            geminiCount++;
-                        }
-                    }
-                }
-
-                const statusElement = document.getElementById('gemini-status');
-                const systemStatusElement = document.getElementById('status-gemini');
-                
-                if (geminiCount > 0) {
-                    statusElement.className = 'status-badge status-active';
-                    statusElement.textContent = `${geminiCount} Aktif`;
-                    if (systemStatusElement) {
-                        systemStatusElement.className = 'status-badge status-active';
-                        systemStatusElement.textContent = 'Aktif';
-                    }
-                } else {
-                    statusElement.className = 'status-badge status-inactive';
-                    statusElement.textContent = 'Yapılandırılmadı';
-                    if (systemStatusElement) {
-                        systemStatusElement.className = 'status-badge status-inactive';
-                        systemStatusElement.textContent = 'Kapalı';
-                    }
-                }
-            } catch (error) {
-                console.error('Status update error:', error);
-            }
-        }
+            });
+        });
     </script>
 </body>
+</html> 
 </html> 
