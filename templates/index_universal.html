@@ -72,7 +72,7 @@
             border-bottom: 2px solid var(--border-primary);
             margin-bottom: var(--space-8);
         }
-
+        
         .nav-tabs .nav-link {
             color: var(--text-secondary);
             border: none;
@@ -82,12 +82,12 @@
             border-radius: var(--radius-md) var(--radius-md) 0 0;
             position: relative;
         }
-
+        
         .nav-tabs .nav-link:hover {
             color: var(--primary-500);
             background: var(--bg-tertiary);
         }
-
+        
         .nav-tabs .nav-link.active {
             color: var(--primary-500);
             background: var(--bg-surface);
@@ -143,7 +143,7 @@
             transition: all var(--transition-base);
             height: 100%;
         }
-
+        
         .ai-card:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
@@ -160,7 +160,7 @@
             display: flex;
             flex-direction: column;
         }
-
+        
         .chat-header {
             padding: var(--space-6);
             border-bottom: 1px solid var(--border-primary);
@@ -218,6 +218,219 @@
             .nav-tabs .nav-link {
                 padding: var(--space-3) var(--space-4);
                 font-size: var(--font-size-sm);
+            }
+        }
+
+        /* AI Orchestration Styles */
+        .ai-participant-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-4);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-participant-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-300);
+        }
+
+        .participant-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-2);
+        }
+
+        .participant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .participant-info {
+            flex: 1;
+        }
+
+        .participant-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+        }
+
+        .participant-status {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .participant-model {
+            font-size: var(--font-size-xs);
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .participant-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--danger-500);
+            position: relative;
+        }
+
+        .participant-indicator.online {
+            background: var(--success-500);
+            animation: pulse 2s infinite;
+        }
+
+        .participant-indicator.thinking {
+            background: var(--warning-500);
+            animation: blink 1s infinite;
+        }
+
+        .participant-stats {
+            margin-top: var(--space-2);
+            padding-top: var(--space-2);
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Multi-AI Conversation Messages */
+        .ai-conversation-message {
+            margin-bottom: var(--space-4);
+            padding: var(--space-4);
+            border-radius: var(--border-radius-lg);
+            border-left: 4px solid;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .ai-conversation-message.pm {
+            background: rgba(var(--primary-500-rgb), 0.1);
+            border-left-color: var(--primary-500);
+        }
+
+        .ai-conversation-message.dev {
+            background: rgba(var(--success-500-rgb), 0.1);
+            border-left-color: var(--success-500);
+        }
+
+        .ai-conversation-message.director {
+            background: rgba(var(--warning-500-rgb), 0.1);
+            border-left-color: var(--warning-500);
+        }
+
+        .ai-message-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-2);
+        }
+
+        .ai-message-speaker {
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .ai-message-meta {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+
+        .ai-message-content {
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .ai-message-turn {
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+            background: var(--primary-500);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+
+        /* Connection Status Styles */
+        .connection-status-bar .badge {
+            font-size: var(--font-size-xs);
+            padding: var(--space-1) var(--space-2);
+        }
+
+        #ws-connection-badge.connected {
+            background: var(--success-500) !important;
+        }
+
+        #ws-connection-badge.disconnected {
+            background: var(--danger-500) !important;
+        }
+
+        #ws-connection-badge.connecting {
+            background: var(--warning-500) !important;
+        }
+
+        /* Orchestration Controls */
+        .orchestration-controls .btn-modern {
+            white-space: nowrap;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .orchestration-controls {
+                flex-wrap: wrap;
+                gap: var(--space-1) !important;
+            }
+
+            .orchestration-controls .btn-modern {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .participant-header {
+                flex-direction: column;
+                text-align: center;
+                gap: var(--space-2);
+            }
+
+            .connection-status-bar {
+                flex-wrap: wrap;
+                gap: var(--space-1) !important;
             }
         }
 
@@ -295,8 +508,8 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link focus-ring" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
-                    <i class="bi bi-chat-dots"></i>
-                    <span class="d-none d-sm-inline ms-2">AI Konuşmaları</span>
+                    <i class="bi bi-diagram-3"></i>
+                    <span class="d-none d-sm-inline ms-2">🧠 AI Orkestra</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -336,12 +549,12 @@
                             <div class="d-flex align-items-center mb-3">
                                 <div class="p-3 rounded-circle bg-success-100 text-success-600 me-3">
                                     <i class="bi bi-currency-dollar fs-5"></i>
-                                </div>
+                            </div>
                                 <div>
                                     <div class="text-sm text-secondary">Toplam Maliyet</div>
                                     <div class="text-2xl font-bold" id="total-cost">$0.00</div>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
                             <div class="text-sm text-success-600" id="cost-change">Başlangıç</div>
                         </div>
                     </div>
@@ -351,12 +564,12 @@
                             <div class="d-flex align-items-center mb-3">
                                 <div class="p-3 rounded-circle bg-primary-100 text-primary-600 me-3">
                                     <i class="bi bi-arrow-repeat fs-5"></i>
-                                </div>
+                            </div>
                                 <div>
                                     <div class="text-sm text-secondary">Toplam İstek</div>
                                     <div class="text-2xl font-bold" id="total-requests">0</div>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
                             <div class="text-sm text-primary-600" id="requests-change">0 RPM</div>
                         </div>
                     </div>
@@ -366,12 +579,12 @@
                             <div class="d-flex align-items-center mb-3">
                                 <div class="p-3 rounded-circle bg-warning-100 text-warning-600 me-3">
                                     <i class="bi bi-check-circle fs-5"></i>
-                                </div>
+                            </div>
                                 <div>
                                     <div class="text-sm text-secondary">Başarı Oranı</div>
                                     <div class="text-2xl font-bold" id="success-rate">100%</div>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
                             <div class="text-sm text-danger-600" id="error-count">0 hata</div>
                         </div>
                     </div>
@@ -381,7 +594,7 @@
                             <div class="d-flex align-items-center mb-3">
                                 <div class="p-3 rounded-circle bg-danger-100 text-danger-600 me-3">
                                     <i class="bi bi-lightning fs-5"></i>
-                                </div>
+                            </div>
                                 <div>
                                     <div class="text-sm text-secondary">Ortalama Yanıt</div>
                                     <div class="text-2xl font-bold" id="avg-response">0.0s</div>
@@ -398,16 +611,16 @@
                         <h5 class="mb-0 d-flex align-items-center">
                             <i class="bi bi-bar-chart me-2"></i>
                             Token Kullanımı
-                        </h5>
+                    </h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-3">
                             <span class="text-sm">Toplam: <strong id="total-tokens">0</strong> token</span>
                             <span class="text-sm">
-                                Input: <span id="input-tokens">0</span> (<span id="input-percentage">0%</span>) | 
-                                Output: <span id="output-tokens">0</span> (<span id="output-percentage">0%</span>)
-                            </span>
-                        </div>
+                            Input: <span id="input-tokens">0</span> (<span id="input-percentage">0%</span>) | 
+                            Output: <span id="output-tokens">0</span> (<span id="output-percentage">0%</span>)
+                        </span>
+                    </div>
                         <div class="progress" style="height: 20px;">
                             <div class="progress-bar bg-primary" id="progress-input" style="width: 0%">0%</div>
                             <div class="progress-bar bg-success" id="progress-output" style="width: 0%">0%</div>
@@ -454,8 +667,8 @@
                             <div class="chat-messages" id="live-chat-messages">
                                 <div class="text-center text-muted p-5">
                                     <div class="floating">
-                                        <i class="bi bi-robot" style="font-size: 48px; opacity: 0.3;"></i>
-                                    </div>
+                                    <i class="bi bi-robot" style="font-size: 48px; opacity: 0.3;"></i>
+                                </div>
                                     <p class="mt-3 mb-0">AI konuşması başlatılmayı bekliyor...</p>
                                     <small class="text-muted">Yukarıdaki "Başlat" butonuna tıklayın</small>
                                 </div>
@@ -466,12 +679,12 @@
                                     <span class="connection-status">
                                         <i class="bi bi-circle-fill text-secondary"></i>
                                         <span id="conversation-status">Beklemede</span>
-                                    </span>
+                                </span>
                                     <span id="turn-counter">Tur: 0/0</span>
                                     <button class="btn-modern btn-warning btn-sm" id="toggle-intervention" onclick="toggleInterventionPanel()" style="display: none;">
                                         <i class="bi bi-megaphone"></i>
                                         Müdahale
-                                    </button>
+                                </button>
                                 </div>
                             </div>
                         </div>
@@ -479,67 +692,227 @@
                 </div>
             </div>
 
-            <!-- Chat Tab -->
+            <!-- Multi-AI Orchestration Tab -->
             <div class="tab-pane fade" id="chat" role="tabpanel" aria-labelledby="chat-tab">
-                <div class="row">
-                    <div class="col-lg-8">
+                <!-- AI Orchestration Control Panel -->
+                <div class="row mb-4">
+                    <div class="col-12">
                         <div class="card-modern" data-animate="fadeInUp">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
-                                    <i class="bi bi-chat-dots"></i>
-                                    AI Konuşma Merkezi
+                                    <i class="bi bi-diagram-3"></i>
+                                    🧠 Multi-AI Orchestration Center
                                 </h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="chat-messages" id="chat-messages" style="height: 500px; overflow-y: auto; padding: var(--space-6);">
-                                    <div class="text-center text-muted p-5">
-                                        <i class="bi bi-chat-dots floating" style="font-size: 48px; opacity: 0.3;"></i>
-                                        <p class="mt-3">Henüz konuşma yok. Aşağıdan bir konuşma başlatın.</p>
-                                    </div>
+                                <div class="orchestration-controls d-flex gap-2">
+                                    <button class="btn-modern btn-success" id="start-multi-ai" onclick="startMultiAIOrchestration()">
+                                        <i class="bi bi-play-circle"></i>
+                                        AI Orkestra Başlat
+                                    </button>
+                                    <button class="btn-modern btn-warning" id="pause-orchestration" onclick="pauseOrchestration()" disabled>
+                                        <i class="bi bi-pause-circle"></i>
+                                        Duraklat
+                                    </button>
+                                    <button class="btn-modern btn-info" onclick="showDirectorControl()">
+                                        <i class="bi bi-megaphone"></i>
+                                        Director Müdahale
+                                    </button>
+                                    <button class="btn-modern btn-secondary" onclick="clearOrchestration()">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                        Temizle
+                                    </button>
                                 </div>
-                                <div class="chat-input">
-                                    <form id="chat-form">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control focus-ring" id="chat-input" placeholder="Mesajınızı yazın...">
-                                            <button class="btn-modern btn-primary" type="submit">
-                                                <i class="bi bi-send"></i>
-                                                <span class="d-none d-sm-inline">Gönder</span>
-                                            </button>
-                                        </div>
-                                    </form>
+                            </div>
+                            <div class="card-body">
+                                <!-- WebSocket Connection Status -->
+                                <div class="connection-status-bar mb-3 d-flex align-items-center gap-3">
+                                    <span class="badge" id="ws-connection-badge">
+                                        <i class="bi bi-wifi" id="ws-icon"></i>
+                                        WebSocket: <span id="ws-status">Bağlanıyor...</span>
+                                    </span>
+                                    <span class="badge bg-secondary">
+                                        Orchestration: <span id="orchestration-status">Beklemede</span>
+                                    </span>
+                                    <span class="badge bg-info">
+                                        Aktif Session: <span id="session-id">Yok</span>
+                                    </span>
+                                    <span class="badge bg-warning">
+                                        Tur: <span id="current-turn">0</span>/<span id="max-turn">0</span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="col-lg-4">
+                </div>
+
+                <!-- AI Participants Display -->
+                <div class="row mb-4">
+                    <div class="col-12">
                         <div class="card-modern" data-animate="fadeInUp" data-delay="200">
                             <div class="card-header">
-                                <h5 class="mb-0">Hızlı İşlemler</h5>
+                                <h6 class="mb-0">🤖 AI Katılımcıları</h6>
                             </div>
                             <div class="card-body">
-                                <div class="d-grid gap-3">
-                                    <button class="btn-modern btn-primary" onclick="startConversation()">
-                                        <i class="bi bi-play-circle"></i>
-                                        Konuşma Başlat
-                                    </button>
-                                    <button class="btn-modern btn-secondary" onclick="clearHistory()">
-                                        <i class="bi bi-trash"></i>
-                                        Geçmişi Temizle
-                                    </button>
+                                <div class="row g-3" id="ai-participants-grid">
+                                    <!-- Project Manager -->
+                                    <div class="col-md-4">
+                                        <div class="ai-participant-card" id="pm-participant">
+                                            <div class="participant-header">
+                                                <div class="participant-avatar bg-primary">👔</div>
+                                                <div class="participant-info">
+                                                    <div class="participant-name">Project Manager</div>
+                                                    <div class="participant-status" id="pm-status">Standby</div>
+                                                    <div class="participant-model" id="pm-model">gemini-primary</div>
+                                                </div>
+                                                <div class="participant-indicator" id="pm-indicator"></div>
+                                            </div>
+                                            <div class="participant-stats">
+                                                <small class="text-muted">Mesaj: <span id="pm-message-count">0</span> | Maliyet: $<span id="pm-cost">0.00</span></small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Lead Developer -->
+                                    <div class="col-md-4">
+                                        <div class="ai-participant-card" id="dev-participant">
+                                            <div class="participant-header">
+                                                <div class="participant-avatar bg-success">👨‍💻</div>
+                                                <div class="participant-info">
+                                                    <div class="participant-name">Lead Developer</div>
+                                                    <div class="participant-status" id="dev-status">Standby</div>
+                                                    <div class="participant-model" id="dev-model">gemini-secondary</div>
+                                                </div>
+                                                <div class="participant-indicator" id="dev-indicator"></div>
+                                            </div>
+                                            <div class="participant-stats">
+                                                <small class="text-muted">Mesaj: <span id="dev-message-count">0</span> | Maliyet: $<span id="dev-cost">0.00</span></small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Director (Boss) -->
+                                    <div class="col-md-4">
+                                        <div class="ai-participant-card" id="boss-participant">
+                                            <div class="participant-header">
+                                                <div class="participant-avatar bg-warning">👑</div>
+                                                <div class="participant-info">
+                                                    <div class="participant-name">Director</div>
+                                                    <div class="participant-status" id="boss-status">Ready</div>
+                                                    <div class="participant-model" id="boss-model">gemini-third</div>
+                                                </div>
+                                                <div class="participant-indicator" id="boss-indicator"></div>
+                                            </div>
+                                            <div class="participant-stats">
+                                                <small class="text-muted">Müdahale: <span id="boss-intervention-count">0</span></small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                
-                                <hr class="my-4">
-                                
-                                <h6 class="mb-3">Konuşma Ayarları</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time AI Conversation Display -->
+                <div class="row">
+                    <!-- Multi-AI Conversation Stream -->
+                    <div class="col-lg-8">
+                        <div class="card-modern" data-animate="fadeInUp" data-delay="400">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-chat-quote"></i>
+                                    Real-time AI Conversation
+                                </h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="multi-ai-conversation" id="multi-ai-conversation" style="height: 600px; overflow-y: auto; padding: var(--space-4);">
+                                    <div class="text-center text-muted p-5" id="conversation-empty-state">
+                                        <div class="floating">
+                                            <i class="bi bi-diagram-3" style="font-size: 48px; opacity: 0.3;"></i>
+                                        </div>
+                                        <h6 class="mt-3 mb-2">Multi-AI Orchestration</h6>
+                                        <p class="mb-3">AI'lar birbirleriyle konuşmaya hazır</p>
+                                        <small class="text-info">
+                                            💡 "AI Orkestra Başlat" butonuna tıklayarak AI'ların birbirleriyle konuşmasını izleyin
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control Panel -->
+                    <div class="col-lg-4">
+                        <!-- Conversation Settings -->
+                        <div class="card-modern mb-4" data-animate="fadeInUp" data-delay="600">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-gear"></i>
+                                    Orchestration Ayarları
+                                </h6>
+                            </div>
+                            <div class="card-body">
                                 <div class="mb-3">
                                     <label class="form-label text-sm">Maksimum Tur Sayısı</label>
-                                    <input type="number" class="form-control focus-ring" id="max-turns" value="3" min="1" max="10">
+                                    <input type="number" class="form-control focus-ring" id="orchestration-max-turns" value="5" min="1" max="15">
+                                    <small class="text-muted">AI'lar arası konuşma tur sayısı</small>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label text-sm">İlk Prompt</label>
-                                    <textarea class="form-control focus-ring" id="initial-prompt" rows="3">AI destekli bir proje geliştiriyoruz. Önceliklerimizi belirleyelim.</textarea>
+                                    <label class="form-label text-sm">Başlangıç Promptu</label>
+                                    <textarea class="form-control focus-ring" id="orchestration-prompt" rows="4" placeholder="AI'ların konuşacağı konuyu yazın...">AI destekli bir proje geliştiriyoruz. Proje yöneticisi ve lead developer olarak birlikte bir plan oluşturalım.</textarea>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button class="btn-modern btn-primary" onclick="startCustomOrchestration()">
+                                        <i class="bi bi-rocket"></i>
+                                        Özel Konuşma Başlat
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Director Control Panel -->
+                        <div class="card-modern" data-animate="fadeInUp" data-delay="800">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-person-gear"></i>
+                                    Director Control
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label text-sm">Director Müdahale Mesajı</label>
+                                    <textarea class="form-control focus-ring" id="director-intervention-text" rows="3" placeholder="Director olarak AI'lara yönlendirme mesajı..."></textarea>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button class="btn-modern btn-warning" onclick="sendDirectorIntervention()" id="send-intervention-btn" disabled>
+                                        <i class="bi bi-megaphone"></i>
+                                        Müdahale Gönder
+                                    </button>
+                                    <button class="btn-modern btn-danger btn-sm" onclick="stopOrchestration()" id="stop-orchestration-btn" disabled>
+                                        <i class="bi bi-stop-circle"></i>
+                                        Orchestration Durdur
+                                    </button>
+                                </div>
+
+                                <hr class="my-3">
+
+                                <!-- Quick Actions -->
+                                <div class="d-grid gap-2">
+                                    <h6 class="text-sm text-muted mb-2">Hızlı Aksiyonlar</h6>
+                                    <button class="btn-modern btn-info btn-sm" onclick="quickAction('summarize')">
+                                        <i class="bi bi-file-text"></i>
+                                        Özet İste
+                                    </button>
+                                    <button class="btn-modern btn-success btn-sm" onclick="quickAction('next_steps')">
+                                        <i class="bi bi-arrow-right"></i>
+                                        Sonraki Adımlar
+                                    </button>
+                                    <button class="btn-modern btn-primary btn-sm" onclick="quickAction('decision_needed')">
+                                        <i class="bi bi-question-circle"></i>
+                                        Karar Noktası
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -562,10 +935,10 @@
                                 <div id="role-assignments">
                                     <div class="loading-pulse">
                                         Rol atamaları yükleniyor...
-                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
                     
                     <div class="col-md-6">
@@ -592,15 +965,26 @@
 
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script src="/static/js/theme-manager.js"></script>
     <script src="/static/js/animation-utils.js"></script>
     <script src="/static/js/main.js"></script>
     
     <script>
+        // WebSocket connection for real-time AI orchestration
+        let socket = null;
+        let currentSessionId = null;
+        let orchestrationActive = false;
+        let messageCount = { pm: 0, dev: 0, boss: 0 };
+        let orchestrationCosts = { pm: 0, dev: 0, boss: 0 };
+
         // Enhanced initialization
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize components
             initializeApp();
+            
+            // Initialize WebSocket
+            initializeWebSocket();
             
             // Load initial data
             loadAnalyticsData();
@@ -612,16 +996,431 @@
         });
 
         function initializeApp() {
-            console.log('🚀 AI Orchestrator v2.0 initialized');
+            console.log('🚀 AI Orchestrator v2.0 - Multi-AI Edition initialized');
             
             // Update connection status
             updateConnectionStatus(true);
+            
+            // Initialize participant states
+            updateParticipantStatus('pm', 'Standby', false);
+            updateParticipantStatus('dev', 'Standby', false);
+            updateParticipantStatus('boss', 'Ready', false);
             
             // Focus management
             const activeTab = document.querySelector('.nav-link.active');
             if (activeTab) {
                 activeTab.focus();
             }
+        }
+
+        function initializeWebSocket() {
+            try {
+                // Connect to WebSocket
+                socket = io();
+                console.log('🔌 WebSocket connecting...');
+                
+                updateWebSocketStatus('connecting');
+
+                // Connection events
+                socket.on('connect', function() {
+                    console.log('✅ WebSocket connected');
+                    updateWebSocketStatus('connected');
+                });
+
+                socket.on('disconnect', function() {
+                    console.log('❌ WebSocket disconnected');
+                    updateWebSocketStatus('disconnected');
+                });
+
+                // Multi-AI Conversation Events
+                socket.on('conversation_started', function(data) {
+                    console.log('🚀 AI Conversation Started:', data);
+                    currentSessionId = data.session_id;
+                    updateOrchestrationStatus('Aktif');
+                    updateSessionInfo(data.session_id, data.max_turns);
+                    clearConversationDisplay();
+                    
+                    // Update UI states
+                    document.getElementById('start-multi-ai').disabled = true;
+                    document.getElementById('pause-orchestration').disabled = false;
+                    document.getElementById('send-intervention-btn').disabled = false;
+                    document.getElementById('stop-orchestration-btn').disabled = false;
+                    
+                    addSystemMessage(`🎯 AI Orkestra başlatıldı! Maksimum ${data.max_turns} tur konuşma`);
+                });
+
+                socket.on('conversation_turn', function(data) {
+                    console.log('🔄 Conversation Turn:', data);
+                    updateTurnInfo(data.turn, data.phase);
+                    
+                    // Update participant thinking status
+                    if (data.phase === 'pm_thinking') {
+                        updateParticipantStatus('pm', 'Düşünüyor...', true, 'thinking');
+                        updateParticipantStatus('dev', 'Bekliyor', true);
+                    } else if (data.phase === 'ld_thinking') {
+                        updateParticipantStatus('pm', 'Bekliyor', true);
+                        updateParticipantStatus('dev', 'Düşünüyor...', true, 'thinking');
+                    }
+                });
+
+                socket.on('conversation_message', function(data) {
+                    console.log('💬 AI Message:', data);
+                    addAIMessage(data);
+                    
+                    // Update participant status back to active
+                    const role = data.speaker === 'project_manager' ? 'pm' : 'dev';
+                    updateParticipantStatus(role, 'Aktif', true, 'online');
+                    updateParticipantStats(role, data.usage);
+                });
+
+                socket.on('conversation_completed', function(data) {
+                    console.log('✅ Conversation Completed:', data);
+                    updateOrchestrationStatus('Tamamlandı');
+                    
+                    // Reset UI states
+                    document.getElementById('start-multi-ai').disabled = false;
+                    document.getElementById('pause-orchestration').disabled = true;
+                    document.getElementById('send-intervention-btn').disabled = true;
+                    document.getElementById('stop-orchestration-btn').disabled = true;
+                    
+                    // Update participant statuses
+                    updateParticipantStatus('pm', 'Tamamlandı', true, 'online');
+                    updateParticipantStatus('dev', 'Tamamlandı', true, 'online');
+                    
+                    addSystemMessage(`✅ AI Orkestra tamamlandı! Toplam ${data.total_turns} tur konuşma gerçekleşti.`);
+                    
+                    setTimeout(() => {
+                        updateParticipantStatus('pm', 'Standby', false);
+                        updateParticipantStatus('dev', 'Standby', false);
+                        updateOrchestrationStatus('Beklemede');
+                    }, 5000);
+                });
+
+                socket.on('intervention_applied', function(data) {
+                    console.log('🔔 Director Intervention:', data);
+                    addDirectorMessage(data.message);
+                    updateParticipantStatus('boss', 'Müdahale Etti', true, 'online');
+                    
+                    setTimeout(() => {
+                        updateParticipantStatus('boss', 'Ready', false);
+                    }, 3000);
+                });
+
+                socket.on('conversation_error', function(data) {
+                    console.error('❌ Conversation Error:', data);
+                    updateOrchestrationStatus('Hata');
+                    addSystemMessage(`❌ Hata: ${data.error}`, 'error');
+                    
+                    // Reset UI
+                    resetOrchestrationUI();
+                });
+
+                // Analytics updates
+                socket.on('analytics_update', function(data) {
+                    console.log('📊 Analytics Update:', data);
+                    updateAnalyticsDisplay(data);
+                });
+
+            } catch (error) {
+                console.error('WebSocket initialization error:', error);
+                updateWebSocketStatus('error');
+            }
+        }
+
+        function updateWebSocketStatus(status) {
+            const wsStatus = document.getElementById('ws-status');
+            const wsBadge = document.getElementById('ws-connection-badge');
+            const wsIcon = document.getElementById('ws-icon');
+            
+            switch (status) {
+                case 'connected':
+                    wsStatus.textContent = 'Bağlı';
+                    wsBadge.className = 'badge connected';
+                    wsIcon.className = 'bi bi-wifi';
+                    break;
+                case 'connecting':
+                    wsStatus.textContent = 'Bağlanıyor...';
+                    wsBadge.className = 'badge connecting';
+                    wsIcon.className = 'bi bi-wifi';
+                    break;
+                case 'disconnected':
+                    wsStatus.textContent = 'Bağlantı Kesildi';
+                    wsBadge.className = 'badge disconnected';
+                    wsIcon.className = 'bi bi-wifi-off';
+                    break;
+                case 'error':
+                    wsStatus.textContent = 'Hata';
+                    wsBadge.className = 'badge disconnected';
+                    wsIcon.className = 'bi bi-exclamation-triangle';
+                    break;
+            }
+        }
+
+        function updateOrchestrationStatus(status) {
+            document.getElementById('orchestration-status').textContent = status;
+            orchestrationActive = (status === 'Aktif');
+        }
+
+        function updateSessionInfo(sessionId, maxTurns) {
+            document.getElementById('session-id').textContent = sessionId.substring(0, 8);
+            document.getElementById('max-turn').textContent = maxTurns;
+        }
+
+        function updateTurnInfo(currentTurn, phase) {
+            document.getElementById('current-turn').textContent = currentTurn;
+        }
+
+        function updateParticipantStatus(participant, status, online = false, indicatorType = 'offline') {
+            const statusEl = document.getElementById(`${participant}-status`);
+            const indicatorEl = document.getElementById(`${participant}-indicator`);
+            
+            if (statusEl) statusEl.textContent = status;
+            if (indicatorEl) {
+                indicatorEl.className = `participant-indicator ${indicatorType}`;
+            }
+        }
+
+        function updateParticipantStats(participant, usage) {
+            messageCount[participant]++;
+            if (usage && usage.total_cost) {
+                orchestrationCosts[participant] += parseFloat(usage.total_cost);
+            }
+            
+            // Update UI
+            const messageCountEl = document.getElementById(`${participant}-message-count`);
+            const costEl = document.getElementById(`${participant}-cost`);
+            
+            if (messageCountEl) messageCountEl.textContent = messageCount[participant];
+            if (costEl) costEl.textContent = orchestrationCosts[participant].toFixed(4);
+        }
+
+        function clearConversationDisplay() {
+            const conversationContainer = document.getElementById('multi-ai-conversation');
+            const emptyState = document.getElementById('conversation-empty-state');
+            
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+            
+            // Clear previous messages except empty state
+            const messages = conversationContainer.querySelectorAll('.ai-conversation-message, .system-message, .director-message');
+            messages.forEach(msg => msg.remove());
+        }
+
+        function addAIMessage(data) {
+            const conversationContainer = document.getElementById('multi-ai-conversation');
+            const roleClass = data.speaker === 'project_manager' ? 'pm' : 'dev';
+            const roleIcon = data.speaker === 'project_manager' ? '👔' : '👨‍💻';
+            
+            const messageEl = document.createElement('div');
+            messageEl.className = `ai-conversation-message ${roleClass}`;
+            messageEl.innerHTML = `
+                <div class="ai-message-turn">${data.turn}</div>
+                <div class="ai-message-header">
+                    <span class="ai-message-speaker">${roleIcon} ${data.speaker_name}</span>
+                    <span class="ai-message-meta">
+                        ${data.model} • ${new Date(data.timestamp).toLocaleTimeString()}
+                        ${data.usage ? ` • $${parseFloat(data.usage.total_cost || 0).toFixed(4)}` : ''}
+                    </span>
+                </div>
+                <div class="ai-message-content">${formatMessageContent(data.message)}</div>
+            `;
+            
+            conversationContainer.appendChild(messageEl);
+            conversationContainer.scrollTop = conversationContainer.scrollHeight;
+        }
+
+        function addSystemMessage(message, type = 'info') {
+            const conversationContainer = document.getElementById('multi-ai-conversation');
+            
+            const messageEl = document.createElement('div');
+            messageEl.className = `system-message text-center my-3`;
+            messageEl.innerHTML = `
+                <div class="badge bg-${type === 'error' ? 'danger' : 'primary'} px-3 py-2">
+                    ${message}
+                </div>
+            `;
+            
+            conversationContainer.appendChild(messageEl);
+            conversationContainer.scrollTop = conversationContainer.scrollHeight;
+        }
+
+        function addDirectorMessage(message) {
+            const conversationContainer = document.getElementById('multi-ai-conversation');
+            
+            const messageEl = document.createElement('div');
+            messageEl.className = 'ai-conversation-message director';
+            messageEl.innerHTML = `
+                <div class="ai-message-header">
+                    <span class="ai-message-speaker">👑 Director Müdahale</span>
+                    <span class="ai-message-meta">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="ai-message-content"><strong>🔔 ${message}</strong></div>
+            `;
+            
+            conversationContainer.appendChild(messageEl);
+            conversationContainer.scrollTop = conversationContainer.scrollHeight;
+        }
+
+        function formatMessageContent(content) {
+            // Basic markdown-like formatting
+            return content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function resetOrchestrationUI() {
+            document.getElementById('start-multi-ai').disabled = false;
+            document.getElementById('pause-orchestration').disabled = true;
+            document.getElementById('send-intervention-btn').disabled = true;
+            document.getElementById('stop-orchestration-btn').disabled = true;
+            
+            updateParticipantStatus('pm', 'Standby', false);
+            updateParticipantStatus('dev', 'Standby', false);
+            updateParticipantStatus('boss', 'Ready', false);
+            updateOrchestrationStatus('Beklemede');
+            
+            currentSessionId = null;
+            orchestrationActive = false;
+        }
+
+        // Multi-AI Orchestration Functions
+        function startMultiAIOrchestration() {
+            const maxTurns = document.getElementById('orchestration-max-turns').value || 5;
+            const prompt = document.getElementById('orchestration-prompt').value || 'AI destekli bir proje geliştiriyoruz. Proje yöneticisi ve lead developer olarak birlikte bir plan oluşturalım.';
+            
+            if (!socket || !socket.connected) {
+                alert('WebSocket bağlantısı yok! Sayfa yenileyin.');
+                return;
+            }
+            
+            console.log('🚀 Starting Multi-AI Orchestration:', { maxTurns, prompt });
+            
+            fetch('/api/ai/conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    max_turns: parseInt(maxTurns)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started') {
+                    console.log('✅ AI Orchestration started successfully');
+                } else {
+                    console.error('❌ Failed to start orchestration:', data);
+                    alert('AI Orkestra başlatılamadı: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            })
+            .catch(error => {
+                console.error('❌ Orchestration start error:', error);
+                alert('Bağlantı hatası: ' + error.message);
+            });
+        }
+
+        function startCustomOrchestration() {
+            startMultiAIOrchestration();
+        }
+
+        function pauseOrchestration() {
+            // TODO: Implement pause functionality in backend
+            console.log('⏸️ Pause not implemented yet');
+        }
+
+        function stopOrchestration() {
+            // TODO: Implement stop functionality in backend
+            resetOrchestrationUI();
+            addSystemMessage('⏹️ Orchestration manuel olarak durduruldu', 'warning');
+        }
+
+        function clearOrchestration() {
+            const conversationContainer = document.getElementById('multi-ai-conversation');
+            const emptyState = document.getElementById('conversation-empty-state');
+            
+            // Clear all messages
+            conversationContainer.innerHTML = `
+                <div class="text-center text-muted p-5" id="conversation-empty-state">
+                    <div class="floating">
+                        <i class="bi bi-diagram-3" style="font-size: 48px; opacity: 0.3;"></i>
+                    </div>
+                    <h6 class="mt-3 mb-2">Multi-AI Orchestration</h6>
+                    <p class="mb-3">AI'lar birbirleriyle konuşmaya hazır</p>
+                    <small class="text-info">
+                        💡 "AI Orkestra Başlat" butonuna tıklayarak AI'ların birbirleriyle konuşmasını izleyin
+                    </small>
+                </div>
+            `;
+            
+            // Reset stats
+            messageCount = { pm: 0, dev: 0, boss: 0 };
+            orchestrationCosts = { pm: 0, dev: 0, boss: 0 };
+            updateParticipantStats('pm', null);
+            updateParticipantStats('dev', null);
+            updateParticipantStats('boss', null);
+        }
+
+        function sendDirectorIntervention() {
+            const message = document.getElementById('director-intervention-text').value;
+            if (!message.trim()) {
+                alert('Müdahale mesajı yazın!');
+                return;
+            }
+            
+            if (!currentSessionId || !orchestrationActive) {
+                alert('Aktif bir konuşma yok!');
+                return;
+            }
+            
+            fetch('/api/ai/intervention', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    document.getElementById('director-intervention-text').value = '';
+                    console.log('✅ Director intervention sent');
+                } else {
+                    alert('Müdahale gönderilemedi: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            })
+            .catch(error => {
+                console.error('❌ Intervention error:', error);
+                alert('Bağlantı hatası: ' + error.message);
+            });
+        }
+
+        function showDirectorControl() {
+            // Scroll to director control panel
+            document.querySelector('#director-intervention-text').focus();
+        }
+
+        function quickAction(action) {
+            let message = '';
+            switch (action) {
+                case 'summarize':
+                    message = 'Lütfen şu ana kadar yapılan konuşmayı özetleyin ve ana noktaları belirtin.';
+                    break;
+                case 'next_steps':
+                    message = 'Sonraki adımları belirleyin ve öncelikli görevleri tanımlayın.';
+                    break;
+                case 'decision_needed':
+                    message = 'Karar alınması gereken konuları listeleyin ve önerilerinizi sunun.';
+                    break;
+            }
+            
+            document.getElementById('director-intervention-text').value = message;
+            sendDirectorIntervention();
         }
 
         function updateConnectionStatus(isConnected) {
@@ -669,6 +1468,240 @@
             }, 1000);
         }
 
+        function setupEventListeners() {
+            // Chat form for analytics panel
+            const chatForm = document.getElementById('chat-form');
+            if (chatForm) {
+                chatForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    sendChatMessage();
+                });
+            }
+            
+            // Enter key handling for director intervention
+            const interventionText = document.getElementById('director-intervention-text');
+            if (interventionText) {
+                interventionText.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        sendDirectorIntervention();
+                    }
+                });
+            }
+        }
+
+        function loadRoleAssignments() {
+            fetch('/api/keys')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.adapters) {
+                        // Update participant models based on role assignments
+                        Object.keys(data.adapters).forEach(adapterId => {
+                            const adapter = data.adapters[adapterId];
+                            if (adapter.role) {
+                                const participant = adapter.role === 'project_manager' ? 'pm' : 
+                                                 adapter.role === 'lead_developer' ? 'dev' : 
+                                                 adapter.role === 'boss' ? 'boss' : null;
+                                if (participant) {
+                                    const modelEl = document.getElementById(`${participant}-model`);
+                                    if (modelEl) {
+                                        modelEl.textContent = adapterId;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading role assignments:', error);
+                });
+        }
+
+        function updateAnalyticsDisplay(data) {
+            try {
+                // Update summary metrics
+                if (data.summary) {
+                    const elements = {
+                        'total-cost': `$${data.summary.total_cost.toFixed(4)}`,
+                        'total-requests': data.summary.total_requests,
+                        'success-rate': `${data.summary.success_rate}%`,
+                        'avg-response': `${data.summary.avg_response_time}s`,
+                        'total-tokens': data.summary.total_tokens,
+                        'error-count': `${data.summary.total_errors} hata`
+                    };
+                    
+                    Object.keys(elements).forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.textContent = elements[id];
+                        }
+                    });
+                }
+
+                // Update AI cards
+                if (data.adapters) {
+                    updateAICards(data.adapters);
+                }
+
+                // Update token usage
+                if (data.token_usage) {
+                    updateTokenUsage(data.token_usage);
+                }
+            } catch (error) {
+                console.error('Error updating analytics display:', error);
+            }
+        }
+
+        function updateAICards(adapters) {
+            const container = document.getElementById('ai-cards-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            Object.keys(adapters).forEach(adapterId => {
+                const adapter = adapters[adapterId];
+                const roleIcon = adapter.role === 'project_manager' ? '👔' : 
+                               adapter.role === 'lead_developer' ? '👨‍💻' : 
+                               adapter.role === 'boss' ? '👑' : '🤖';
+                
+                const cardHtml = `
+                    <div class="col-12 mb-3">
+                        <div class="ai-performance-card">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="ai-icon me-2">${roleIcon}</span>
+                                <div>
+                                    <div class="ai-name">${adapter.role || 'Unassigned'}</div>
+                                    <div class="text-muted text-sm">${adapter.model}</div>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge ${adapter.is_available ? 'bg-success' : 'bg-danger'}">
+                                        ${adapter.is_available ? 'Hazır' : 'Meşgul'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="stats-row">
+                                <div class="stat">
+                                    <div class="stat-value">${adapter.stats.total_requests || 0}</div>
+                                    <div class="stat-label">İstek</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">$${(adapter.stats.total_cost || 0).toFixed(4)}</div>
+                                    <div class="stat-label">Maliyet</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">${adapter.stats.total_tokens || 0}</div>
+                                    <div class="stat-label">Token</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        function updateTokenUsage(tokenUsage) {
+            const totalTokens = tokenUsage.total || 0;
+            const inputTokens = tokenUsage.input || 0;
+            const outputTokens = tokenUsage.output || 0;
+            
+            document.getElementById('total-tokens').textContent = totalTokens;
+            document.getElementById('input-tokens').textContent = inputTokens;
+            document.getElementById('output-tokens').textContent = outputTokens;
+            
+            if (totalTokens > 0) {
+                const inputPercentage = (inputTokens / totalTokens * 100).toFixed(1);
+                const outputPercentage = (outputTokens / totalTokens * 100).toFixed(1);
+                
+                document.getElementById('input-percentage').textContent = inputPercentage + '%';
+                document.getElementById('output-percentage').textContent = outputPercentage + '%';
+                
+                document.getElementById('progress-input').style.width = inputPercentage + '%';
+                document.getElementById('progress-output').style.width = outputPercentage + '%';
+            }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addUserMessage(message);
+            input.value = '';
+            
+            // Send to AI
+            fetch('/api/ai/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    role: 'project_manager'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    addAIResponse(data.response, data.model);
+                } else {
+                    addErrorMessage(data.error || 'Yanıt alınamadı');
+                }
+            })
+            .catch(error => {
+                console.error('Chat error:', error);
+                addErrorMessage('Bağlantı hatası: ' + error.message);
+            });
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message-bubble user mb-3';
+            messageEl.innerHTML = `
+                <div class="message-content">${message}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            `;
+            
+            // Remove empty state if present
+            const emptyState = chatMessages.querySelector('.text-center');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            chatMessages.appendChild(messageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addAIResponse(response, model) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message-bubble assistant mb-3';
+            messageEl.innerHTML = `
+                <div class="message-content">${formatMessageContent(response)}</div>
+                <div class="message-time">${model} • ${new Date().toLocaleTimeString()}</div>
+            `;
+            
+            chatMessages.appendChild(messageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addErrorMessage(error) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message-bubble error mb-3';
+            messageEl.innerHTML = `
+                <div class="message-content">❌ ${error}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            `;
+            
+            chatMessages.appendChild(messageEl);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
         function loadSystemStatus() {
             const statusContainer = document.getElementById('system-status');
             
@@ -683,19 +1716,19 @@
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="text-sm">Gemini API</span>
                         <span class="badge bg-success">Aktif</span>
-                    </div>
+                </div>
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="text-sm">OpenAI API</span>
                         <span class="badge bg-warning">Sınırlı</span>
-                    </div>
+                            </div>
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <span class="text-sm">Sistem Sağlığı</span>
                         <span class="badge bg-success">Mükemmel</span>
-                    </div>
+                            </div>
                     <div class="d-flex align-items-center justify-content-between">
                         <span class="text-sm">Uptime</span>
                         <span class="text-sm font-medium">99.9%</span>
-                    </div>
+                        </div>
                 `;
                 
                 if (window.animationUtils) {
@@ -721,7 +1754,7 @@
                         <div class="d-flex align-items-center">
                             <div class="p-2 rounded bg-primary-100 text-primary-600 me-3">
                                 <i class="bi bi-clipboard-check"></i>
-                            </div>
+                                </div>
                             <div>
                                 <div class="font-medium">Proje Yöneticisi</div>
                                 <div class="text-sm text-secondary">Gemini Pro</div>
@@ -732,13 +1765,13 @@
                         <div class="d-flex align-items-center">
                             <div class="p-2 rounded bg-success-100 text-success-600 me-3">
                                 <i class="bi bi-code-slash"></i>
-                            </div>
+                </div>
                             <div>
                                 <div class="font-medium">Lead Developer</div>
                                 <div class="text-sm text-secondary">Gemini Flash</div>
-                            </div>
-                        </div>
-                    </div>
+                </div>
+            </div>
+        </div>
                 `;
                 
                 if (window.animationUtils) {
@@ -769,13 +1802,78 @@
                 const message = input.value.trim();
                 
                 if (message) {
+                    // Show user message and loading
                     addChatMessage(message, 'user');
+                    addChatMessage('⏳ Yanıt bekleniyor...', 'system');
                     input.value = '';
                     
-                    // Simulate AI response
-                    setTimeout(() => {
-                        addChatMessage('Bu harika bir proje fikri! Hemen başlayalım.', 'assistant');
-                    }, 1000);
+                    // Send real API request
+                    fetch('/api/ai/send_message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            role: 'project_manager' // Default role
+                        })
+                    })
+                    .then(response => {
+                        console.log('📤 Chat response status:', response.status);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('📥 Chat response data:', data);
+                        
+                        // Remove loading message
+                        const messages = document.getElementById('chat-messages');
+                        const lastMessage = messages.lastElementChild;
+                        if (lastMessage && lastMessage.textContent.includes('⏳')) {
+                            messages.removeChild(lastMessage);
+                        }
+                        
+                        if (data.success && data.response) {
+                            addChatMessage(data.response, 'assistant');
+                        } else if (data.status === 'processing') {
+                            // AI still processing - wait for response
+                            const messages = document.getElementById('chat-messages');
+                            const lastMessage = messages.lastElementChild;
+                            if (lastMessage && lastMessage.textContent.includes('⏳')) {
+                                lastMessage.textContent = `🤖 ${data.role_id} işleniyor...`;
+                            }
+                            
+                            // Poll for result after 2 seconds
+                            setTimeout(() => {
+                                addChatMessage('⚠️ Yanıt alma süresi aşıldı. Lütfen tekrar deneyin.', 'error');
+                                // Remove the processing message
+                                const messages = document.getElementById('chat-messages');
+                                const lastMessage = messages.lastElementChild;
+                                if (lastMessage && lastMessage.textContent.includes('işleniyor')) {
+                                    messages.removeChild(lastMessage.previousElementSibling);
+                                }
+                            }, 10000); // 10 second timeout
+                        } else if (data.error) {
+                            addChatMessage('❌ Hata: ' + data.error, 'error');
+                        } else {
+                            console.log('🔍 Full response data:', JSON.stringify(data, null, 2));
+                            addChatMessage('❌ Beklenmeyen yanıt formatı: ' + JSON.stringify(data), 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Message API error:', error);
+                        
+                        // Remove loading message
+                        const messages = document.getElementById('chat-messages');
+                        const lastMessage = messages.lastElementChild;
+                        if (lastMessage && lastMessage.textContent.includes('⏳')) {
+                            messages.removeChild(lastMessage);
+                        }
+                        
+                        addChatMessage('❌ Bağlantı hatası: ' + error.message, 'error');
+                    });
                 }
             });
         }
@@ -790,6 +1888,42 @@
             
             const messageElement = document.createElement('div');
             messageElement.className = `message-bubble ${type} mb-3`;
+            
+            // Add appropriate styling based on type
+            if (type === 'user') {
+                messageElement.style.background = 'var(--primary-500)';
+                messageElement.style.color = 'white';
+                messageElement.style.marginLeft = 'auto';
+                messageElement.style.marginRight = '0';
+                messageElement.style.maxWidth = '70%';
+            } else if (type === 'assistant') {
+                messageElement.style.background = 'var(--bg-tertiary)';
+                messageElement.style.color = 'var(--text-primary)';
+                messageElement.style.marginLeft = '0';
+                messageElement.style.marginRight = 'auto';
+                messageElement.style.maxWidth = '70%';
+            } else if (type === 'system') {
+                messageElement.style.background = 'var(--warning-100)';
+                messageElement.style.color = 'var(--warning-700)';
+                messageElement.style.border = '1px solid var(--warning-300)';
+                messageElement.style.marginLeft = '0';
+                messageElement.style.marginRight = 'auto';
+                messageElement.style.maxWidth = '50%';
+                messageElement.style.fontStyle = 'italic';
+                messageElement.style.opacity = '0.8';
+            } else if (type === 'error') {
+                messageElement.style.background = 'var(--danger-100)';
+                messageElement.style.color = 'var(--danger-700)';
+                messageElement.style.border = '1px solid var(--danger-300)';
+                messageElement.style.marginLeft = '0';
+                messageElement.style.marginRight = 'auto';
+                messageElement.style.maxWidth = '70%';
+            }
+            
+            messageElement.style.padding = 'var(--space-3) var(--space-4)';
+            messageElement.style.borderRadius = 'var(--radius-lg)';
+            messageElement.style.display = 'block';
+            
             messageElement.textContent = message;
             
             messagesContainer.appendChild(messageElement);
@@ -803,37 +1937,255 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Placeholder functions for buttons
+        // Real API functions
         function showMemoryModal() {
-            console.log('Memory modal would open here');
+            // Load conversation history
+            fetch('/api/memory/conversations')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('📜 Conversation history:', data);
+                    alert('Konuşma geçmişi konsola yazdırıldı.');
+                })
+                .catch(error => {
+                    console.error('❌ Memory load error:', error);
+                    alert('Konuşma geçmişi yüklenemedi.');
+                });
         }
 
         function showTasksModal() {
-            console.log('Tasks modal would open here');
+            // Load active tasks
+            fetch('/api/memory/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('📋 Active tasks:', data);
+                    alert('Aktif görevler konsola yazdırıldı.');
+                })
+                .catch(error => {
+                    console.error('❌ Tasks load error:', error);
+                    alert('Görevler yüklenemedi.');
+                });
         }
 
         function startAIConversation() {
-            console.log('AI conversation would start here');
+            const prompt = document.getElementById('initial-prompt')?.value || 'AI destekli bir proje geliştiriyoruz. Önceliklerimizi belirleyelim.';
+            const maxTurns = parseInt(document.getElementById('max-turns')?.value) || 3;
+            
+            // Update UI
+            const startBtn = document.getElementById('start-conversation');
+            const pauseBtn = document.getElementById('pause-conversation');
+            const statusSpan = document.getElementById('conversation-status');
+            
+            if (startBtn) startBtn.disabled = true;
+            if (pauseBtn) pauseBtn.disabled = false;
+            if (statusSpan) statusSpan.textContent = 'Başlatılıyor...';
+            
+            // Clear chat messages
+            const messagesContainer = document.getElementById('live-chat-messages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = '<div class="text-center text-muted p-3"><i class="bi bi-hourglass-split"></i> AI konuşması başlatılıyor...</div>';
+            }
+            
+            // Start conversation via API
+            fetch('/api/ai/conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prompt: prompt,  // Backend 'prompt' bekliyor, 'initial_prompt' değil
+                    max_turns: maxTurns
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started') {
+                    console.log('🚀 Conversation started:', data);
+                    if (statusSpan) statusSpan.textContent = 'Aktif';
+                    
+                    // Show conversation started message
+                    if (messagesContainer) {
+                        messagesContainer.innerHTML = `
+                            <div class="text-center text-muted p-3">
+                                <i class="bi bi-chat-dots text-success"></i> 
+                                AI konuşması başlatıldı!<br>
+                                <small>Prompt: "${data.prompt}"</small><br>
+                                <small>Max ${data.max_turns} tur</small>
+                            </div>
+                        `;
+                    }
+                } else if (data.error) {
+                    console.error('❌ Conversation start failed:', data.error);
+                    if (statusSpan) statusSpan.textContent = 'Hata: ' + data.error;
+                    if (startBtn) startBtn.disabled = false;
+                    if (pauseBtn) pauseBtn.disabled = true;
+                } else {
+                    console.error('❌ Unexpected response:', data);
+                    if (statusSpan) statusSpan.textContent = 'Beklenmeyen yanıt';
+                    if (startBtn) startBtn.disabled = false;
+                    if (pauseBtn) pauseBtn.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('❌ Conversation API error:', error);
+                if (statusSpan) statusSpan.textContent = 'Bağlantı hatası';
+                if (startBtn) startBtn.disabled = false;
+                if (pauseBtn) pauseBtn.disabled = true;
+                alert('Konuşma başlatılamadı: ' + error.message);
+            });
         }
 
         function pauseConversation() {
-            console.log('Conversation would pause here');
+            console.log('⏸️ Conversation paused');
+            const startBtn = document.getElementById('start-conversation');
+            const pauseBtn = document.getElementById('pause-conversation');
+            const statusSpan = document.getElementById('conversation-status');
+            
+            if (startBtn) startBtn.disabled = false;
+            if (pauseBtn) pauseBtn.disabled = true;
+            if (statusSpan) statusSpan.textContent = 'Duraklatıldı';
         }
 
         function clearConversation() {
-            console.log('Conversation would clear here');
+            const messagesContainer = document.getElementById('live-chat-messages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = `
+                    <div class="text-center text-muted p-5">
+                        <div class="floating">
+                            <i class="bi bi-robot" style="font-size: 48px; opacity: 0.3;"></i>
+                        </div>
+                        <p class="mt-3 mb-0">AI konuşması başlatılmayı bekliyor...</p>
+                        <small class="text-muted">Yukarıdaki "Başlat" butonuna tıklayın</small>
+                    </div>
+                `;
+            }
+            
+            const statusSpan = document.getElementById('conversation-status');
+            if (statusSpan) statusSpan.textContent = 'Beklemede';
+            
+            const startBtn = document.getElementById('start-conversation');
+            const pauseBtn = document.getElementById('pause-conversation');
+            if (startBtn) startBtn.disabled = false;
+            if (pauseBtn) pauseBtn.disabled = true;
         }
 
         function startConversation() {
-            console.log('New conversation would start here');
+            // Start a new manual chat conversation
+            const prompt = document.getElementById('initial-prompt')?.value || 'Merhaba, nasıl yardımcı olabilirim?';
+            
+            // Show loading message
+            addChatMessage(prompt, 'user');
+            addChatMessage('⏳ Yanıt bekleniyor...', 'system');
+            
+            // Send initial message
+            fetch('/api/ai/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: prompt,
+                    role: 'project_manager'
+                })
+            })
+            .then(response => {
+                console.log('📤 Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('📥 Response data:', data);
+                
+                // Remove loading message
+                const messages = document.getElementById('chat-messages');
+                const lastMessage = messages.lastElementChild;
+                if (lastMessage && lastMessage.textContent.includes('⏳')) {
+                    messages.removeChild(lastMessage);
+                }
+                
+                if (data.success && data.response) {
+                    addChatMessage(data.response, 'assistant');
+                } else if (data.status === 'processing') {
+                    // AI still processing - update message
+                    const messages = document.getElementById('chat-messages');
+                    const lastMessage = messages.lastElementChild;
+                    if (lastMessage && lastMessage.textContent.includes('⏳')) {
+                        lastMessage.textContent = `🤖 ${data.role_id} işleniyor...`;
+                    }
+                    
+                    // Poll for result with timeout
+                    setTimeout(() => {
+                        const messages = document.getElementById('chat-messages');
+                        const lastMessage = messages.lastElementChild;
+                        if (lastMessage && lastMessage.textContent.includes('işleniyor')) {
+                            lastMessage.textContent = '⚠️ Yanıt alma süresi aşıldı. Lütfen tekrar deneyin.';
+                            lastMessage.style.background = 'var(--danger-100)';
+                            lastMessage.style.color = 'var(--danger-700)';
+                        }
+                    }, 10000); // 10 second timeout
+                } else if (data.error) {
+                    addChatMessage('❌ Hata: ' + data.error, 'error');
+                } else {
+                    console.log('🔍 Full response data:', JSON.stringify(data, null, 2));
+                    addChatMessage('❌ Beklenmeyen yanıt formatı: ' + JSON.stringify(data), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Send message error:', error);
+                
+                // Remove loading message
+                const messages = document.getElementById('chat-messages');
+                const lastMessage = messages.lastElementChild;
+                if (lastMessage && lastMessage.textContent.includes('⏳')) {
+                    messages.removeChild(lastMessage);
+                }
+                
+                addChatMessage('❌ Bağlantı hatası: ' + error.message, 'error');
+            });
         }
 
         function clearHistory() {
-            console.log('History would clear here');
+            const messagesContainer = document.getElementById('chat-messages');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = `
+                    <div class="text-center text-muted p-5">
+                        <i class="bi bi-chat-dots floating" style="font-size: 48px; opacity: 0.3;"></i>
+                        <p class="mt-3">Henüz konuşma yok. Aşağıdan bir konuşma başlatın.</p>
+                    </div>
+                `;
+            }
         }
 
         function toggleInterventionPanel() {
-            console.log('Intervention panel would toggle here');
+            // Director intervention feature
+            const intervention = prompt('Müdahale mesajınızı yazın:');
+            if (intervention && intervention.trim()) {
+                fetch('/api/ai/intervention', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        intervention: intervention,
+                        session_id: 'current'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('📢 Intervention sent:', data);
+                        alert('Müdahale başarıyla gönderildi!');
+                    } else {
+                        console.error('❌ Intervention failed:', data.error);
+                        alert('Müdahale gönderilemedi: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Intervention error:', error);
+                    alert('Müdahale hatası: ' + error.message);
+                });
+            }
         }
     </script>
 </body>

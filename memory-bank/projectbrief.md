@@ -24,4 +24,4 @@ AI Chrome Chat Manager - Universal AI destekli proje yönetimi ve chat sistemi
 - Web arayüzü üzerinden kontrolün sağlanması
 - Konuşma geçmişinin kaydedilmesi
 
-Oluşturulma: 2025-06-19 19:35
+Oluşturulma: 2025-06-19 20:52

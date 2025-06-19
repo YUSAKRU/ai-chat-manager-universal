@@ -49,4 +49,4 @@
 5. BrowserHandler → AI platforms
 6. Response → MessageBroker → Web UI
 
-Güncelleme: 2025-06-19 19:35
+Güncelleme: 2025-06-19 20:52

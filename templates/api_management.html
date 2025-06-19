@@ -228,6 +228,15 @@
             margin-bottom: var(--space-6);
         }
 
+        /* DEBUG: Çoklu form görünürlük testi */
+        .key-form-section[data-key-name="secondary"] {
+            border: 2px solid #10b981 !important;
+        }
+        
+        .key-form-section[data-key-name="third"] {
+            border: 2px solid #8b5cf6 !important;
+        }
+
         .key-form-section {
             background: var(--bg-tertiary);
             border: 1px solid var(--border-primary);
@@ -600,22 +609,22 @@
         <div class="api-cards-grid">
             <!-- Google Gemini -->
             <div class="api-provider-card" data-animate="fadeInLeft">
-                <div class="api-card-header">
+                    <div class="api-card-header">
                     <div class="api-provider-info">
                         <div class="provider-icon">
-                            <i class="bi bi-google"></i>
-                        </div>
+                                <i class="bi bi-google"></i>
+                            </div>
                         <div class="provider-details">
                             <h3>Google Gemini</h3>
                             <div class="status-badge status-inactive" id="gemini-status">
                                 <div class="status-dot"></div>
                                 <span>Yapılandırılmadı</span>
                             </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="api-card-body">
-                    <div id="gemini-keys-container" class="gemini-keys-container">
+                    <div class="api-card-body">
+                                        <div id="gemini-keys-container" class="gemini-keys-container">
                         <!-- Primary Gemini key form -->
                         <div class="key-form-section gemini-key-form" data-key-name="primary">
                             <div class="key-form-header">
@@ -645,10 +654,70 @@
                             </div>
                             <div class="test-result" id="gemini-primary-result"></div>
                         </div>
+
+                        <!-- Secondary Gemini key form -->
+                        <div class="key-form-section gemini-key-form" data-key-name="secondary">
+                            <div class="key-form-header">
+                                <span class="key-badge" style="background: linear-gradient(45deg, #10b981, #059669);">Secondary</span>
+                                <span class="key-description">İkinci Gemini API anahtarı</span>
+                            </div>
+                            <div class="input-group-modern">
+                                <input type="password" 
+                                       class="input-modern gemini-key-input" 
+                                       id="gemini-secondary-key" 
+                                       placeholder="İkinci Gemini API anahtarınızı girin..."
+                                       autocomplete="off">
+                            </div>
+                            <div class="btn-actions">
+                                <button type="button" class="btn-modern btn-primary" onclick="testGeminiAPI('secondary')">
+                                    <i class="bi bi-lightning"></i>
+                                    <span>Test Et</span>
+                                </button>
+                                <button type="button" class="btn-modern btn-success" onclick="saveGeminiAPI('secondary')">
+                                    <i class="bi bi-check-circle"></i>
+                                    <span>Kaydet</span>
+                                </button>
+                                <button type="button" class="btn-modern btn-danger" onclick="deleteGeminiAPI('secondary')">
+                                    <i class="bi bi-trash"></i>
+                                    <span>Sil</span>
+                                </button>
+                            </div>
+                            <div class="test-result" id="gemini-secondary-result"></div>
+                        </div>
+
+                        <!-- Third Gemini key form -->
+                        <div class="key-form-section gemini-key-form" data-key-name="third">
+                            <div class="key-form-header">
+                                <span class="key-badge" style="background: linear-gradient(45deg, #8b5cf6, #7c3aed);">Third</span>
+                                <span class="key-description">Üçüncü Gemini API anahtarı</span>
+                            </div>
+                            <div class="input-group-modern">
+                                <input type="password" 
+                                       class="input-modern gemini-key-input" 
+                                       id="gemini-third-key" 
+                                       placeholder="Üçüncü Gemini API anahtarınızı girin..."
+                                       autocomplete="off">
+                            </div>
+                            <div class="btn-actions">
+                                <button type="button" class="btn-modern btn-primary" onclick="testGeminiAPI('third')">
+                                    <i class="bi bi-lightning"></i>
+                                    <span>Test Et</span>
+                                </button>
+                                <button type="button" class="btn-modern btn-success" onclick="saveGeminiAPI('third')">
+                                    <i class="bi bi-check-circle"></i>
+                                    <span>Kaydet</span>
+                                </button>
+                                <button type="button" class="btn-modern btn-danger" onclick="deleteGeminiAPI('third')">
+                                    <i class="bi bi-trash"></i>
+                                    <span>Sil</span>
+                                </button>
+                            </div>
+                            <div class="test-result" id="gemini-third-result"></div>
+                        </div>
                     </div>
-                    
+                        
                     <div class="api-help-link">
-                        <i class="bi bi-info-circle"></i>
+                                <i class="bi bi-info-circle"></i>
                         <span>API anahtarı almak için: 
                             <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
                         </span>
@@ -658,48 +727,48 @@
 
             <!-- OpenAI -->
             <div class="api-provider-card" data-animate="fadeInRight">
-                <div class="api-card-header">
+                    <div class="api-card-header">
                     <div class="api-provider-info">
                         <div class="provider-icon">
-                            <i class="bi bi-robot"></i>
-                        </div>
+                                <i class="bi bi-robot"></i>
+                            </div>
                         <div class="provider-details">
                             <h3>OpenAI GPT</h3>
                             <div class="status-badge status-inactive" id="openai-status">
                                 <div class="status-dot"></div>
                                 <span>Yapılandırılmadı</span>
                             </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="api-card-body">
-                    <form id="openai-form">
-                        <div class="input-group-modern">
-                            <input type="password" 
+                    <div class="api-card-body">
+                        <form id="openai-form">
+                            <div class="input-group-modern">
+                                <input type="password" 
                                    class="input-modern" 
-                                   id="openai-key" 
-                                   placeholder="OpenAI API anahtarınızı girin..."
-                                   autocomplete="off">
-                        </div>
+                                       id="openai-key" 
+                                       placeholder="OpenAI API anahtarınızı girin..."
+                                       autocomplete="off">
+                            </div>
                         <div class="btn-actions">
                             <button type="button" class="btn-modern btn-primary" onclick="testAPI('openai')">
                                 <i class="bi bi-lightning"></i>
                                 <span>Test Et</span>
-                            </button>
+                                </button>
                             <button type="button" class="btn-modern btn-success" onclick="saveAPI('openai')">
                                 <i class="bi bi-check-circle"></i>
                                 <span>Kaydet</span>
-                            </button>
+                                </button>
                             <button type="button" class="btn-modern btn-danger" onclick="deleteAPI('openai')">
                                 <i class="bi bi-trash"></i>
                                 <span>Sil</span>
-                            </button>
-                        </div>
-                        <div class="test-result" id="openai-result"></div>
-                    </form>
-                    
+                                </button>
+                            </div>
+                            <div class="test-result" id="openai-result"></div>
+                        </form>
+                        
                     <div class="api-help-link">
-                        <i class="bi bi-info-circle"></i>
+                                <i class="bi bi-info-circle"></i>
                         <span>API anahtarı almak için: 
                             <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>
                         </span>
@@ -735,9 +804,9 @@
                     <span>Bilgilendirme</span>
                 </div>
                 <div class="info-text">
-                    <p><strong>Güvenlik:</strong> API anahtarlarınız şifrelenmiş olarak saklanır.</p>
-                    <p><strong>Test:</strong> Anahtarları kaydetmeden önce test edebilirsiniz.</p>
-                    <p><strong>Kullanım:</strong> En az bir API anahtarı gereklidir.</p>
+                        <p><strong>Güvenlik:</strong> API anahtarlarınız şifrelenmiş olarak saklanır.</p>
+                        <p><strong>Test:</strong> Anahtarları kaydetmeden önce test edebilirsiniz.</p>
+                        <p><strong>Kullanım:</strong> En az bir API anahtarı gereklidir.</p>
                 </div>
             </div>
 
@@ -747,21 +816,21 @@
                     <i class="bi bi-gear"></i>
                     <span>Sistem Durumu</span>
                 </div>
-                <div id="system-status">
+                    <div id="system-status">
                     <div class="status-item">
                         <span class="status-label">Gemini:</span>
                         <span class="status-badge status-inactive" id="status-gemini">
                             <div class="status-dot"></div>
                             <span>Kapalı</span>
                         </span>
-                    </div>
+                        </div>
                     <div class="status-item">
                         <span class="status-label">OpenAI:</span>
                         <span class="status-badge status-inactive" id="status-openai">
                             <div class="status-dot"></div>
                             <span>Kapalı</span>
                         </span>
-                    </div>
+                        </div>
                     <div class="status-item">
                         <span class="status-label">Sistem:</span>
                         <span class="status-badge status-active">
@@ -779,79 +848,86 @@
                 <div class="quick-action-header">
                     <i class="bi bi-people"></i>
                     <span>Rol Atamaları</span>
-                </div>
+                    </div>
                 <p style="margin: var(--space-2) 0 0 0; opacity: 0.8;">AI asistanlarına roller atayın</p>
             </div>
             <div class="role-assignment-body">
                 <div class="roles-grid">
-                    <!-- Project Manager -->
+                            <!-- Project Manager -->
                     <div class="role-card">
                         <div class="role-header">
-                            <div class="role-icon pm">
-                                <i class="bi bi-clipboard-check"></i>
-                            </div>
+                                        <div class="role-icon pm">
+                                            <i class="bi bi-clipboard-check"></i>
+                                        </div>
                             <div class="role-details">
                                 <h6>Project Manager</h6>
                                 <p class="role-description">Proje yönetimi ve planlama</p>
-                            </div>
-                        </div>
+                                        </div>
+                                    </div>
                         <select class="role-select" id="role-project-manager" onchange="assignRole('project_manager', this.value)">
-                            <option value="">Seçiniz...</option>
-                        </select>
+                                        <option value="">Seçiniz...</option>
+                                    </select>
                         <div class="current-assignment">
                             <div class="assignment-label">Mevcut Atama:</div>
                             <div class="assignment-value" id="current-project-manager">Atanmamış</div>
-                        </div>
-                    </div>
+                                </div>
+                            </div>
 
-                    <!-- Lead Developer -->
+                            <!-- Lead Developer -->
                     <div class="role-card">
                         <div class="role-header">
-                            <div class="role-icon ld">
-                                <i class="bi bi-code-slash"></i>
-                            </div>
+                                        <div class="role-icon ld">
+                                            <i class="bi bi-code-slash"></i>
+                                        </div>
                             <div class="role-details">
                                 <h6>Lead Developer</h6>
                                 <p class="role-description">Teknik geliştirme ve kod incelemesi</p>
-                            </div>
-                        </div>
+                                        </div>
+                                    </div>
                         <select class="role-select" id="role-lead-developer" onchange="assignRole('lead_developer', this.value)">
-                            <option value="">Seçiniz...</option>
-                        </select>
+                                        <option value="">Seçiniz...</option>
+                                    </select>
                         <div class="current-assignment">
                             <div class="assignment-label">Mevcut Atama:</div>
                             <div class="assignment-value" id="current-lead-developer">Atanmamış</div>
-                        </div>
-                    </div>
+                                </div>
+                            </div>
 
-                    <!-- Boss -->
+                            <!-- Boss -->
                     <div class="role-card">
                         <div class="role-header">
-                            <div class="role-icon boss">
+                                        <div class="role-icon boss">
                                 <i class="bi bi-crown"></i>
-                            </div>
+                                        </div>
                             <div class="role-details">
                                 <h6>Boss</h6>
                                 <p class="role-description">Stratejik kararlar ve yönlendirme</p>
-                            </div>
-                        </div>
+                                        </div>
+                                    </div>
                         <select class="role-select" id="role-boss" onchange="assignRole('boss', this.value)">
-                            <option value="">Seçiniz...</option>
-                        </select>
+                                        <option value="">Seçiniz...</option>
+                                    </select>
                         <div class="current-assignment">
                             <div class="assignment-label">Mevcut Atama:</div>
                             <div class="assignment-value" id="current-boss">Atanmamış</div>
+                                    </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Include Theme Manager and Animation Utils -->
-    <script src="/static/js/theme-manager.js"></script>
-    <script src="/static/js/animation-utils.js"></script>
-
+    <script src="/static/js/theme-manager.js?v=20250619_001"></script>
+    <script src="/static/js/animation-utils.js?v=20250619_001"></script>
+    
+    <!-- CACHE BUSTER - Multiple Gemini Forms -->
+    <style>
+        .multiple-forms-debug {
+            content: "VERSION: 20250619_001 - MULTIPLE FORMS ACTIVE";
+        }
+    </style>
+    
     <script>
         // API Management JavaScript
         function testGeminiAPI(keyName) {
@@ -868,11 +944,11 @@
 
             // Test API call
             fetch('/api/test-key', {
-                method: 'POST',
-                headers: {
+                    method: 'POST',
+                    headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+                    },
+                    body: JSON.stringify({
                     provider: 'gemini',
                     key: apiKey,
                     keyName: keyName
@@ -903,11 +979,11 @@
             }
 
             fetch('/api/save-key', {
-                method: 'POST',
-                headers: {
+                    method: 'POST',
+                    headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+                    },
+                    body: JSON.stringify({
                     provider: 'gemini',
                     key: apiKey,
                     keyName: keyName
@@ -917,7 +993,7 @@
             .then(data => {
                 if (data.success) {
                     showResult(resultDiv, '✅ API anahtarı kaydedildi!', 'success');
-                    updateStatus('gemini', 'active');
+                    updateGeminiStatus(); // Gemini status'unu güncelle
                     updateRoleSelectors(); // Rol seçicilerini güncelle
                 } else {
                     showResult(resultDiv, `❌ Kaydetme başarısız: ${data.error}`, 'error');
@@ -950,7 +1026,7 @@
                 if (data.success) {
                     showResult(resultDiv, '✅ API anahtarı silindi!', 'success');
                     document.getElementById(`gemini-${keyName}-key`).value = '';
-                    updateStatus('gemini', 'inactive');
+                    updateGeminiStatus(); // Gemini status'unu güncelle
                     updateRoleSelectors(); // Rol seçicilerini güncelle
                 } else {
                     showResult(resultDiv, `❌ Silme başarısız: ${data.error}`, 'error');
@@ -1055,7 +1131,7 @@
                     document.getElementById(`${provider}-key`).value = '';
                     updateStatus(provider, 'inactive');
                     updateRoleSelectors(); // Rol seçicilerini güncelle
-                } else {
+                    } else {
                     showResult(resultDiv, `❌ Silme başarısız: ${data.error}`, 'error');
                 }
             })
@@ -1069,12 +1145,12 @@
             element.className = `test-result test-${type}`;
             element.style.display = 'block';
 
-            setTimeout(() => {
+                    setTimeout(() => {
                 element.style.display = 'none';
             }, 5000);
         }
 
-        function updateStatus(provider, status) {
+                function updateStatus(provider, status) {
             const statusElement = document.getElementById(`${provider}-status`);
             const systemStatusElement = document.getElementById(`status-${provider}`);
             
@@ -1095,26 +1171,55 @@
             }
         }
 
-        function loadExistingKeys() {
-            fetch('/api/load-keys')
+        function updateGeminiStatus() {
+            // Herhangi bir Gemini anahtarı var mı kontrol et
+            fetch('/api/keys')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.keys && data.keys.gemini) {
+                        const hasAnyKey = ['primary', 'secondary', 'third'].some(keyName => 
+                            data.keys.gemini[keyName] && data.keys.gemini[keyName].has_key
+                        );
+                        updateStatus('gemini', hasAnyKey ? 'active' : 'inactive');
+                    } else {
+                        updateStatus('gemini', 'inactive');
+                    }
+                })
+                .catch(error => {
+                    console.error('Gemini status kontrol hatası:', error);
+                });
+        }
+
+                function loadExistingKeys() {
+            fetch('/api/keys')
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    // Load keys into inputs
-                    Object.keys(data.keys).forEach(provider => {
-                        const input = document.getElementById(`${provider}-key`);
-                        if (input && data.keys[provider]) {
+                if (data.success && data.keys) {
+                    // Gemini anahtarlarını yükle
+                    if (data.keys.gemini) {
+                        ['primary', 'secondary', 'third'].forEach(keyName => {
+                            if (data.keys.gemini[keyName]) {
+                                const input = document.getElementById(`gemini-${keyName}-key`);
+                                if (input) {
+                                    input.value = '••••••••••••••••';
+                                }
+                            }
+                        });
+                    }
+                    updateGeminiStatus(); // Gemini status'unu güncelle
+                    
+                    // OpenAI anahtarını yükle
+                    if (data.keys.openai && data.keys.openai.primary) {
+                        const input = document.getElementById('openai-key');
+                        if (input) {
                             input.value = '••••••••••••••••';
-                            updateStatus(provider, 'active');
+                            updateStatus('openai', 'active');
                         }
-                    });
-                    alert('Mevcut anahtarlar yüklendi!');
-                } else {
-                    alert('Anahtar yükleme başarısız!');
+                    }
                 }
             })
             .catch(error => {
-                alert('Anahtar yükleme hatası!');
+                console.error('Anahtar yükleme hatası:', error);
             });
         }
 
@@ -1129,13 +1234,22 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Clear all inputs
-                    document.querySelectorAll('input[type="password"]').forEach(input => {
-                        input.value = '';
+                    // Clear all Gemini inputs
+                    ['primary', 'secondary', 'third'].forEach(keyName => {
+                        const input = document.getElementById(`gemini-${keyName}-key`);
+                        if (input) {
+                            input.value = '';
+                        }
                     });
                     
+                    // Clear OpenAI input
+                    const openaiInput = document.getElementById('openai-key');
+                    if (openaiInput) {
+                        openaiInput.value = '';
+                    }
+                    
                     // Update all status
-                    updateStatus('gemini', 'inactive');
+                    updateGeminiStatus();
                     updateStatus('openai', 'inactive');
                     
                     // Update role selectors
@@ -1155,11 +1269,11 @@
             if (!adapterId) return;
 
             fetch('/api/assign-role', {
-                method: 'POST',
-                headers: {
+                    method: 'POST',
+                    headers: {
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+                    },
+                    body: JSON.stringify({
                     role: role,
                     adapter_id: adapterId  // adapter_id gönder
                 })
@@ -1192,6 +1306,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadExistingKeys();
             updateRoleSelectors();
+            updateGeminiStatus();
         });
 
         // Update role selectors with available adapters

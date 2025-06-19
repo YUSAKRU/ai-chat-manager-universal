@@ -317,9 +317,9 @@ class UniversalChatManager:
             # Memory Bank'i kaydet (await kullanmadan)
             try:
                 self.memory_bank.update_document("progress", """
-                Son oturum kapatıldı.
-                Sistem başarıyla sonlandırıldı.
-                """)
+            Son oturum kapatıldı.
+            Sistem başarıyla sonlandırıldı.
+            """)
             except Exception as e:
                 logger.error(f"Memory bank güncelleme hatası: {e}", component="shutdown")
         
