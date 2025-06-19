@@ -335,6 +335,7 @@ class WebUIUniversal:
                             }
                 
                 return jsonify({
+                    'success': True,
                     'keys': safe_keys,
                     'adapters': self.ai_adapter.get_adapter_status(),
                     'roles': self.ai_adapter.get_role_assignments()
@@ -499,17 +500,26 @@ class WebUIUniversal:
         def assign_adapter_to_role(role_id):
             """Bir role adapter ata"""
             try:
+                print(f"🎯 Rol atama isteği: {role_id}")
                 data = request.get_json()
+                print(f"📤 Request data: {data}")
+                
                 adapter_id = data.get('adapter_id')
+                print(f"🔍 Adapter ID: {adapter_id}")
                 
                 if not adapter_id:
+                    print("❌ Adapter ID eksik")
                     return jsonify({'error': 'Adapter ID gerekli'}), 400
                 
+                print(f"📊 Mevcut adapter'lar: {list(self.ai_adapter.adapters.keys())}")
                 if adapter_id not in self.ai_adapter.adapters:
+                    print(f"❌ Adapter bulunamadı: {adapter_id}")
                     return jsonify({'error': 'Adapter bulunamadı'}), 404
                 
                 # Role ata
+                print(f"✅ {role_id} rolüne {adapter_id} atanıyor...")
                 self.ai_adapter.assign_role(role_id, adapter_id)
+                print(f"📋 Mevcut rol atamaları: {self.ai_adapter.get_role_assignments()}")
                 
                 return jsonify({
                     'success': True,
@@ -519,16 +529,22 @@ class WebUIUniversal:
                 })
                 
             except Exception as e:
+                print(f"❌ Rol atama hatası: {str(e)}")
                 return jsonify({'error': str(e)}), 500
         
         @self.app.route('/api/roles/<role_id>/adapter', methods=['DELETE'])
         def remove_role_assignment(role_id):
             """Rol atamasını kaldır"""
             try:
+                print(f"🗑️ Rol kaldırma isteği: {role_id}")
+                print(f"📋 Mevcut rol atamaları: {self.ai_adapter.get_role_assignments()}")
+                
                 # Rol atamasını kaldır
                 if role_id in self.ai_adapter.role_assignments:
                     removed_adapter = self.ai_adapter.role_assignments[role_id]
                     del self.ai_adapter.role_assignments[role_id]
+                    print(f"✅ {role_id} rol ataması kaldırıldı: {removed_adapter}")
+                    print(f"📋 Güncel rol atamaları: {self.ai_adapter.get_role_assignments()}")
                     
                     return jsonify({
                         'success': True,
@@ -537,13 +553,15 @@ class WebUIUniversal:
                         'message': f'{role_id} rol ataması kaldırıldı'
                     })
                 else:
+                    print(f"⚠️ {role_id} zaten atanmamış")
                     return jsonify({
                         'success': True,
                         'role_id': role_id,
-                        'message': f'{role_id} zaten atanmış'
+                        'message': f'{role_id} zaten atanmamış'
                     })
                 
             except Exception as e:
+                print(f"❌ Rol kaldırma hatası: {str(e)}")
                 return jsonify({'error': str(e)}), 500
         
         @self.app.route('/api/models/<provider>')

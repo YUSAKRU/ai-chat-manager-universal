@@ -94,9 +94,13 @@ class UniversalAIAdapter:
         self.token_prices = {
             'gemini-pro': {'input': 0.00025, 'output': 0.0005},
             'gemini-1.5-pro': {'input': 0.00125, 'output': 0.005},
+            'gemini-1.5-pro-002': {'input': 0.00125, 'output': 0.005},  # Yeni stabil
             'gemini-1.5-flash': {'input': 0.000075, 'output': 0.0003},
+            'gemini-1.5-flash-002': {'input': 0.0, 'output': 0.0},  # Yeni stabil - Free tier
+            'gemini-2.0-flash': {'input': 0.0, 'output': 0.0},     # Free tier
+            'gemini-2.0-flash-001': {'input': 0.0, 'output': 0.0}, # Yeni stabil - Free tier
             'gemini-2.5-pro': {'input': 0.00125, 'output': 0.005},
-            'gemini-2.5-flash': {'input': 0.0, 'output': 0.0},  # Free tier
+            'gemini-2.5-flash': {'input': 0.0, 'output': 0.0},     # Free tier
             'gpt-3.5-turbo': {'input': 0.0015, 'output': 0.002},
             'gpt-4': {'input': 0.03, 'output': 0.06},
             'gpt-4-turbo': {'input': 0.01, 'output': 0.03},
@@ -135,7 +139,7 @@ class UniversalAIAdapter:
         if adapter_type == "gemini":
             adapter = GeminiAdapter(
                 api_key=kwargs.get('api_key'),
-                model=kwargs.get('model', 'gemini-2.5-flash')
+                model=kwargs.get('model', 'gemini-1.5-flash-002')  # Yeni stabil model
             )
         elif adapter_type == "openai":
             adapter = OpenAIAdapter(
@@ -184,6 +188,10 @@ class UniversalAIAdapter:
         
         adapter = self.adapters[adapter_id]
         
+        # Gemini güvenlik filtresi için fallback sistemi
+        primary_adapter_id = adapter_id
+        fallback_attempted = False
+        
         try:
             # Mesajı gönder
             response = await adapter.send_message(message, context)
@@ -231,6 +239,86 @@ class UniversalAIAdapter:
                 
         except Exception as e:
             response_time = time.time() - start_time
+            error_message = str(e)
+            
+            # Gemini güvenlik filtresi hatası için OpenAI fallback
+            if ("güvenlik filtresi" in error_message.lower() or 
+                "safety filter" in error_message.lower() or
+                "blocked" in error_message.lower()) and not fallback_attempted:
+                
+                print(f"🔄 Gemini güvenlik filtresi tetiklendi, OpenAI fallback deneniyor...")
+                
+                # OpenAI adapter'ı bul
+                openai_adapter_id = None
+                for aid, adapter in self.adapters.items():
+                    if adapter.__class__.__name__ == 'OpenAIAdapter':
+                        openai_adapter_id = aid
+                        break
+                
+                if openai_adapter_id:
+                    try:
+                        fallback_attempted = True
+                        print(f"🤖 OpenAI fallback: {openai_adapter_id}")
+                        
+                        # OpenAI ile dene
+                        openai_adapter = self.adapters[openai_adapter_id]
+                        response = await openai_adapter.send_message(message, context)
+                        response_time = time.time() - start_time
+                        
+                        if response:
+                            # Token sayılarını normalize et
+                            input_tokens = response.usage.get('input_tokens', response.usage.get('prompt_tokens', 0))
+                            output_tokens = response.usage.get('output_tokens', response.usage.get('completion_tokens', 0))
+                            
+                            # Maliyet hesapla
+                            cost_info = self._calculate_cost(openai_adapter.model, input_tokens, output_tokens)
+                            
+                            # Enhanced usage data
+                            enhanced_usage = {
+                                'input_tokens': input_tokens,
+                                'output_tokens': output_tokens,
+                                'total_tokens': input_tokens + output_tokens,
+                                'cost': cost_info['total_cost'],
+                                'input_cost': cost_info['input_cost'],
+                                'output_cost': cost_info['output_cost'],
+                                'model': openai_adapter.model,
+                                'response_time': response_time,
+                                'fallback_used': True,
+                                'original_adapter': primary_adapter_id,
+                                'fallback_adapter': openai_adapter_id
+                            }
+                            
+                            # İstatistikleri güncelle (fallback adapter için)
+                            self.adapter_stats[openai_adapter_id].add_usage(enhanced_usage, response_time)
+                            self.role_stats[role_id].add_usage(enhanced_usage, response_time)
+                            self.global_stats.add_usage(enhanced_usage, response_time)
+                            
+                            # Response'u güncelle
+                            response.usage.update(enhanced_usage)
+                            
+                            # Konuşma geçmişine ekle (fallback bilgisi ile)
+                            self.conversation_history.append({
+                                'timestamp': datetime.now().isoformat(),
+                                'role_id': role_id,
+                                'adapter_id': openai_adapter_id,
+                                'message': message,
+                                'response': response.content,
+                                'usage': enhanced_usage,
+                                'fallback_used': True,
+                                'original_adapter': primary_adapter_id,
+                                'fallback_reason': 'Gemini security filter'
+                            })
+                            
+                            print(f"✅ OpenAI fallback başarılı!")
+                            return response
+                            
+                    except Exception as fallback_error:
+                        print(f"❌ OpenAI fallback da başarısız: {str(fallback_error)}")
+                        # OpenAI de başarısız olursa orijinal Gemini hatasını fırlat
+                        pass
+                else:
+                    print("⚠️ OpenAI adapter bulunamadı, fallback yapılamıyor")
+            
             # Hata istatistiklerini güncelle
             self.adapter_stats[adapter_id].add_error()
             if role_id in self.role_stats:
