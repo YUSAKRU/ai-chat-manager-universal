@@ -220,6 +220,61 @@
             color: var(--primary-color);
             transform: translateX(5px);
         }
+
+        .role-assignment-card {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 20px;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .role-assignment-card:hover {
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .role-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .role-icon.pm {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .role-icon.ld {
+            background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+        }
+
+        .role-icon.boss {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .current-assignment {
+            padding: 8px 12px;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .role-assignment-card .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+
+        .role-assignment-card .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -392,6 +447,95 @@
             </div>
         </div>
 
+        <!-- Rol Atama Bölümü -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="api-card">
+                    <div class="api-card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-people"></i> Rol Atamaları
+                        </h5>
+                        <p class="mb-0 mt-2 opacity-75">AI asistanlarına roller atayın</p>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="row">
+                            <!-- Project Manager -->
+                            <div class="col-md-4 mb-3">
+                                <div class="role-assignment-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="role-icon pm">
+                                            <i class="bi bi-clipboard-check"></i>
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-1">Project Manager</h6>
+                                            <small class="text-muted">Proje yönetimi ve planlama</small>
+                                        </div>
+                                    </div>
+                                    <select class="form-select" id="role-project-manager" onchange="assignRole('project_manager', this.value)">
+                                        <option value="">Seçiniz...</option>
+                                    </select>
+                                    <div class="current-assignment mt-2">
+                                        <small class="text-muted">Mevcut: <span id="current-project-manager">Atanmamış</span></small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lead Developer -->
+                            <div class="col-md-4 mb-3">
+                                <div class="role-assignment-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="role-icon ld">
+                                            <i class="bi bi-code-slash"></i>
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-1">Lead Developer</h6>
+                                            <small class="text-muted">Yazılım geliştirme ve mimari</small>
+                                        </div>
+                                    </div>
+                                    <select class="form-select" id="role-lead-developer" onchange="assignRole('lead_developer', this.value)">
+                                        <option value="">Seçiniz...</option>
+                                    </select>
+                                    <div class="current-assignment mt-2">
+                                        <small class="text-muted">Mevcut: <span id="current-lead-developer">Atanmamış</span></small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Boss -->
+                            <div class="col-md-4 mb-3">
+                                <div class="role-assignment-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="role-icon boss">
+                                            <i class="bi bi-award"></i>
+                                        </div>
+                                        <div class="ms-3">
+                                            <h6 class="mb-1">Boss</h6>
+                                            <small class="text-muted">Üst düzey karar verme</small>
+                                        </div>
+                                    </div>
+                                    <select class="form-select" id="role-boss" onchange="assignRole('boss', this.value)">
+                                        <option value="">Seçiniz...</option>
+                                    </select>
+                                    <div class="current-assignment mt-2">
+                                        <small class="text-muted">Mevcut: <span id="current-boss">Atanmamış</span></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-save btn-modern" onclick="loadRoleAssignments()">
+                                <i class="bi bi-arrow-clockwise"></i> Atamaları Yenile
+                            </button>
+                            <button type="button" class="btn btn-delete btn-modern ms-2" onclick="clearAllRoles()">
+                                <i class="bi bi-x-circle"></i> Tüm Atamaları Temizle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <div class="text-center mt-5">
             <a href="/" class="btn btn-outline-light btn-lg">
@@ -404,7 +548,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // API management functions
+        // API management functions - REAL IMPLEMENTATION
         function showResult(provider, message, isSuccess) {
             const resultDiv = document.getElementById(provider + '-result');
             resultDiv.className = `test-result ${isSuccess ? 'test-success' : 'test-error'}`;
@@ -416,9 +560,16 @@
             const statusElement = document.getElementById(provider + '-status');
             statusElement.className = `status-badge status-${status}`;
             statusElement.textContent = text;
+            
+            // Update system status sidebar
+            const systemStatusElement = document.getElementById('status-' + provider);
+            if (systemStatusElement) {
+                systemStatusElement.className = `status-badge status-${status}`;
+                systemStatusElement.textContent = status === 'active' ? 'Aktif' : 'Kapalı';
+            }
         }
 
-        function testAPI(provider) {
+        async function testAPI(provider) {
             const keyInput = document.getElementById(provider + '-key');
             const apiKey = keyInput.value.trim();
 
@@ -427,14 +578,38 @@
                 return;
             }
 
-            // Simulated test - in real implementation, this would call backend
-            setTimeout(() => {
-                showResult(provider, 'API anahtarı test edildi (simülasyon)', true);
-                updateStatus(provider, 'active', 'Test Başarılı');
-            }, 1000);
+            showResult(provider, 'API anahtarı test ediliyor...', true);
+
+            try {
+                const response = await fetch('/api/keys/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        provider: provider,
+                        api_key: apiKey,
+                        model: provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(provider, `✅ Test başarılı! ${result.details}`, true);
+                    updateStatus(provider, 'active', 'Test Başarılı');
+                } else {
+                    showResult(provider, `❌ Test başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
+                    updateStatus(provider, 'inactive', 'Test Başarısız');
+                }
+            } catch (error) {
+                console.error('Test error:', error);
+                showResult(provider, `❌ Test sırasında hata: ${error.message}`, false);
+                updateStatus(provider, 'inactive', 'Hata');
+            }
         }
 
-        function saveAPI(provider) {
+        async function saveAPI(provider) {
             const keyInput = document.getElementById(provider + '-key');
             const apiKey = keyInput.value.trim();
 
@@ -443,36 +618,291 @@
                 return;
             }
 
-            // Simulated save
-            showResult(provider, 'API anahtarı kaydedildi (simülasyon)', true);
-            updateStatus(provider, 'active', 'Aktif');
-            keyInput.value = '';
+            showResult(provider, 'API anahtarı kaydediliyor...', true);
+
+            try {
+                const response = await fetch(`/api/keys/${provider}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        api_key: apiKey,
+                        model: provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(provider, `✅ API anahtarı başarıyla kaydedildi!`, true);
+                    updateStatus(provider, 'active', 'Aktif');
+                    keyInput.value = ''; // Clear the input after successful save
+                } else {
+                    showResult(provider, `❌ Kaydetme başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                showResult(provider, `❌ Kaydetme sırasında hata: ${error.message}`, false);
+            }
         }
 
-        function deleteAPI(provider) {
+        async function deleteAPI(provider) {
             if (!confirm(`${provider.toUpperCase()} API anahtarını silmek istediğinizden emin misiniz?`)) {
                 return;
             }
 
-            showResult(provider, 'API anahtarı silindi', true);
-            updateStatus(provider, 'inactive', 'Yapılandırılmadı');
+            try {
+                // First get the key name for deletion
+                const getResponse = await fetch('/api/keys');
+                const keysResult = await getResponse.json();
+                
+                let keyToDelete = null;
+                if (keysResult.success && keysResult.adapters) {
+                    // Find the first key for this provider
+                    for (const adapterId in keysResult.adapters) {
+                        const adapter = keysResult.adapters[adapterId];
+                        if (adapter.provider === provider) {
+                            keyToDelete = adapter.key_name || 'primary';
+                            break;
+                        }
+                    }
+                }
+                
+                if (!keyToDelete) {
+                    keyToDelete = 'primary'; // Default key name
+                }
+
+                const response = await fetch(`/api/keys/${provider}/${keyToDelete}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showResult(provider, '✅ API anahtarı başarıyla silindi', true);
+                    updateStatus(provider, 'inactive', 'Yapılandırılmadı');
+                } else {
+                    showResult(provider, `❌ Silme başarısız: ${result.error || 'Bilinmeyen hata'}`, false);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showResult(provider, `❌ Silme sırasında hata: ${error.message}`, false);
+            }
         }
 
-        function loadExistingKeys() {
-            // Simulated load
-            alert('Mevcut anahtarlar yüklendi (simülasyon)');
+        async function loadExistingKeys() {
+            try {
+                const response = await fetch('/api/keys');
+                const result = await response.json();
+
+                if (result.success && result.adapters) {
+                    let geminiFound = false;
+                    let openaiFound = false;
+
+                    // Check which providers are configured
+                    for (const adapterId in result.adapters) {
+                        const adapter = result.adapters[adapterId];
+                        if (adapter.provider === 'gemini') {
+                            geminiFound = true;
+                            updateStatus('gemini', 'active', 'Aktif');
+                        } else if (adapter.provider === 'openai') {
+                            openaiFound = true;
+                            updateStatus('openai', 'active', 'Aktif');
+                        }
+                    }
+
+                    if (!geminiFound) {
+                        updateStatus('gemini', 'inactive', 'Yapılandırılmadı');
+                    }
+                    if (!openaiFound) {
+                        updateStatus('openai', 'inactive', 'Yapılandırılmadı');
+                    }
+
+                    alert(`Mevcut anahtarlar yüklendi:\n- Gemini: ${geminiFound ? 'Aktif' : 'Yok'}\n- OpenAI: ${openaiFound ? 'Aktif' : 'Yok'}`);
+                } else {
+                    alert('Mevcut anahtarlar yüklenirken hata oluştu');
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                alert('Anahtarlar yüklenirken hata oluştu: ' + error.message);
+            }
         }
 
-        function clearAllKeys() {
+        async function clearAllKeys() {
             if (!confirm('Tüm API anahtarlarını silmek istediğinizden emin misiniz?')) {
                 return;
             }
 
-            const providers = ['gemini', 'openai'];
-            providers.forEach(provider => {
-                updateStatus(provider, 'inactive', 'Yapılandırılmadı');
-            });
-            alert('Tüm anahtarlar temizlendi');
+            try {
+                const providers = ['gemini', 'openai'];
+                let deleteCount = 0;
+
+                for (const provider of providers) {
+                    try {
+                        // Try to delete with 'primary' key name
+                        const response = await fetch(`/api/keys/${provider}/primary`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            deleteCount++;
+                            updateStatus(provider, 'inactive', 'Yapılandırılmadı');
+                        }
+                    } catch (error) {
+                        console.warn(`Could not delete ${provider}:`, error);
+                    }
+                }
+
+                alert(`${deleteCount} API anahtarı temizlendi`);
+            } catch (error) {
+                console.error('Clear all error:', error);
+                alert('Anahtarları temizlerken hata oluştu: ' + error.message);
+            }
+        }
+
+        // Load existing keys on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExistingKeys();
+            loadRoleAssignments();
+        });
+
+        // ===== ROL ATAMA FONKSİYONLARI =====
+
+        async function loadRoleAssignments() {
+            try {
+                // Mevcut adapter'ları yükle
+                const keysResponse = await fetch('/api/keys');
+                const keysResult = await keysResponse.json();
+
+                // Dropdown'ları temizle ve doldur
+                const roleSelects = ['role-project-manager', 'role-lead-developer', 'role-boss'];
+                roleSelects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    select.innerHTML = '<option value="">Seçiniz...</option>';
+
+                    if (keysResult.success && keysResult.adapters) {
+                        for (const adapterId in keysResult.adapters) {
+                            const adapter = keysResult.adapters[adapterId];
+                            const option = document.createElement('option');
+                            option.value = adapterId;
+                            option.textContent = `${adapter.type.toUpperCase()} - ${adapter.model} (${adapterId})`;
+                            select.appendChild(option);
+                        }
+                    }
+                });
+
+                // Mevcut rol atamalarını yükle
+                if (keysResult.success && keysResult.roles) {
+                    const roleMapping = {
+                        'project_manager': 'current-project-manager',
+                        'lead_developer': 'current-lead-developer',
+                        'boss': 'current-boss'
+                    };
+
+                    for (const role in roleMapping) {
+                        const elementId = roleMapping[role];
+                        const currentElement = document.getElementById(elementId);
+                        const selectElement = document.getElementById(`role-${role.replace('_', '-')}`);
+                        
+                        if (keysResult.roles[role]) {
+                            currentElement.textContent = keysResult.roles[role];
+                            if (selectElement) {
+                                selectElement.value = keysResult.roles[role];
+                            }
+                        } else {
+                            currentElement.textContent = 'Atanmamış';
+                            if (selectElement) {
+                                selectElement.value = '';
+                            }
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.error('Rol atamaları yüklenirken hata:', error);
+                alert('Rol atamaları yüklenirken hata oluştu: ' + error.message);
+            }
+        }
+
+        async function assignRole(roleId, adapterId) {
+            if (!adapterId) {
+                // Boş seçim - rol atamasını kaldır
+                try {
+                    const response = await fetch(`/api/roles/${roleId}/adapter`, {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        document.getElementById(`current-${roleId.replace('_', '-')}`).textContent = 'Atanmamış';
+                        alert(`${roleId.replace('_', ' ').toUpperCase()} rolü kaldırıldı`);
+                    } else {
+                        alert('Rol kaldırma başarısız: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Rol kaldırma hatası:', error);
+                    alert('Rol kaldırma sırasında hata: ' + error.message);
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/roles/${roleId}/adapter`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        adapter_id: adapterId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById(`current-${roleId.replace('_', '-')}`).textContent = adapterId;
+                    alert(`✅ ${roleId.replace('_', ' ').toUpperCase()} rolü ${adapterId} adapter'ına atandı!`);
+                } else {
+                    alert('❌ Rol atama başarısız: ' + result.error);
+                    // Seçimi geri al
+                    document.getElementById(`role-${roleId.replace('_', '-')}`).value = '';
+                }
+            } catch (error) {
+                console.error('Rol atama hatası:', error);
+                alert('❌ Rol atama sırasında hata: ' + error.message);
+                // Seçimi geri al
+                document.getElementById(`role-${roleId.replace('_', '-')}`).value = '';
+            }
+        }
+
+        async function clearAllRoles() {
+            if (!confirm('Tüm rol atamalarını kaldırmak istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            const roles = ['project_manager', 'lead_developer', 'boss'];
+            let clearedCount = 0;
+
+            for (const role of roles) {
+                try {
+                    const response = await fetch(`/api/roles/${role}/adapter`, {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        clearedCount++;
+                        document.getElementById(`current-${role.replace('_', '-')}`).textContent = 'Atanmamış';
+                        document.getElementById(`role-${role.replace('_', '-')}`).value = '';
+                    }
+                } catch (error) {
+                    console.warn(`${role} rolü kaldırılamadı:`, error);
+                }
+            }
+
+            alert(`${clearedCount} rol ataması temizlendi`);
         }
     </script>
 </body>

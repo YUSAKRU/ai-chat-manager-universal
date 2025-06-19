@@ -78,13 +78,13 @@ class UniversalChatManager:
             raise
     
     async def _configure_adapters(self, config_manager: SecureConfigManager):
-        """AI adapter'larını yapılandır (web arayüzünden gelen anahtarlar)"""
+        """AI adapter'larını yapılandır (sadece kullanıcı tarafından eklenenler)"""
         
-        # Web arayüzünden eklenen tüm API anahtarlarını yükle
+        # Web arayüzünden eklenen API anahtarlarını yükle
         config_data = config_manager.get_config()
         adapter_count = 0
         
-        # Gemini anahtarları
+        # Gemini anahtarları (sadece varsa)
         if 'gemini' in config_data:
             for key_name, api_key in config_data['gemini'].items():
                 if api_key and api_key.strip():
@@ -93,7 +93,7 @@ class UniversalChatManager:
                     logger.info(f"✓ Gemini adapter eklendi: {adapter_id}")
                     adapter_count += 1
         
-        # OpenAI anahtarları
+        # OpenAI anahtarları (sadece varsa)
         if 'openai' in config_data:
             for key_name, api_key in config_data['openai'].items():
                 if api_key and api_key.strip():
@@ -102,93 +102,41 @@ class UniversalChatManager:
                     logger.info(f"✓ OpenAI adapter eklendi: {adapter_id}")
                     adapter_count += 1
         
-        # Varsayılan adapter'ları ekle (backward compatibility)
-        if adapter_count == 0:
-            # Eski .env tarzı anahtarları da kontrol et
-            gemini_key = config_manager.get_api_key("gemini")
-            if gemini_key:
-                self.ai_adapter.add_adapter("gemini", "gemini-pm", api_key=gemini_key, model="gemini-2.5-flash")
-                logger.info("✓ Gemini PM adapter eklendi: gemini-pm")
-                adapter_count += 1
-                
-                # İkinci Gemini adapter (aynı key ile)
-                self.ai_adapter.add_adapter("gemini", "gemini-ld", api_key=gemini_key, model="gemini-2.5-flash")
-                logger.info("✓ Gemini LD adapter eklendi: gemini-ld")
-                adapter_count += 1
-            
-            openai_key = config_manager.get_api_key("openai")
-            if openai_key:
-                self.ai_adapter.add_adapter("openai", "openai-boss", api_key=openai_key, model="gpt-4o-mini")
-                logger.info("✓ OpenAI Boss adapter eklendi: openai-boss")
-                adapter_count += 1
-        
         logger.info(f"🎯 Toplam {adapter_count} AI adapter yapılandırıldı")
         
         if adapter_count == 0:
             logger.warning("⚠️ Hiçbir API anahtarı bulunamadı.")
             logger.warning("🌐 Web arayüzünden API anahtarlarınızı ekleyin: http://localhost:5000/api-management")
+        
+        return adapter_count
     
     def _assign_roles(self):
-        """Rolleri AI adapter'larına ata"""
+        """Rolleri dinamik olarak kontrol et (otomatik atama yok)"""
         # Mevcut adapter'ları kontrol et
         adapters = list(self.ai_adapter.adapters.keys())
         logger.info(f"Mevcut adapter'lar: {adapters}")
         
-        if len(adapters) >= 1:
-            # Önce belirli isimleri ara
-            pm_adapter = None
-            if "gemini-pm" in adapters:
-                pm_adapter = "gemini-pm"
-            elif any("gemini" in a for a in adapters):
-                pm_adapter = next(a for a in adapters if "gemini" in a)
-            else:
-                pm_adapter = adapters[0]
-            
-            self.ai_adapter.assign_role("project_manager", pm_adapter)
-            logger.info(f"📋 Project Manager rolü atandı: {pm_adapter}")
-        
-        if len(adapters) >= 2:
-            # Lead Developer için ikinci adapter
-            ld_adapter = None
-            if "gemini-ld" in adapters:
-                ld_adapter = "gemini-ld"
-            elif len([a for a in adapters if "gemini" in a]) >= 2:
-                gemini_adapters = [a for a in adapters if "gemini" in a]
-                ld_adapter = gemini_adapters[1] if len(gemini_adapters) > 1 else gemini_adapters[0]
-            else:
-                ld_adapter = adapters[1]
-            
-            self.ai_adapter.assign_role("lead_developer", ld_adapter)
-            logger.info(f"💻 Lead Developer rolü atandı: {ld_adapter}")
-        
-        if len(adapters) >= 3:
-            # Boss için üçüncü adapter (tercihen OpenAI)
-            boss_adapter = None
-            if "openai-boss" in adapters:
-                boss_adapter = "openai-boss"
-            elif any("openai" in a for a in adapters):
-                boss_adapter = next(a for a in adapters if "openai" in a)
-            else:
-                # OpenAI yoksa ilk adapter'ı kullan
-                boss_adapter = adapters[0]
-            
-            self.ai_adapter.assign_role("boss", boss_adapter)
-            logger.info(f"👔 Boss rolü atandı: {boss_adapter}")
-        
-        # Rol atamalarını göster
+        # Mevcut rol atamalarını göster
         role_assignments = self.ai_adapter.get_role_assignments()
         if role_assignments:
-            print(f"\n🎭 Rol Atamaları:")
+            print(f"\n🎭 Mevcut Rol Atamaları:")
+            role_icons = {
+                'project_manager': '📋',
+                'lead_developer': '💻', 
+                'boss': '👔'
+            }
             for role, adapter_id in role_assignments.items():
-                role_icons = {
-                    'project_manager': '📋',
-                    'lead_developer': '💻', 
-                    'boss': '👔'
-                }
                 icon = role_icons.get(role, '🤖')
                 print(f"  {icon} {role}: {adapter_id}")
         else:
-            logger.warning("⚠️ Hiçbir rol atanamadı - API anahtarı eksik olabilir")
+            print(f"\n⚠️ Hiçbir rol atanmamış")
+            print(f"🌐 Web arayüzünden roller atayabilirsiniz: http://localhost:5000/api-management")
+        
+        # Adapter sayısını bildir
+        if len(adapters) == 0:
+            logger.warning("⚠️ Hiçbir API anahtarı bulunamadı - roller atanamaz")
+        else:
+            logger.info(f"💡 {len(adapters)} adapter kullanılabilir - roller web arayüzünden atanabilir")
     
     async def run(self):
         """Ana döngüyü çalıştır"""

@@ -521,6 +521,31 @@ class WebUIUniversal:
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
         
+        @self.app.route('/api/roles/<role_id>/adapter', methods=['DELETE'])
+        def remove_role_assignment(role_id):
+            """Rol atamasını kaldır"""
+            try:
+                # Rol atamasını kaldır
+                if role_id in self.ai_adapter.role_assignments:
+                    removed_adapter = self.ai_adapter.role_assignments[role_id]
+                    del self.ai_adapter.role_assignments[role_id]
+                    
+                    return jsonify({
+                        'success': True,
+                        'role_id': role_id,
+                        'removed_adapter': removed_adapter,
+                        'message': f'{role_id} rol ataması kaldırıldı'
+                    })
+                else:
+                    return jsonify({
+                        'success': True,
+                        'role_id': role_id,
+                        'message': f'{role_id} zaten atanmış'
+                    })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
         @self.app.route('/api/models/<provider>')
         def get_available_models(provider):
             """Provider için mevcut modelleri listele"""
@@ -676,7 +701,7 @@ class WebUIUniversal:
     async def _run_ai_conversation(self, initial_prompt: str, max_turns: int):
         """İki AI arasında konuşma köprüsü çalıştır"""
         try:
-            current_message = initial_prompt
+            current_message = initial_prompt[:500]  # İlk prompt'u kısalt
             session_id = str(int(time.time()))
             
             # Aktif konuşmayı kaydet
@@ -705,14 +730,15 @@ class WebUIUniversal:
                     'timestamp': datetime.now().isoformat()
                 })
                 
-                pm_prompt = current_message
+                # Kısa prompt hazırla
+                pm_prompt = current_message[:300]  # Maksimum 300 karakter
                 if intervention_context:
-                    pm_prompt = f"{current_message}\n\n[YÖNETİCİ MÜDAHALESİ]: {intervention_context}"
+                    pm_prompt = f"{pm_prompt[:200]}\n\nYönetici Notu: {intervention_context[:100]}"
                 
                 pm_response = await self.ai_adapter.send_message(
                     "project_manager", 
                     pm_prompt,
-                    f"Konuşma turu: {turn + 1}"
+                    f"Kısa Tur {turn + 1}"  # Context mesajını da kısalt
                 )
                 
                 if pm_response:
@@ -725,9 +751,6 @@ class WebUIUniversal:
                         'usage': pm_response.usage,
                         'timestamp': datetime.now().isoformat()
                     })
-                    
-                    # Plugin'ları çalıştır
-                    await self._process_plugins(pm_response.content, session_id)
                     
                     # Analytics güncellemesi
                     self.broadcast_analytics_update()
@@ -742,14 +765,15 @@ class WebUIUniversal:
                     'timestamp': datetime.now().isoformat()
                 })
                 
-                ld_prompt = pm_response.content if pm_response else current_message
+                # PM yanıtının sadece son 300 karakterini kullan
+                ld_prompt = pm_response.content[-300:] if pm_response else current_message[:300]
                 if intervention_context:
-                    ld_prompt = f"{ld_prompt}\n\n[YÖNETİCİ MÜDAHALESİ]: {intervention_context}"
+                    ld_prompt = f"{ld_prompt[:200]}\n\nYönetici Notu: {intervention_context[:100]}"
                 
                 ld_response = await self.ai_adapter.send_message(
                     "lead_developer",
                     ld_prompt,
-                    f"PM'den gelen yanıt - Tur {turn + 1}"
+                    f"PM Yanıtı - Tur {turn + 1}"  # Context mesajını da kısalt
                 )
                 
                 if ld_response:
@@ -763,13 +787,11 @@ class WebUIUniversal:
                         'timestamp': datetime.now().isoformat()
                     })
                     
-                    # Plugin'ları çalıştır
-                    await self._process_plugins(ld_response.content, session_id)
-                    
                     # Analytics güncellemesi
                     self.broadcast_analytics_update()
                 
-                current_message = ld_response.content if ld_response else pm_response.content
+                # Sadece son yanıtın kısa özetini sakla (prompt bloating'i önle)
+                current_message = ld_response.content[-300:] if ld_response else pm_response.content[-300:]
                 await asyncio.sleep(2)
             
             # Konuşmayı hafızaya kaydet
@@ -908,10 +930,13 @@ class WebUIUniversal:
             print(f"⚠️ Konuşma kayıt hatası: {e}")
     
     def _test_api_key(self, provider: str, api_key: str, model: str = "") -> dict:
-        """API anahtarını test et (sync wrapper for async operations)"""
+        """API anahtarını gerçekten test et - GERÇEK API ÇAĞRISI"""
         try:
+            import asyncio
+            import concurrent.futures
+            
             # Test mesajı
-            test_message = "Test connection - just respond with 'OK'"
+            test_message = "Hi"  # Minimal test mesajı
             
             # Geçici adapter oluştur
             if provider == 'gemini':
@@ -920,7 +945,7 @@ class WebUIUniversal:
                 test_adapter = GeminiAdapter(api_key=api_key, model=test_model)
             elif provider == 'openai':
                 from .ai_adapters.openai_adapter import OpenAIAdapter
-                test_model = model or 'gpt-3.5-turbo'
+                test_model = model or 'gpt-4o-mini'
                 test_adapter = OpenAIAdapter(api_key=api_key, model=test_model)
             else:
                 return {
@@ -929,65 +954,90 @@ class WebUIUniversal:
                     'provider': provider
                 }
             
-            # Async test'i sync olarak çalıştır
-            def run_test():
+            # GERÇEK API TESTI - Async işlemi sync wrapper ile çalıştır
+            def run_real_test():
                 try:
+                    # Yeni event loop oluştur
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
+                    
+                    # Gerçek API çağrısı yap
                     response = loop.run_until_complete(
                         test_adapter.send_message(test_message)
                     )
+                    
                     loop.close()
                     return response
-                except Exception as e:
-                    return None
-            
-            # Test'i thread'de çalıştır (timeout ile)
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(run_test)
-                try:
-                    response = future.result(timeout=10)  # 10 saniye timeout
                     
-                    if response and response.content:
+                except Exception as e:
+                    return {'error': str(e)}
+            
+            # Test'i thread'de çalıştır (5 saniye timeout)
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(run_real_test)
+                try:
+                    result = future.result(timeout=5.0)  # 5 saniye timeout
+                    
+                    if isinstance(result, dict) and 'error' in result:
+                        # API hatası
+                        error_msg = result['error']
+                        if 'insufficient_quota' in error_msg.lower():
+                            return {
+                                'success': False,
+                                'error': 'API quota aşıldı - Ücretli plan gerekli',
+                                'provider': provider,
+                                'details': 'API anahtarı geçerli ama quota sınırında'
+                            }
+                        elif 'invalid' in error_msg.lower() or 'unauthorized' in error_msg.lower():
+                            return {
+                                'success': False,
+                                'error': 'Geçersiz API anahtarı',
+                                'provider': provider,
+                                'details': error_msg[:100]
+                            }
+                        else:
+                            return {
+                                'success': False,
+                                'error': f'API hatası: {error_msg[:100]}',
+                                'provider': provider
+                            }
+                    
+                    elif result and hasattr(result, 'content'):
+                        # Başarılı yanıt
                         return {
                             'success': True,
-                            'message': 'API anahtarı başarıyla test edildi',
+                            'message': 'API anahtarı gerçekten çalışıyor!',
                             'provider': provider,
                             'model': test_model,
-                            'test_response': response.content[:100],  # İlk 100 karakter
-                            'usage': response.usage
+                            'details': f'Test yanıtı: "{result.content[:50]}..."',
+                            'test_response': result.content[:100] if result.content else 'Boş yanıt'
                         }
                     else:
                         return {
                             'success': False,
                             'error': 'API\'den geçerli yanıt alınamadı',
-                            'provider': provider
+                            'provider': provider,
+                            'details': str(result)[:100] if result else 'None response'
                         }
                         
                 except concurrent.futures.TimeoutError:
                     return {
                         'success': False,
-                        'error': 'API test timeout (10 saniye)',
-                        'provider': provider
-                    }
-                except Exception as e:
-                    return {
-                        'success': False,
-                        'error': f'Test hatası: {str(e)}',
-                        'provider': provider
+                        'error': 'API test timeout (5 saniye)',
+                        'provider': provider,
+                        'details': 'API çok yavaş yanıt veriyor'
                     }
                     
         except ImportError as e:
             return {
                 'success': False,
-                'error': f'Adapter import hatası: {str(e)}',
+                'error': f'Adapter import hatası: {str(e)[:100]}',
                 'provider': provider
             }
         except Exception as e:
             return {
                 'success': False,
-                'error': f'Beklenmeyen hata: {str(e)}',
+                'error': f'Test başlatma hatası: {str(e)[:100]}',
                 'provider': provider
             }
     
