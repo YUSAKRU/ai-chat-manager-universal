@@ -2,6 +2,7 @@
 Gemini AI Adapter
 """
 import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import asyncio
 from typing import List, Optional, Dict, Any
 from .base_adapter import BaseAIAdapter, AIResponse
@@ -29,7 +30,14 @@ class GeminiAdapter(BaseAIAdapter):
             if context:
                 full_prompt = f"{context}\n\n{message}"
             
-            # API çağrısı - güvenlik filtresi tamamen kapatıldı
+            # API çağrısı - güvenlik filtresi minimum seviyede
+            safety_settings = {
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            }
+            
             response = await asyncio.to_thread(
                 self.genai_model.generate_content,
                 full_prompt,
@@ -39,8 +47,8 @@ class GeminiAdapter(BaseAIAdapter):
                     "top_p": 0.95,
                     "top_k": 40,
                     "candidate_count": 1,
-                }
-                # safety_settings parametresi tamamen kaldırıldı
+                },
+                safety_settings=safety_settings
             )
             
             # Response kontrolü ve güvenli metin çıkarma
@@ -56,15 +64,38 @@ class GeminiAdapter(BaseAIAdapter):
                     if hasattr(candidate, 'content') and candidate.content.parts:
                         response_text = candidate.content.parts[0].text
                 elif finish_reason == 2:  # SAFETY - Güvenlik filtresi
+                    # Daha kullanıcı dostu mesaj
+                    fallback_suggestions = [
+                        "• Daha genel terimler kullanın",
+                        "• Teknik kelimelerle ifade edin", 
+                        "• Sorunuzu farklı açıdan sormayı deneyin",
+                        "• Örnek vermek yerine kavramsal açıklama isteyin"
+                    ]
+                    
                     # Debug bilgisi için candidate'i incele
                     safety_info = ""
                     if hasattr(candidate, 'safety_ratings'):
                         ratings = candidate.safety_ratings
+                        high_risk_categories = []
                         for rating in ratings:
                             if hasattr(rating, 'category') and hasattr(rating, 'probability'):
-                                safety_info += f"{rating.category.name}: {rating.probability.name} "
+                                if rating.probability.name in ['HIGH', 'MEDIUM']:
+                                    high_risk_categories.append(rating.category.name.replace('HARM_CATEGORY_', ''))
+                        
+                        if high_risk_categories:
+                            safety_info = f"Tetiklenen kategoriler: {', '.join(high_risk_categories)}"
                     
-                    raise Exception(f"Gemini güvenlik filtresi tetiklendi. Lütfen mesajınızı farklı kelimelerle tekrar deneyin. [Debug: {safety_info}]")
+                    suggestions_text = "\n".join(fallback_suggestions)
+                    error_msg = f"""🛡️ Gemini güvenlik filtresi devreye girdi. 
+
+💡 Öneriler:
+{suggestions_text}
+
+🔧 Alternatif: OpenAI adaptörünü kullanmayı deneyin.
+
+{f'[Debug: {safety_info}]' if safety_info else ''}"""
+                    
+                    raise Exception(error_msg)
                 elif finish_reason == 3:  # RECITATION - Telif hakkı
                     raise Exception("İçerik telif hakkı koruması nedeniyle bloklandı.")
                 elif finish_reason == 4:  # OTHER - Diğer nedenler

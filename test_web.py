@@ -1,0 +1,1 @@
+import urllib.request; import sys; r1=urllib.request.urlopen('http://localhost:5000'); print(f'Ana sayfa: {r1.getcode()}'); r2=urllib.request.urlopen('http://localhost:5000/api-management'); print(f'API Management: {r2.getcode()}')
