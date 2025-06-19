@@ -410,6 +410,144 @@
             }
         }
 
+        /* AI Performance Cards Styles */
+        .ai-performance-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--space-4);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-performance-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-300);
+        }
+
+        .ai-performance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-500), var(--success-500));
+        }
+
+        .ai-icon {
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: var(--space-3);
+        }
+
+        .ai-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: var(--font-size-sm);
+            margin-bottom: 2px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: var(--space-3);
+            padding-top: var(--space-3);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* AI Performance Cards Animation */
+        .ai-performance-card {
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* AI Performance Role-specific colors */
+        .ai-performance-card[data-role="project_manager"] .ai-icon {
+            background: var(--primary-100);
+            color: var(--primary-600);
+        }
+
+        .ai-performance-card[data-role="project_manager"]::before {
+            background: linear-gradient(90deg, var(--primary-500), var(--primary-400));
+        }
+
+        .ai-performance-card[data-role="lead_developer"] .ai-icon {
+            background: var(--success-100);
+            color: var(--success-600);
+        }
+
+        .ai-performance-card[data-role="lead_developer"]::before {
+            background: linear-gradient(90deg, var(--success-500), var(--success-400));
+        }
+
+        .ai-performance-card[data-role="boss"] .ai-icon {
+            background: var(--warning-100);
+            color: var(--warning-600);
+        }
+
+        .ai-performance-card[data-role="boss"]::before {
+            background: linear-gradient(90deg, var(--warning-500), var(--warning-400));
+        }
+
+        /* Status Badges Enhanced */
+        .ai-performance-card .badge {
+            font-size: var(--font-size-xs);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--border-radius-full);
+            font-weight: 600;
+        }
+
+        /* Empty State for AI Cards */
+        .ai-cards-empty-state {
+            text-align: center;
+            padding: var(--space-8);
+            color: var(--text-secondary);
+        }
+
+        .ai-cards-empty-state i {
+            font-size: 48px;
+            opacity: 0.3;
+            margin-bottom: var(--space-3);
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .orchestration-controls {
@@ -431,6 +569,26 @@
             .connection-status-bar {
                 flex-wrap: wrap;
                 gap: var(--space-1) !important;
+            }
+
+            .stats-row {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+
+            .stat {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+            }
+
+            .stat-value {
+                order: 2;
+            }
+
+            .stat-label {
+                order: 1;
             }
         }
 
@@ -990,6 +1148,7 @@
             loadAnalyticsData();
             loadSystemStatus();
             loadRoleAssignments();
+            loadInitialAICards(); // Başlangıçta AI kartlarını yükle
             
             // Setup event listeners
             setupEventListeners();
@@ -1517,6 +1676,52 @@
                 });
         }
 
+        function loadInitialAICards() {
+            // Fetch analytics data to populate AI cards
+            fetch('/api/analytics')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.adapters) {
+                        console.log('📊 Loading initial AI cards:', data.adapters);
+                        updateAICards(data.adapters);
+                    } else {
+                        // Show initial empty state with role assignments
+                        fetch('/api/keys')
+                            .then(response => response.json())
+                            .then(keyData => {
+                                if (keyData.adapters) {
+                                    // Create mock analytics data from key data
+                                    const mockAnalytics = {};
+                                    Object.keys(keyData.adapters).forEach(adapterId => {
+                                        const adapter = keyData.adapters[adapterId];
+                                        mockAnalytics[adapterId] = {
+                                            role: adapter.role,
+                                            type: adapter.type || 'gemini',
+                                            model: adapter.model || adapterId,
+                                            is_available: true,
+                                            stats: {
+                                                total_requests: 0,
+                                                total_cost: 0,
+                                                total_tokens: 0
+                                            }
+                                        };
+                                    });
+                                    console.log('🔑 Creating initial AI cards from key data:', mockAnalytics);
+                                    updateAICards(mockAnalytics);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error loading initial cards from keys:', error);
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading initial analytics:', error);
+                    // Show empty state on error
+                    updateAICards({});
+                });
+        }
+
         function updateAnalyticsDisplay(data) {
             try {
                 // Update summary metrics
@@ -1558,39 +1763,76 @@
             
             container.innerHTML = '';
             
-            Object.keys(adapters).forEach(adapterId => {
+            if (!adapters || Object.keys(adapters).length === 0) {
+                // Show empty state
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="ai-cards-empty-state">
+                            <i class="bi bi-robot"></i>
+                            <h6 class="mb-2">AI Adapterleri Yükleniyor...</h6>
+                            <p class="text-sm">Analytics verisi alınıyor...</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            Object.keys(adapters).forEach((adapterId, index) => {
                 const adapter = adapters[adapterId];
                 const roleIcon = adapter.role === 'project_manager' ? '👔' : 
                                adapter.role === 'lead_developer' ? '👨‍💻' : 
                                adapter.role === 'boss' ? '👑' : '🤖';
                 
+                const roleName = adapter.role === 'project_manager' ? 'Project Manager' :
+                               adapter.role === 'lead_developer' ? 'Lead Developer' :
+                               adapter.role === 'boss' ? 'Director' : 'Unassigned';
+                
+                const statusColor = adapter.is_available ? 'success' : 'danger';
+                const statusText = adapter.is_available ? 'Hazır' : 'Meşgul';
+                
+                // Format cost with better precision
+                const formattedCost = adapter.stats?.total_cost 
+                    ? (adapter.stats.total_cost >= 0.01 
+                        ? `$${adapter.stats.total_cost.toFixed(2)}` 
+                        : `$${adapter.stats.total_cost.toFixed(4)}`)
+                    : '$0.00';
+                
                 const cardHtml = `
-                    <div class="col-12 mb-3">
-                        <div class="ai-performance-card">
+                    <div class="col-lg-6 col-xl-12 mb-3" style="animation-delay: ${index * 100}ms">
+                        <div class="ai-performance-card" data-role="${adapter.role || 'unassigned'}">
                             <div class="d-flex align-items-center mb-2">
-                                <span class="ai-icon me-2">${roleIcon}</span>
-                                <div>
-                                    <div class="ai-name">${adapter.role || 'Unassigned'}</div>
-                                    <div class="text-muted text-sm">${adapter.model}</div>
+                                <div class="ai-icon">${roleIcon}</div>
+                                <div class="flex-grow-1">
+                                    <div class="ai-name">${roleName}</div>
+                                    <div class="text-muted text-sm">
+                                        <i class="bi bi-cpu"></i> ${adapter.model || adapterId}
+                                    </div>
                                 </div>
                                 <div class="ms-auto">
-                                    <span class="badge ${adapter.is_available ? 'bg-success' : 'bg-danger'}">
-                                        ${adapter.is_available ? 'Hazır' : 'Meşgul'}
+                                    <span class="badge bg-${statusColor}">
+                                        <i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>
+                                        ${statusText}
                                     </span>
                                 </div>
                             </div>
                             <div class="stats-row">
                                 <div class="stat">
-                                    <div class="stat-value">${adapter.stats.total_requests || 0}</div>
-                                    <div class="stat-label">İstek</div>
+                                    <div class="stat-value">${adapter.stats?.total_requests || 0}</div>
+                                    <div class="stat-label">
+                                        <i class="bi bi-arrow-repeat"></i> İstek
+                                    </div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">$${(adapter.stats.total_cost || 0).toFixed(4)}</div>
-                                    <div class="stat-label">Maliyet</div>
+                                    <div class="stat-value">${formattedCost}</div>
+                                    <div class="stat-label">
+                                        <i class="bi bi-currency-dollar"></i> Maliyet
+                                    </div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">${adapter.stats.total_tokens || 0}</div>
-                                    <div class="stat-label">Token</div>
+                                    <div class="stat-value">${(adapter.stats?.total_tokens || 0).toLocaleString()}</div>
+                                    <div class="stat-label">
+                                        <i class="bi bi-type"></i> Token
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1598,6 +1840,21 @@
                 `;
                 
                 container.innerHTML += cardHtml;
+            });
+            
+            // Add loading animation to new cards
+            const cards = container.querySelectorAll('.ai-performance-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.3s ease-out';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 50);
+                }, index * 100);
             });
         }
 
