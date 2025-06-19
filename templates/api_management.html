@@ -918,6 +918,7 @@
                 if (data.success) {
                     showResult(resultDiv, '✅ API anahtarı kaydedildi!', 'success');
                     updateStatus('gemini', 'active');
+                    updateRoleSelectors(); // Rol seçicilerini güncelle
                 } else {
                     showResult(resultDiv, `❌ Kaydetme başarısız: ${data.error}`, 'error');
                 }
@@ -950,6 +951,7 @@
                     showResult(resultDiv, '✅ API anahtarı silindi!', 'success');
                     document.getElementById(`gemini-${keyName}-key`).value = '';
                     updateStatus('gemini', 'inactive');
+                    updateRoleSelectors(); // Rol seçicilerini güncelle
                 } else {
                     showResult(resultDiv, `❌ Silme başarısız: ${data.error}`, 'error');
                 }
@@ -1020,6 +1022,7 @@
                 if (data.success) {
                     showResult(resultDiv, '✅ API anahtarı kaydedildi!', 'success');
                     updateStatus(provider, 'active');
+                    updateRoleSelectors(); // Rol seçicilerini güncelle
                 } else {
                     showResult(resultDiv, `❌ Kaydetme başarısız: ${data.error}`, 'error');
                 }
@@ -1051,6 +1054,7 @@
                     showResult(resultDiv, '✅ API anahtarı silindi!', 'success');
                     document.getElementById(`${provider}-key`).value = '';
                     updateStatus(provider, 'inactive');
+                    updateRoleSelectors(); // Rol seçicilerini güncelle
                 } else {
                     showResult(resultDiv, `❌ Silme başarısız: ${data.error}`, 'error');
                 }
@@ -1134,6 +1138,9 @@
                     updateStatus('gemini', 'inactive');
                     updateStatus('openai', 'inactive');
                     
+                    // Update role selectors
+                    updateRoleSelectors();
+                    
                     alert('Tüm API anahtarları temizlendi!');
                 } else {
                     alert('Temizleme başarısız!');
@@ -1144,8 +1151,8 @@
             });
         }
 
-        function assignRole(role, provider) {
-            if (!provider) return;
+        function assignRole(role, adapterId) {
+            if (!adapterId) return;
 
             fetch('/api/assign-role', {
                 method: 'POST',
@@ -1154,41 +1161,91 @@
                 },
                 body: JSON.stringify({
                     role: role,
-                    provider: provider
+                    adapter_id: adapterId  // adapter_id gönder
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    document.getElementById(`current-${role.replace('_', '-')}`).textContent = provider;
-                    alert(`${role} rolü ${provider} provider'ına atandı!`);
+                    // Update current assignment display
+                    fetch('/api/keys')
+                        .then(response => response.json())
+                        .then(keysData => {
+                            if (keysData.success && keysData.adapters[adapterId]) {
+                                const adapterInfo = keysData.adapters[adapterId];
+                                document.getElementById(`current-${role.replace('_', '-')}`).textContent = 
+                                    `${adapterInfo.type.toUpperCase()} - ${adapterInfo.model}`;
+                            }
+                        });
+                    
+                    alert(`${role} rolü başarıyla atandı!`);
                 } else {
-                    alert('Rol atama başarısız!');
+                    alert(`Rol atama başarısız: ${data.error || 'Bilinmeyen hata'}`);
                 }
             })
             .catch(error => {
-                alert('Rol atama hatası!');
+                alert(`Rol atama hatası: ${error.message}`);
             });
         }
 
         // Load initial data
         document.addEventListener('DOMContentLoaded', () => {
             loadExistingKeys();
-            
-            // Populate role selectors
-            const providers = ['gemini', 'openai'];
-            providers.forEach(provider => {
-                ['role-project-manager', 'role-lead-developer', 'role-boss'].forEach(selectId => {
-                    const select = document.getElementById(selectId);
-                    if (select) {
-                        const option = document.createElement('option');
-                        option.value = provider;
-                        option.textContent = provider.charAt(0).toUpperCase() + provider.slice(1);
-                        select.appendChild(option);
-                    }
-                });
-            });
+            updateRoleSelectors();
         });
+
+        // Update role selectors with available adapters
+        function updateRoleSelectors() {
+            fetch('/api/keys')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.adapters) {
+                        // Clear existing options
+                        ['role-project-manager', 'role-lead-developer', 'role-boss'].forEach(selectId => {
+                            const select = document.getElementById(selectId);
+                            if (select) {
+                                select.innerHTML = '<option value="">Seçiniz...</option>';
+                            }
+                        });
+
+                        // Add adapter options
+                        Object.entries(data.adapters).forEach(([adapterId, adapterInfo]) => {
+                            if (!adapterInfo.error) {
+                                ['role-project-manager', 'role-lead-developer', 'role-boss'].forEach(selectId => {
+                                    const select = document.getElementById(selectId);
+                                    if (select) {
+                                        const option = document.createElement('option');
+                                        option.value = adapterId;
+                                        option.textContent = `${adapterInfo.type.toUpperCase()} - ${adapterInfo.model} (${adapterId})`;
+                                        select.appendChild(option);
+                                    }
+                                });
+                            }
+                        });
+
+                        // Update current assignments
+                        if (data.roles) {
+                            Object.entries(data.roles).forEach(([role, adapterId]) => {
+                                const selectId = `role-${role.replace('_', '-')}`;
+                                const select = document.getElementById(selectId);
+                                if (select) {
+                                    select.value = adapterId;
+                                }
+                                const currentElement = document.getElementById(`current-${role.replace('_', '-')}`);
+                                if (currentElement) {
+                                    const adapterInfo = data.adapters[adapterId];
+                                    if (adapterInfo) {
+                                        currentElement.textContent = `${adapterInfo.type.toUpperCase()} - ${adapterInfo.model}`;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Adapter yükleme hatası:', error);
+                });
+        }
     </script>
 </body>
 </html> 

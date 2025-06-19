@@ -86,15 +86,9 @@ class WebUIUniversal:
         @self.app.route('/api/analytics')
         def get_analytics():
             """Analytics verilerini döndür"""
-            @safe_execute(component="web_ui_analytics", error_type=ErrorTypes.API_CONNECTION_ERROR)
-            def _get_analytics():
+            try:
                 if not self.ai_adapter:
-                    raise AIChromeChatError(
-                        "AI adapter bulunamadı",
-                        error_type=ErrorTypes.ADAPTER_UNAVAILABLE,
-                        component="web_ui_analytics",
-                        user_message="AI sistemi henüz hazır değil. Lütfen API anahtarlarınızı kontrol edin."
-                    )
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
                 
                 # Toplam istatistikler
                 total_stats = self.ai_adapter.get_total_stats()
@@ -162,41 +156,27 @@ class WebUIUniversal:
                 }
                 
                 return jsonify(analytics_data)
-            
-            return _get_analytics()
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
         
         @self.app.route('/api/ai/send_message', methods=['POST'])
         def send_ai_message():
             """AI'ya mesaj gönder"""
-            @safe_execute(component="web_ui_ai_message", error_type=ErrorTypes.INVALID_INPUT, raise_on_error=True)
-            def _validate_and_process():
+            try:
                 data = request.get_json()
                 if not data:
-                    raise AIChromeChatError(
-                        "Geçersiz JSON verisi",
-                        error_type=ErrorTypes.INVALID_INPUT,
-                        component="web_ui_ai_message",
-                        user_message="Lütfen geçerli bir mesaj gönderin."
-                    )
+                    return jsonify({'error': 'Geçersiz JSON verisi'}), 400
                 
                 role_id = data.get('role_id', 'project_manager')
                 message = data.get('message', '').strip()
                 context = data.get('context', '')
                 
                 if not message:
-                    raise AIChromeChatError(
-                        "Mesaj boş olamaz",
-                        error_type=ErrorTypes.MISSING_PARAMETER,
-                        component="web_ui_ai_message",
-                        user_message="Lütfen bir mesaj yazın."
-                    )
+                    return jsonify({'error': 'Mesaj boş olamaz'}), 400
                 
-                return role_id, message, context
-            
-            try:
-                role_id, message, context = _validate_and_process()
-            except AIChromeChatError as e:
-                return jsonify(e.to_dict()), 400
+            except Exception as e:
+                return jsonify({'error': str(e)}), 400
             
             # Async mesajı background'da çalıştır
             def run_async():
@@ -378,6 +358,204 @@ class WebUIUniversal:
         
         # === API Key Management Routes ===
         
+        # Eski endpoint'ler (UI uyumluluğu için)
+        @self.app.route('/api/load-keys', methods=['GET'])
+        def load_keys_legacy():
+            """Eski UI için anahtarları yükle (legacy endpoint)"""
+            return get_api_keys()
+        
+        @self.app.route('/api/test-key', methods=['POST'])
+        def test_key_legacy():
+            """Eski UI için anahtar test et (legacy endpoint)"""
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({'error': 'Geçersiz JSON verisi'}), 400
+                
+                provider = data.get('provider')
+                api_key = data.get('key')
+                
+                if not provider or not api_key:
+                    return jsonify({'error': 'Provider ve key gerekli'}), 400
+                
+                # Test işlemini çalıştır
+                test_result = self._test_api_key(provider, api_key)
+                return jsonify(test_result)
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/save-key', methods=['POST'])
+        def save_key_legacy():
+            """Eski UI için anahtar kaydet (legacy endpoint)"""
+            try:
+                data = request.get_json()
+                if not data:
+                    return jsonify({'error': 'Geçersiz JSON verisi'}), 400
+                
+                provider = data.get('provider')
+                api_key = data.get('key')
+                key_name = data.get('keyName', 'primary')
+                
+                if not provider or not api_key:
+                    return jsonify({'error': 'Provider ve key gerekli'}), 400
+                
+                if provider not in ['gemini', 'openai']:
+                    return jsonify({'error': f'Desteklenmeyen provider: {provider}'}), 400
+                
+                # Model seç
+                model = data.get('model', '')
+                if not model:
+                    model = 'gemini-2.5-flash' if provider == 'gemini' else 'gpt-3.5-turbo'
+                
+                # API anahtarını test et
+                test_result = self._test_api_key(provider, api_key, model)
+                if not test_result['success']:
+                    return jsonify({'error': f'API anahtarı test edilemedi: {test_result["error"]}'}), 400
+                
+                # Konfigürasyona kaydet
+                success = self.ai_adapter.config_manager.set_key(provider, key_name, api_key)
+                if not success:
+                    return jsonify({'error': 'API anahtarı kaydedilemedi'}), 500
+                
+                # Yeni adapter oluştur
+                adapter_id = f"{provider}-{key_name}"
+                try:
+                    created_adapter_id = self.ai_adapter.add_adapter(
+                        provider, 
+                        adapter_id,
+                        api_key=api_key,
+                        model=model
+                    )
+                    
+                    return jsonify({
+                        'success': True,
+                        'adapter_id': created_adapter_id,
+                        'provider': provider,
+                        'model': model,
+                        'message': f'{provider.title()} API anahtarı başarıyla eklendi'
+                    })
+                    
+                except Exception as adapter_error:
+                    return jsonify({
+                        'success': True,  # Config kaydedildi, adapter hatası olabilir
+                        'warning': f'Adapter oluşturulamadı: {str(adapter_error)}',
+                        'provider': provider,
+                        'message': 'API anahtarı kaydedildi, ancak adapter hatası'
+                    })
+                    
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/delete-key', methods=['POST'])
+        def delete_key_legacy():
+            """Eski UI için anahtar sil (legacy endpoint)"""
+            data = request.get_json()
+            provider = data.get('provider')
+            key_name = data.get('keyName', 'primary')
+            if not provider:
+                return jsonify({'error': 'Provider gerekli'}), 400
+            return delete_api_key(provider, key_name)
+        
+        @self.app.route('/api/clear-all-keys', methods=['POST'])
+        def clear_all_keys():
+            """Tüm API anahtarlarını temizle"""
+            try:
+                # Config manager'dan tüm anahtarları temizle
+                success = True
+                try:
+                    # Mevcut metodları kullanarak temizle
+                    config_data = self.ai_adapter.config_manager.get_config()
+                    for provider in ['gemini', 'openai']:
+                        if provider in config_data:
+                            for key_name in list(config_data[provider].keys()):
+                                self.ai_adapter.config_manager.delete_key(provider, key_name)
+                except AttributeError:
+                    # Config manager bu metodları desteklemiyorsa basit şekilde temizle
+                    self.ai_adapter.config_manager.config = {}
+                    self.ai_adapter.config_manager.save_config()
+                
+                # Adapter'ları da temizle (varsa)
+                try:
+                    if hasattr(self.ai_adapter, 'adapters'):
+                        self.ai_adapter.adapters.clear()
+                    if hasattr(self.ai_adapter, 'role_assignments'):
+                        self.ai_adapter.role_assignments.clear()
+                except Exception:
+                    pass  # Adapter temizleme hatası görmezden gel
+                
+                return jsonify({'success': True, 'message': 'Tüm anahtarlar temizlendi'})
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/assign-role', methods=['POST'])
+        def assign_role_legacy():
+            """Eski UI için rol ataması (legacy endpoint)"""
+            try:
+                data = request.get_json()
+                print(f"🔍 Assign role request data: {data}")
+                
+                if not data:
+                    print("❌ JSON verisi alınamadı")
+                    return jsonify({'error': 'Geçersiz JSON verisi'}), 400
+                
+                role = data.get('role')
+                adapter_id = data.get('adapter_id')  # Artık adapter_id alıyoruz
+                
+                # Legacy uyumluluk için provider'ı da kontrol et
+                if not adapter_id:
+                    provider = data.get('provider')
+                    if provider:
+                        # Eski format - provider'dan adapter_id bul
+                        adapter_status = self.ai_adapter.get_adapter_status()
+                        for aid, status in adapter_status.items():
+                            if status.get('type') == provider.lower() and 'error' not in status:
+                                adapter_id = aid
+                                break
+                        
+                        if not adapter_id:
+                            for aid, status in adapter_status.items():
+                                if aid.startswith(provider.lower() + '-') and 'error' not in status:
+                                    adapter_id = aid
+                                    break
+                
+                print(f"🎯 Role: {role}, Adapter ID: {adapter_id}")
+                
+                if not role or not adapter_id:
+                    print("❌ Role veya adapter_id eksik")
+                    return jsonify({'error': 'Role ve adapter_id gerekli'}), 400
+                
+                # Adapter'ın var olduğunu kontrol et
+                if adapter_id not in self.ai_adapter.adapters:
+                    print(f"❌ Adapter bulunamadı: {adapter_id}")
+                    print(f"📋 Mevcut adapter'lar: {list(self.ai_adapter.adapters.keys())}")
+                    return jsonify({'error': f'Adapter bulunamadı: {adapter_id}'}), 404
+                
+                # Rol ataması yap
+                try:
+                    self.ai_adapter.assign_role(role, adapter_id)
+                    
+                    # Adapter bilgilerini al
+                    adapter_info = self.ai_adapter.get_adapter_status().get(adapter_id, {})
+                    
+                    return jsonify({
+                        'success': True, 
+                        'message': f'{role} rolü {adapter_id} adapter\'ına atandı',
+                        'role': role,
+                        'adapter_id': adapter_id,
+                        'adapter_type': adapter_info.get('type', 'unknown'),
+                        'model': adapter_info.get('model', 'unknown')
+                    })
+                        
+                except Exception as assign_error:
+                    print(f"❌ Rol atama hatası: {str(assign_error)}")
+                    return jsonify({'error': f'Rol atama hatası: {str(assign_error)}'}), 500
+                    
+            except Exception as e:
+                print(f"❌ Genel hata: {str(e)}")
+                return jsonify({'error': f'Genel hata: {str(e)}'}), 500
+        
         @self.app.route('/api/keys', methods=['GET'])
         def get_api_keys():
             """Kayıtlı API anahtarlarını listele (güvenli format)"""
@@ -413,36 +591,20 @@ class WebUIUniversal:
         @self.app.route('/api/keys/<provider>', methods=['POST'])
         def add_api_key(provider):
             """Yeni API anahtarı ekle"""
-            @safe_execute(component="web_ui_api_keys", error_type=ErrorTypes.CONFIG_INVALID, raise_on_error=True)
-            def _process_api_key():
+            try:
                 data = request.get_json()
                 if not data:
-                    raise AIChromeChatError(
-                        "Geçersiz JSON verisi",
-                        error_type=ErrorTypes.INVALID_INPUT,
-                        component="web_ui_api_keys",
-                        user_message="Lütfen geçerli veriler gönderin."
-                    )
+                    return jsonify({'error': 'Geçersiz JSON verisi'}), 400
                 
                 api_key = data.get('api_key', '').strip()
                 key_name = data.get('key_name', 'primary').strip()
                 model = data.get('model', '')
                 
                 if not api_key:
-                    raise AIChromeChatError(
-                        "API anahtarı boş olamaz",
-                        error_type=ErrorTypes.MISSING_PARAMETER,
-                        component="web_ui_api_keys",
-                        user_message="Lütfen geçerli bir API anahtarı girin."
-                    )
+                    return jsonify({'error': 'API anahtarı gerekli'}), 400
                 
                 if provider not in ['gemini', 'openai']:
-                    raise AIChromeChatError(
-                        f"Desteklenmeyen provider: {provider}",
-                        error_type=ErrorTypes.INVALID_INPUT,
-                        component="web_ui_api_keys",
-                        user_message="Sadece Gemini ve OpenAI desteklenmektedir."
-                    )
+                    return jsonify({'error': f'Desteklenmeyen provider: {provider}'}), 400
                 
                 if not model:
                     # Varsayılan modeller
@@ -451,32 +613,17 @@ class WebUIUniversal:
                     elif provider == 'openai':
                         model = 'gpt-3.5-turbo'
                     else:
-                        raise AIChromeChatError(
-                            "Model belirtilmeli",
-                            error_type=ErrorTypes.MISSING_PARAMETER,
-                            component="web_ui_api_keys",
-                            user_message="Lütfen geçerli bir model seçin."
-                        )
+                        return jsonify({'error': 'Model belirtilmeli'}), 400
                 
                 # API anahtarını test et
                 test_result = self._test_api_key(provider, api_key, model)
                 if not test_result['success']:
-                    raise AIChromeChatError(
-                        f"API anahtarı test edilemedi: {test_result['error']}",
-                        error_type=ErrorTypes.API_INVALID_KEY,
-                        component="web_ui_api_keys",
-                        user_message="API anahtarı geçersiz. Lütfen doğru anahtarı girdiğinizden emin olun."
-                    )
+                    return jsonify({'error': f'API anahtarı test edilemedi: {test_result["error"]}'}), 400
                 
                 # Konfigürasyona kaydet
                 success = self.ai_adapter.config_manager.set_key(provider, key_name, api_key)
                 if not success:
-                    raise AIChromeChatError(
-                        "API anahtarı kaydedilemedi",
-                        error_type=ErrorTypes.CONFIG_INVALID,
-                        component="web_ui_api_keys",
-                        user_message="Yapılandırma hatası. Sistem ayarlarını kontrol edin."
-                    )
+                    return jsonify({'error': 'API anahtarı kaydedilemedi'}), 500
                 
                 # Yeni adapter oluştur
                 adapter_id = f"{provider}-{key_name}"
@@ -498,18 +645,15 @@ class WebUIUniversal:
                     })
                     
                 except Exception as adapter_error:
-                    raise AIChromeChatError(
-                        f"Adapter oluşturulamadı: {str(adapter_error)}",
-                        error_type=ErrorTypes.ADAPTER_UNAVAILABLE,
-                        component="web_ui_api_keys",
-                        user_message="AI adapter oluşturulamadı. API anahtarını tekrar kontrol edin.",
-                        original_exception=adapter_error
-                    )
-            
-            try:
-                return _process_api_key()
-            except AIChromeChatError as e:
-                return jsonify(e.to_dict()), 400
+                    return jsonify({
+                        'success': True,  # Config kaydedildi
+                        'warning': f'Adapter oluşturulamadı: {str(adapter_error)}',
+                        'provider': provider,
+                        'message': 'API anahtarı kaydedildi, ancak adapter hatası'
+                    })
+                    
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
         
         @self.app.route('/api/keys/<provider>/<key_name>', methods=['PUT'])
         def update_api_key(provider, key_name):
