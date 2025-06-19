@@ -35,7 +35,7 @@ def main():
     pyinstaller_cmd = [
         "pyinstaller",
         "--onefile",                    # Tek dosya olarak paketleme
-        "--windowed",                   # Console penceresiz
+        "--console",                    # Console pencereli - debug için
         "--name=AI_Orchestrator",       # EXE ismi
         "--distpath=dist",              # Output klasörü
         "--workpath=build",             # Temp klasörü

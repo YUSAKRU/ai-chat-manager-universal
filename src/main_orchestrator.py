@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import webbrowser
 from ai_adapters.universal_adapter import UniversalAIAdapter
-from ai_adapters.secure_config import SecureConfig
+from ai_adapters.secure_config import SecureConfigManager
 from config import Config
 from logger import logger
 import json
@@ -436,7 +436,7 @@ class OrchestratorWebApp:
     def load_adapters(self) -> bool:
         """Load available AI adapters"""
         try:
-            secure_config = SecureConfig()
+            secure_config = SecureConfigManager()
             
             # Try to load adapters
             adapters_loaded = 0

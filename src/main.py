@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import webbrowser
 from ai_adapters.universal_adapter import UniversalAIAdapter
-from ai_adapters.secure_config import SecureConfig
+from ai_adapters.secure_config import SecureConfigManager
 from config import Config
 from logger import logger
 import json
@@ -426,7 +426,18 @@ class OrchestratorWebApp:
     """Web application for AI Orchestrator"""
     
     def __init__(self):
-        self.app = Flask(__name__, template_folder='../templates', static_folder='../static')
+        # Handle paths for both development and PyInstaller EXE
+        if hasattr(sys, '_MEIPASS'):
+            # Running as PyInstaller EXE
+            template_dir = os.path.join(sys._MEIPASS, 'templates')
+            static_dir = os.path.join(sys._MEIPASS, 'static')
+        else:
+            # Running from source
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            template_dir = os.path.join(base_dir, 'templates')
+            static_dir = os.path.join(base_dir, 'static')
+        
+        self.app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
         self.adapters = {}
         self.orchestrator = None
         self.setup_routes()
@@ -434,7 +445,7 @@ class OrchestratorWebApp:
     def load_adapters(self) -> bool:
         """Load available AI adapters"""
         try:
-            secure_config = SecureConfig()
+            secure_config = SecureConfigManager()
             
             # Try to load adapters
             adapters_loaded = 0
