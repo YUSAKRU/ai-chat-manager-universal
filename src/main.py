@@ -548,7 +548,7 @@ class OrchestratorWebApp:
                 logger.error(f"Error in system_status endpoint: {e}")
                 return jsonify({'success': False, 'error': str(e)})
                 
-        @self.app.route('/api_management')
+        @self.app.route('/api-management')
         def api_management():
             return render_template('api_management.html')
             

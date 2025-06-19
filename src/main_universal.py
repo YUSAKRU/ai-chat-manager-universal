@@ -42,7 +42,8 @@ class UniversalChatManager:
         try:
             # Memory Bank başlat
             logger.info("📚 Memory Bank başlatılıyor...")
-            self.memory_bank = MemoryBankIntegration()
+            project_goal = "AI Chrome Chat Manager - Universal AI destekli proje yönetimi ve chat sistemi"
+            self.memory_bank = MemoryBankIntegration(project_goal)
             await self.memory_bank.initialize()
             
             # Secure Config Manager

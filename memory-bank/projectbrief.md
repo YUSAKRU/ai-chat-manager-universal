@@ -1,7 +1,7 @@
 # AI Chrome Chat Manager - Proje Özeti
 
 ## Proje Hedefi
-AI-powered chat management system with multi-AI orchestration and role-based automation
+AI Chrome Chat Manager - Universal AI destekli proje yönetimi ve chat sistemi
 
 ## Vizyon
 İki farklı AI chat penceresini yöneten ve onların birbiriyle iletişim kurmasını sağlayan Python uygulaması.
@@ -24,4 +24,4 @@ AI-powered chat management system with multi-AI orchestration and role-based aut
 - Web arayüzü üzerinden kontrolün sağlanması
 - Konuşma geçmişinin kaydedilmesi
 
-Oluşturulma: 2025-06-18 21:56
+Oluşturulma: 2025-06-19 14:14

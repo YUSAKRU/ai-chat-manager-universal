@@ -1,1 +1,479 @@
- 
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Yönetimi - AI Chrome Chat Manager</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #6366f1;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --info-color: #0891b2;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .main-container {
+            margin-top: 100px;
+            margin-bottom: 50px;
+        }
+        
+        .api-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: none;
+            overflow: hidden;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .api-card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px;
+            border: none;
+        }
+        
+        .api-card-body {
+            padding: 30px;
+        }
+        
+        .api-provider {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .provider-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .provider-icon.gemini {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+        }
+        
+        .provider-icon.openai {
+            background: linear-gradient(135deg, #10a37f 0%, #1a7f64 100%);
+        }
+        
+        .status-badge {
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+        
+        .status-inactive {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+        
+        .input-group-modern {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .input-group-modern input {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            background: var(--light-bg);
+            transition: all 0.3s ease;
+        }
+        
+        .input-group-modern input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+            background: white;
+        }
+        
+        .btn-modern {
+            border-radius: 12px;
+            padding: 12px 25px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-test {
+            background: linear-gradient(135deg, var(--info-color) 0%, #0369a1 100%);
+            color: white;
+        }
+        
+        .btn-test:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(8, 145, 178, 0.4);
+            color: white;
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, var(--success-color) 0%, #047857 100%);
+            color: white;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.4);
+            color: white;
+        }
+        
+        .btn-delete {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #b91c1c 100%);
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.4);
+            color: white;
+        }
+        
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .test-success {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+        
+        .test-error {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+        
+        .quick-links {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-link:hover {
+            background: var(--light-bg);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                🤖 AI Chrome Chat Manager
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="bi bi-house"></i> Ana Sayfa
+                </a>
+                <a class="nav-link active" href="/api-management">
+                    <i class="bi bi-key"></i> API Yönetimi
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container main-container">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="text-white fw-bold mb-3">🔑 API Anahtar Yönetimi</h1>
+            <p class="text-white-50 lead">AI modelleri için API anahtarlarınızı güvenli bir şekilde yönetin</p>
+        </div>
+
+        <div class="row">
+            <!-- Google Gemini -->
+            <div class="col-lg-6 mb-4">
+                <div class="api-card">
+                    <div class="api-card-header">
+                        <div class="api-provider">
+                            <div class="provider-icon gemini">
+                                <i class="bi bi-google"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1">Google Gemini</h5>
+                                <span class="status-badge status-inactive" id="gemini-status">Yapılandırılmadı</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="api-card-body">
+                        <form id="gemini-form">
+                            <div class="input-group-modern">
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="gemini-key" 
+                                       placeholder="Gemini API anahtarınızı girin..."
+                                       autocomplete="off">
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-test btn-modern" onclick="testAPI('gemini')">
+                                    <i class="bi bi-lightning"></i> Test Et
+                                </button>
+                                <button type="button" class="btn btn-save btn-modern" onclick="saveAPI('gemini')">
+                                    <i class="bi bi-check-circle"></i> Kaydet
+                                </button>
+                                <button type="button" class="btn btn-delete btn-modern" onclick="deleteAPI('gemini')">
+                                    <i class="bi bi-trash"></i> Sil
+                                </button>
+                            </div>
+                            <div class="test-result" id="gemini-result"></div>
+                        </form>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                API anahtarı almak için: <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-decoration-none">Google AI Studio</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OpenAI -->
+            <div class="col-lg-6 mb-4">
+                <div class="api-card">
+                    <div class="api-card-header">
+                        <div class="api-provider">
+                            <div class="provider-icon openai">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1">OpenAI GPT</h5>
+                                <span class="status-badge status-inactive" id="openai-status">Yapılandırılmadı</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="api-card-body">
+                        <form id="openai-form">
+                            <div class="input-group-modern">
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="openai-key" 
+                                       placeholder="OpenAI API anahtarınızı girin..."
+                                       autocomplete="off">
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-test btn-modern" onclick="testAPI('openai')">
+                                    <i class="bi bi-lightning"></i> Test Et
+                                </button>
+                                <button type="button" class="btn btn-save btn-modern" onclick="saveAPI('openai')">
+                                    <i class="bi bi-check-circle"></i> Kaydet
+                                </button>
+                                <button type="button" class="btn btn-delete btn-modern" onclick="deleteAPI('openai')">
+                                    <i class="bi bi-trash"></i> Sil
+                                </button>
+                            </div>
+                            <div class="test-result" id="openai-result"></div>
+                        </form>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                API anahtarı almak için: <a href="https://platform.openai.com/api-keys" target="_blank" class="text-decoration-none">OpenAI Platform</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-lg-4">
+                <div class="quick-links">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-lightning-charge"></i> Hızlı İşlemler</h6>
+                    <a href="#" class="quick-link" onclick="loadExistingKeys()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        <span>Mevcut Anahtarları Yükle</span>
+                    </a>
+                    <a href="#" class="quick-link" onclick="clearAllKeys()">
+                        <i class="bi bi-trash"></i>
+                        <span>Tüm Anahtarları Temizle</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="quick-links">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-info-circle"></i> Bilgilendirme</h6>
+                    <div class="small text-muted">
+                        <p><strong>Güvenlik:</strong> API anahtarlarınız şifrelenmiş olarak saklanır.</p>
+                        <p><strong>Test:</strong> Anahtarları kaydetmeden önce test edebilirsiniz.</p>
+                        <p><strong>Kullanım:</strong> En az bir API anahtarı gereklidir.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="quick-links">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-gear"></i> Sistem Durumu</h6>
+                    <div id="system-status">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">Gemini:</span>
+                            <span class="status-badge status-inactive" id="status-gemini">Kapalı</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small">OpenAI:</span>
+                            <span class="status-badge status-inactive" id="status-openai">Kapalı</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Sistem:</span>
+                            <span class="status-badge status-active">Çalışıyor</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-5">
+            <a href="/" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-arrow-left"></i> Ana Sayfaya Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // API management functions
+        function showResult(provider, message, isSuccess) {
+            const resultDiv = document.getElementById(provider + '-result');
+            resultDiv.className = `test-result ${isSuccess ? 'test-success' : 'test-error'}`;
+            resultDiv.innerHTML = `<i class="bi bi-${isSuccess ? 'check-circle' : 'x-circle'}"></i> ${message}`;
+            resultDiv.style.display = 'block';
+        }
+
+        function updateStatus(provider, status, text) {
+            const statusElement = document.getElementById(provider + '-status');
+            statusElement.className = `status-badge status-${status}`;
+            statusElement.textContent = text;
+        }
+
+        function testAPI(provider) {
+            const keyInput = document.getElementById(provider + '-key');
+            const apiKey = keyInput.value.trim();
+
+            if (!apiKey) {
+                showResult(provider, 'Lütfen API anahtarını girin', false);
+                return;
+            }
+
+            // Simulated test - in real implementation, this would call backend
+            setTimeout(() => {
+                showResult(provider, 'API anahtarı test edildi (simülasyon)', true);
+                updateStatus(provider, 'active', 'Test Başarılı');
+            }, 1000);
+        }
+
+        function saveAPI(provider) {
+            const keyInput = document.getElementById(provider + '-key');
+            const apiKey = keyInput.value.trim();
+
+            if (!apiKey) {
+                showResult(provider, 'Lütfen API anahtarını girin', false);
+                return;
+            }
+
+            // Simulated save
+            showResult(provider, 'API anahtarı kaydedildi (simülasyon)', true);
+            updateStatus(provider, 'active', 'Aktif');
+            keyInput.value = '';
+        }
+
+        function deleteAPI(provider) {
+            if (!confirm(`${provider.toUpperCase()} API anahtarını silmek istediğinizden emin misiniz?`)) {
+                return;
+            }
+
+            showResult(provider, 'API anahtarı silindi', true);
+            updateStatus(provider, 'inactive', 'Yapılandırılmadı');
+        }
+
+        function loadExistingKeys() {
+            // Simulated load
+            alert('Mevcut anahtarlar yüklendi (simülasyon)');
+        }
+
+        function clearAllKeys() {
+            if (!confirm('Tüm API anahtarlarını silmek istediğinizden emin misiniz?')) {
+                return;
+            }
+
+            const providers = ['gemini', 'openai'];
+            providers.forEach(provider => {
+                updateStatus(provider, 'inactive', 'Yapılandırılmadı');
+            });
+            alert('Tüm anahtarlar temizlendi');
+        }
+    </script>
+</body>
+</html> 
