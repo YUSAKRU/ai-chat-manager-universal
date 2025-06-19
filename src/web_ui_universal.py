@@ -293,7 +293,35 @@ class WebUIUniversal:
         @self.app.route('/api/memory/tasks', methods=['GET'])
         def get_project_tasks():
             """Proje görevlerini getir"""
-            return jsonify({'error': 'Project memory not implemented yet'}), 501
+            try:
+                # Mock task data for now - TODO: implement real task management
+                mock_tasks = [
+                    {
+                        'id': 'task-1',
+                        'title': 'Proje Gereksinimlerini Belirle',
+                        'status': 'in_progress',
+                        'priority': 'high',
+                        'assignee': 'project_manager',
+                        'created_at': '2025-06-19T12:00:00'
+                    },
+                    {
+                        'id': 'task-2', 
+                        'title': 'Teknik Mimari Tasarımı',
+                        'status': 'pending',
+                        'priority': 'medium',
+                        'assignee': 'lead_developer',
+                        'created_at': '2025-06-19T12:30:00'
+                    }
+                ]
+                
+                return jsonify({
+                    'success': True,
+                    'tasks': mock_tasks,
+                    'total': len(mock_tasks)
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
         
         @self.app.route('/api/memory/tasks', methods=['POST'])
         def create_task():
@@ -719,7 +747,13 @@ class WebUIUniversal:
     async def _run_ai_conversation(self, initial_prompt: str, max_turns: int):
         """İki AI arasında konuşma köprüsü çalıştır"""
         try:
-            current_message = initial_prompt[:500]  # İlk prompt'u kısalt
+            # Conversation context - daha zengin başlangıç
+            conversation_context = {
+                'project_goal': initial_prompt,
+                'conversation_history': [],
+                'decisions_made': [],
+                'next_actions': []
+            }
             session_id = str(int(time.time()))
             
             # Aktif konuşmayı kaydet
@@ -748,18 +782,47 @@ class WebUIUniversal:
                     'timestamp': datetime.now().isoformat()
                 })
                 
-                # Kısa prompt hazırla
-                pm_prompt = current_message[:300]  # Maksimum 300 karakter
+                # Zengin PM prompt'u hazırla
+                if turn == 0:
+                    pm_prompt = f"""Sen deneyimli bir proje yöneticisisin. Aşağıdaki proje hakkında analiz yap:
+
+🎯 PROJE: {conversation_context['project_goal']}
+
+Tur {turn + 1}'de şunları yap:
+• Proje hedeflerini netleştir
+• Ana gereksinimleri belirle  
+• İlk adımları öneri
+• Lead Developer'a hangi sorular sorulmalı?
+
+Kısa ve odaklı bir analiz sun."""
+                else:
+                    recent_history = ' -> '.join(conversation_context['conversation_history'][-3:])
+                    pm_prompt = f"""Proje Yöneticisi Perspektifi - Tur {turn + 1}:
+
+🎯 PROJE: {conversation_context['project_goal'][:200]}...
+📋 SON GELİŞMELER: {recent_history}
+
+Lead Developer'ın son yorumuna dayanarak:
+• Teknik yaklaşımı değerlendir
+• Proje planı açısından feedback ver
+• Sonraki adımları belirle
+• Karar alınması gereken konuları öne çıkar
+
+Yapıcı ve yönlendirici bir yanıt ver."""
+                
                 if intervention_context:
-                    pm_prompt = f"{pm_prompt[:200]}\n\nYönetici Notu: {intervention_context[:100]}"
+                    pm_prompt += f"\n\n🔔 YÖNETİCİ NOTU: {intervention_context}"
                 
                 pm_response = await self.ai_adapter.send_message(
                     "project_manager", 
                     pm_prompt,
-                    f"Kısa Tur {turn + 1}"  # Context mesajını da kısalt
+                    f"Proje Değerlendirmesi - Tur {turn + 1}"
                 )
                 
                 if pm_response:
+                    # Context'e ekle
+                    conversation_context['conversation_history'].append(f"PM: {pm_response.content[:100]}...")
+                    
                     self.socketio.emit('conversation_message', {
                         'speaker': 'project_manager',
                         'speaker_name': '👔 Proje Yöneticisi',
@@ -783,18 +846,50 @@ class WebUIUniversal:
                     'timestamp': datetime.now().isoformat()
                 })
                 
-                # PM yanıtının sadece son 300 karakterini kullan
-                ld_prompt = pm_response.content[-300:] if pm_response else current_message[:300]
+                # Zengin LD prompt'u hazırla
+                if turn == 0:
+                    ld_prompt = f"""Sen deneyimli bir Lead Developer'sın. Proje Yöneticisi'nin analizini değerlendir:
+
+🎯 PROJE: {conversation_context['project_goal']}
+
+👔 PROJE YÖNETİCİSİ DİYOR: {pm_response.content[:400] if pm_response else "Henüz yanıt yok"}
+
+Teknik perspektiften:
+• Hangi teknolojiler uygun olur?
+• Mimari nasıl olmalı?
+• Gelişirme sürecindeki zorluklar neler?
+• PM'e hangi teknik sorular sormalı?
+
+Teknik ve uygulanabilir öneriler sun."""
+                else:
+                    ld_prompt = f"""Lead Developer Perspektifi - Tur {turn + 1}:
+
+🎯 PROJE: {conversation_context['project_goal'][:200]}...
+📋 GÖRÜŞMELER: {' -> '.join(conversation_context['conversation_history'][-4:])}
+
+👔 PM'İN SON YORUMU: {pm_response.content[:400] if pm_response else "Yanıt yok"}
+
+Teknik açıdan:
+• PM'in önerilerine teknik feedback ver
+• Implementation zorlukları belirt
+• Alternatif çözümler öner
+• Bir sonraki teknik adımları tanımla
+
+Gerçekçi ve detaylı bir teknik analiz yap."""
+                
                 if intervention_context:
-                    ld_prompt = f"{ld_prompt[:200]}\n\nYönetici Notu: {intervention_context[:100]}"
+                    ld_prompt += f"\n\n🔔 YÖNETİCİ NOTU: {intervention_context}"
                 
                 ld_response = await self.ai_adapter.send_message(
                     "lead_developer",
                     ld_prompt,
-                    f"PM Yanıtı - Tur {turn + 1}"  # Context mesajını da kısalt
+                    f"Teknik Analiz - Tur {turn + 1}"
                 )
                 
                 if ld_response:
+                    # Context'e ekle
+                    conversation_context['conversation_history'].append(f"LD: {ld_response.content[:100]}...")
+                    
                     self.socketio.emit('conversation_message', {
                         'speaker': 'lead_developer',
                         'speaker_name': '👨‍💻 Lead Developer',
@@ -808,8 +903,6 @@ class WebUIUniversal:
                     # Analytics güncellemesi
                     self.broadcast_analytics_update()
                 
-                # Sadece son yanıtın kısa özetini sakla (prompt bloating'i önle)
-                current_message = ld_response.content[-300:] if ld_response else pm_response.content[-300:]
                 await asyncio.sleep(2)
             
             # Konuşmayı hafızaya kaydet
