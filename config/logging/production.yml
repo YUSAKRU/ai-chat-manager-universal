@@ -1,0 +1,67 @@
+# Production Environment Logging Configuration
+# Üretim ortamı için güvenlik ve performans odaklı ayarlar
+
+level: WARNING
+format: json
+log_dir: "/var/log/ai-chrome-chat-manager"  # Production'da absolute path
+
+handlers:
+  console:
+    enabled: false  # Production'da console output kapalı
+  
+  file:
+    enabled: true
+    level: INFO
+    format: json
+    filename: app.log
+  
+  error_file:
+    enabled: true
+    level: WARNING
+    format: json
+    filename: errors.log
+  
+  api_file:
+    enabled: true
+    level: INFO
+    format: json
+    filename: api.log
+
+# Production'da agresif rotation
+rotation:
+  max_size: 209715200  # 200MB
+  backup_count: 20
+  when: midnight
+  interval: 1
+
+context:
+  include_request_id: true
+  include_user_session: true
+  include_performance: false  # Production'da performance overhead'ı azalt
+  include_system_info: true   # Production'da system info önemli
+
+filters:
+  exclude_components:
+    - "debug_component"
+    - "test_component"
+  include_only: []
+  max_message_length: 5000  # Production'da mesaj boyutunu sınırla
+
+# Production'da security-focused settings
+security:
+  sanitize_sensitive_data: true
+  max_stack_trace_depth: 10
+
+# Environment variable overrides for production
+environment_overrides:
+  log_level: "${LOG_LEVEL}"
+  log_directory: "${LOG_DIR}"
+  enable_api_logging: "${ENABLE_API_LOGGING}"
+  
+# Secret references for production
+secrets:
+  database_connection: "${DATABASE_URL}"
+  api_keys:
+    gemini: "${GEMINI_API_KEY}"
+    openai: "${OPENAI_API_KEY}"
+  webhook_secret: "${WEBHOOK_SECRET}" 

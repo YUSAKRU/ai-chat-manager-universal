@@ -1,0 +1,47 @@
+# Default Logging Configuration
+# Bu dosya temel logging ayarlarını tanımlar
+
+level: INFO
+format: json
+log_dir: logs
+
+rotation:
+  max_size: 104857600  # 100MB
+  backup_count: 10
+  when: midnight
+  interval: 1
+
+handlers:
+  console:
+    enabled: true
+    level: INFO
+    format: plain
+  
+  file:
+    enabled: true
+    level: DEBUG
+    format: json
+    filename: app.log
+  
+  error_file:
+    enabled: true
+    level: ERROR
+    format: json
+    filename: errors.log
+  
+  api_file:
+    enabled: true
+    level: INFO
+    format: json
+    filename: api.log
+
+filters:
+  exclude_components: []
+  include_only: []
+  max_message_length: 10000
+
+context:
+  include_request_id: true
+  include_user_session: true
+  include_performance: true
+  include_system_info: false 

@@ -1,0 +1,59 @@
+# Staging Environment Logging Configuration
+# Test ortamı için production'a yakın ama debug-friendly ayarlar
+
+level: INFO
+format: json
+log_dir: logs
+
+handlers:
+  console:
+    enabled: true
+    level: INFO
+    format: json  # Staging'de JSON format ile testing
+  
+  file:
+    enabled: true
+    level: INFO
+    format: json
+    filename: app.log
+  
+  error_file:
+    enabled: true
+    level: WARNING
+    format: json
+    filename: errors.log
+  
+  api_file:
+    enabled: true
+    level: INFO
+    format: json
+    filename: api.log
+
+# Staging'de moderate rotation
+rotation:
+  max_size: 104857600  # 100MB
+  backup_count: 10
+  when: midnight
+  interval: 1
+
+context:
+  include_request_id: true
+  include_user_session: true
+  include_performance: true   # Staging'de performance monitoring aktif
+  include_system_info: true   # Staging'de system info for debugging
+
+filters:
+  exclude_components: []
+  include_only: []
+  max_message_length: 15000  # Staging'de orta seviye limit
+
+# Staging environment overrides
+staging_config:
+  enable_debug_endpoints: true
+  log_sql_queries: true
+  track_user_actions: true
+
+# Environment variables for staging
+environment_overrides:
+  log_level: "${LOG_LEVEL}"
+  enable_detailed_logging: "${ENABLE_DETAILED_LOGGING}" 

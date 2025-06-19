@@ -1,0 +1,51 @@
+# Development Environment Logging Configuration
+# Geliştirme ortamı için optimize edilmiş ayarlar
+
+level: DEBUG
+format: json
+log_dir: logs
+
+handlers:
+  console:
+    enabled: true
+    level: DEBUG
+    format: plain  # Development'da plain format daha okunabilir
+  
+  file:
+    enabled: true
+    level: DEBUG
+    format: json
+    filename: app.log
+  
+  error_file:
+    enabled: false  # Development'da error file'a gerek yok
+  
+  api_file:
+    enabled: true
+    level: INFO
+    format: json
+    filename: api.log
+
+# Development'da daha tolerant rotation settings
+rotation:
+  max_size: 52428800  # 50MB (daha küçük)
+  backup_count: 5
+  when: midnight
+  interval: 1
+
+context:
+  include_request_id: true
+  include_user_session: true
+  include_performance: true
+  include_system_info: false  # Development'da system info gereksiz
+
+filters:
+  exclude_components: []
+  include_only: []
+  max_message_length: 50000  # Development'da daha uzun mesajlara izin ver
+
+# Development'da secret kullanım örneği
+# Environment variables ile override
+secret_examples:
+  log_level_override: "${LOG_LEVEL}"
+  custom_log_dir: "${LOG_DIR}" 
