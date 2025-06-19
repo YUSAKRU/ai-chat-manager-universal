@@ -85,69 +85,70 @@ class WebUIUniversal:
         
         @self.app.route('/api/analytics')
         def get_analytics():
-            """Analytics verilerini döndür"""
+            """Analytics verilerini döndür - Gerçek performans verileri ile"""
             try:
                 if not self.ai_adapter:
                     return jsonify({'error': 'AI adapter bulunamadı'}), 500
                 
-                # Toplam istatistikler
-                total_stats = self.ai_adapter.get_total_stats()
-                
-                # Her adapter için detaylı durum
-                adapter_status = self.ai_adapter.get_adapter_status()
+                # Detaylı analytics verilerini al
+                detailed_analytics = self.ai_adapter.get_detailed_analytics()
                 
                 # Rol atamaları
                 role_assignments = self.ai_adapter.get_role_assignments()
                 
-                # Başarı oranı hesapla
-                total_requests = total_stats['total_requests']
-                total_errors = total_stats['total_errors']
-                success_rate = ((total_requests - total_errors) / total_requests * 100) if total_requests > 0 else 100
-                
-                # Response time (şimdilik mock, ileride gerçek veri eklenecek)
-                avg_response_time = 1.8
+                # Global stats
+                global_stats = detailed_analytics['global_stats']
                 
                 analytics_data = {
                     'summary': {
-                        'total_cost': total_stats['total_cost'],
-                        'total_requests': total_requests,
-                        'success_rate': round(success_rate, 1),
-                        'avg_response_time': avg_response_time,
-                        'total_tokens': total_stats['total_tokens'],
-                        'total_errors': total_errors
+                        'total_cost': round(global_stats['total_cost'], 4),
+                        'total_requests': global_stats['total_requests'],
+                        'success_rate': round(global_stats.get('success_rate', 100), 1),
+                        'avg_response_time': round(global_stats.get('avg_response_time', 0), 2),
+                        'total_tokens': global_stats['total_tokens'],
+                        'total_errors': global_stats['total_errors'],
+                        'input_tokens': global_stats.get('input_tokens', 0),
+                        'output_tokens': global_stats.get('output_tokens', 0)
                     },
                     'adapters': {},
                     'token_usage': {
-                        'total': total_stats['total_tokens'],
-                        'input': 0,  # Detaylı token bilgisi için güncelleme gerekecek
-                        'output': 0
+                        'total': global_stats['total_tokens'],
+                        'input': global_stats.get('input_tokens', 0),
+                        'output': global_stats.get('output_tokens', 0)
                     },
-                    'timestamp': datetime.now().isoformat(),
-                    'error_stats': central_error_handler.get_error_stats()  # Hata istatistikleri eklendi
+                    'performance_metrics': detailed_analytics.get('performance_metrics', {}),
+                    'cost_breakdown': detailed_analytics.get('cost_breakdown', {}),
+                    'timestamp': datetime.now().isoformat()
                 }
                 
-                # Her adapter için detaylı bilgi
-                for adapter_id, status in adapter_status.items():
-                    if 'error' not in status:
-                        # Role assignment bul
-                        assigned_role = None
-                        for role, aid in role_assignments.items():
-                            if aid == adapter_id:
-                                assigned_role = role
-                                break
-                        
-                        analytics_data['adapters'][adapter_id] = {
-                            'id': adapter_id,
-                            'type': status['type'],
-                            'model': status['model'],
-                            'role': assigned_role,
-                            'stats': status['stats'],
-                            'is_available': status['rate_limit']['available']
-                        }
-                        
-                        # Token usage güncelle
-                        analytics_data['token_usage']['input'] += status['stats'].get('input_tokens', 0)
-                        analytics_data['token_usage']['output'] += status['stats'].get('output_tokens', 0)
+                # Her adapter için detaylı bilgi - Gerçek performans verileri ile
+                adapters_data = detailed_analytics.get('adapters', {})
+                for adapter_id, adapter_info in adapters_data.items():
+                    # Role assignment bul
+                    assigned_role = None
+                    for role, aid in role_assignments.items():
+                        if aid == adapter_id:
+                            assigned_role = role
+                            break
+                    
+                    # Gerçek adapter nesnesinden performans verilerini al
+                    real_adapter = self.ai_adapter.adapters.get(adapter_id)
+                    real_performance = {}
+                    
+                    if real_adapter and hasattr(real_adapter, 'get_performance_summary'):
+                        real_performance = real_adapter.get_performance_summary()
+                    
+                    analytics_data['adapters'][adapter_id] = {
+                        'id': adapter_id,
+                        'type': adapter_info['type'],
+                        'model': adapter_info['model'],
+                        'role': assigned_role,
+                        'stats': adapter_info['stats'],
+                        'is_available': adapter_info.get('rate_limit', {}).get('available', True),
+                        'status': adapter_info.get('status', 'active'),
+                        # Gerçek performans verileri
+                        'real_performance': real_performance
+                    }
                 
                 # Cache güncelle
                 self.analytics_cache = {
@@ -156,6 +157,70 @@ class WebUIUniversal:
                 }
                 
                 return jsonify(analytics_data)
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/analytics/advanced')
+        def get_advanced_analytics():
+            """🚀 FAZ 2: Advanced Analytics Dashboard"""
+            try:
+                if not self.ai_adapter:
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
+                
+                # Advanced analytics verilerini al
+                advanced_data = self.ai_adapter.get_advanced_analytics_dashboard()
+                
+                return jsonify({
+                    'status': 'success',
+                    'data': advanced_data,
+                    'timestamp': datetime.now().isoformat(),
+                    'version': '2.0',
+                    'features': [
+                        'Model Performance Comparison',
+                        'Cost Optimization Recommendations', 
+                        'Performance Trends Analysis',
+                        'System Health Monitoring',
+                        'Capacity Planning'
+                    ]
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/analytics/model-comparison')
+        def get_model_comparison():
+            """Model performans karşılaştırması"""
+            try:
+                if not self.ai_adapter:
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
+                
+                comparison_data = self.ai_adapter.get_model_performance_comparison()
+                
+                return jsonify({
+                    'status': 'success',
+                    'data': comparison_data,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/analytics/recommendations')
+        def get_optimization_recommendations():
+            """Maliyet optimizasyonu önerileri"""
+            try:
+                if not self.ai_adapter:
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
+                
+                recommendations = self.ai_adapter.get_cost_optimization_recommendations()
+                
+                return jsonify({
+                    'status': 'success',
+                    'recommendations': recommendations,
+                    'count': len(recommendations),
+                    'timestamp': datetime.now().isoformat()
+                })
                 
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
@@ -1045,6 +1110,105 @@ class WebUIUniversal:
                     'roles_assigned': len(roles),
                     'required_roles': required_roles,
                     'missing_roles': [role for role in required_roles if role not in roles]
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/optimization/enable', methods=['POST'])
+        def enable_auto_optimization():
+            """🤖 FAZ 3: Auto-optimization etkinleştir"""
+            try:
+                if not self.ai_adapter:
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
+                
+                data = request.get_json() or {}
+                config = data.get('config', {})
+                
+                # Auto-optimization'ı etkinleştir
+                self.ai_adapter.enable_auto_optimization(config)
+                
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Auto-optimization etkinleştirildi',
+                    'config': getattr(self.ai_adapter, 'auto_optimization_config', {}),
+                    'features': [
+                        'Dynamic Model Selection',
+                        'Auto Scaling',
+                        'Cost Optimization',
+                        'Predictive Planning'
+                    ],
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/optimization/cycle', methods=['POST'])
+        def run_optimization_cycle():
+            """🔄 Optimization cycle çalıştır"""
+            try:
+                if not self.ai_adapter:
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
+                
+                # Optimization cycle'ı çalıştır
+                results = self.ai_adapter.run_auto_optimization_cycle()
+                
+                return jsonify({
+                    'status': 'success',
+                    'results': results,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/optimization/intelligent-select', methods=['POST'])
+        def intelligent_model_selection():
+            """🧠 Akıllı model seçimi"""
+            try:
+                if not self.ai_adapter:
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
+                
+                data = request.get_json()
+                if not data or 'message' not in data:
+                    return jsonify({'error': 'Message field gerekli'}), 400
+                
+                message = data['message']
+                context = data.get('context', 'general')
+                
+                # Intelligent model selection
+                selected_adapter = self.ai_adapter.intelligent_load_balancing(message, context)
+                
+                if selected_adapter:
+                    adapter = self.ai_adapter.adapters.get(selected_adapter)
+                    return jsonify({
+                        'status': 'success',
+                        'selected_adapter': selected_adapter,
+                        'model': adapter.model if adapter else 'unknown',
+                        'context': context,
+                        'message_complexity': self.ai_adapter._analyze_message_complexity(message),
+                        'timestamp': datetime.now().isoformat()
+                    })
+                else:
+                    return jsonify({'error': 'Uygun adapter bulunamadı'}), 404
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/optimization/capacity-planning')
+        def get_capacity_planning():
+            """📈 Predictive capacity planning"""
+            try:
+                if not self.ai_adapter:
+                    return jsonify({'error': 'AI adapter bulunamadı'}), 500
+                
+                planning_data = self.ai_adapter.predictive_capacity_planning()
+                
+                return jsonify({
+                    'status': 'success',
+                    'data': planning_data,
+                    'timestamp': datetime.now().isoformat()
                 })
                 
             except Exception as e:

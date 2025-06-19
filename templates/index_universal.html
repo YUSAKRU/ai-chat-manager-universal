@@ -1787,15 +1787,75 @@
                                adapter.role === 'lead_developer' ? 'Lead Developer' :
                                adapter.role === 'boss' ? 'Director' : 'Unassigned';
                 
-                const statusColor = adapter.is_available ? 'success' : 'danger';
-                const statusText = adapter.is_available ? 'Hazır' : 'Meşgul';
+                // Enhanced status calculation using real performance data
+                let statusColor = 'success';
+                let statusText = 'active';
                 
-                // Format cost with better precision
-                const formattedCost = adapter.stats?.total_cost 
-                    ? (adapter.stats.total_cost >= 0.01 
-                        ? `$${adapter.stats.total_cost.toFixed(2)}` 
-                        : `$${adapter.stats.total_cost.toFixed(4)}`)
-                    : '$0.00';
+                if (adapter.real_performance) {
+                    if (!adapter.real_performance.is_available) {
+                        statusColor = 'warning';
+                        statusText = 'standby';
+                    } else if (adapter.real_performance.status === 'error') {
+                        statusColor = 'danger';
+                        statusText = 'error';
+                    }
+                } else if (!adapter.is_available) {
+                    statusColor = 'warning';
+                    statusText = 'standby';
+                }
+                
+                // Enhanced model name formatting
+                let displayModel = adapter.model || adapterId;
+                if (displayModel.includes('gemini')) {
+                    if (displayModel.includes('2.0-flash')) {
+                        displayModel = 'Gemini 2.0 Flash';
+                    } else if (displayModel.includes('2.5-flash')) {
+                        displayModel = 'Gemini 2.5 Flash';
+                    } else if (displayModel.includes('2.5-pro')) {
+                        displayModel = 'Gemini 2.5 Pro';
+                    } else if (displayModel.includes('pro')) {
+                        displayModel = 'Gemini Pro';
+                    } else {
+                        displayModel = 'Gemini Flash';
+                    }
+                } else if (displayModel.includes('gpt')) {
+                    displayModel = displayModel.toUpperCase().replace('-', ' ');
+                }
+                
+                // Enhanced cost calculation from real performance data
+                let totalCost = 0;
+                if (adapter.real_performance && adapter.real_performance.total_cost !== undefined) {
+                    totalCost = adapter.real_performance.total_cost;
+                } else if (adapter.stats && adapter.stats.total_cost !== undefined) {
+                    totalCost = adapter.stats.total_cost;
+                }
+                
+                const formattedCost = totalCost === 0 ? '$0.000' : 
+                    totalCost >= 0.01 ? `$${totalCost.toFixed(3)}` : `$${totalCost.toFixed(4)}`;
+                
+                // Response time from real performance data
+                let responseTime = '0.0s';
+                if (adapter.real_performance && adapter.real_performance.avg_response_time !== undefined) {
+                    responseTime = `${adapter.real_performance.avg_response_time}s`;
+                } else if (adapter.stats && adapter.stats.avg_response_time !== undefined) {
+                    responseTime = `${adapter.stats.avg_response_time}s`;
+                }
+                
+                // Total requests from real performance data
+                let totalRequests = 0;
+                if (adapter.real_performance && adapter.real_performance.total_requests !== undefined) {
+                    totalRequests = adapter.real_performance.total_requests;
+                } else if (adapter.stats && adapter.stats.total_requests !== undefined) {
+                    totalRequests = adapter.stats.total_requests;
+                }
+                
+                // Total tokens from real performance data
+                let totalTokens = 0;
+                if (adapter.real_performance && adapter.real_performance.total_tokens !== undefined) {
+                    totalTokens = adapter.real_performance.total_tokens;
+                } else if (adapter.stats && adapter.stats.total_tokens !== undefined) {
+                    totalTokens = adapter.stats.total_tokens;
+                }
                 
                 const cardHtml = `
                     <div class="col-lg-6 col-xl-12 mb-3" style="animation-delay: ${index * 100}ms">
@@ -1805,7 +1865,7 @@
                                 <div class="flex-grow-1">
                                     <div class="ai-name">${roleName}</div>
                                     <div class="text-muted text-sm">
-                                        <i class="bi bi-cpu"></i> ${adapter.model || adapterId}
+                                        <i class="bi bi-cpu"></i> ${displayModel}
                                     </div>
                                 </div>
                                 <div class="ms-auto">
@@ -1817,7 +1877,7 @@
                             </div>
                             <div class="stats-row">
                                 <div class="stat">
-                                    <div class="stat-value">${adapter.stats?.total_requests || 0}</div>
+                                    <div class="stat-value">${totalRequests}</div>
                                     <div class="stat-label">
                                         <i class="bi bi-arrow-repeat"></i> İstek
                                     </div>
@@ -1829,10 +1889,22 @@
                                     </div>
                                 </div>
                                 <div class="stat">
-                                    <div class="stat-value">${(adapter.stats?.total_tokens || 0).toLocaleString()}</div>
+                                    <div class="stat-value">${totalTokens.toLocaleString()}</div>
                                     <div class="stat-label">
                                         <i class="bi bi-type"></i> Token
                                     </div>
+                                </div>
+                            </div>
+                            <div class="performance-details mt-2 pt-2" style="border-top: 1px solid var(--border-subtle);">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-speedometer2"></i> Ortalama Yanıt: ${responseTime}
+                                    </small>
+                                    ${adapter.real_performance && adapter.real_performance.success_rate !== undefined ? 
+                                        `<small class="text-muted">
+                                            <i class="bi bi-check-circle"></i> Başarı: ${Math.round(adapter.real_performance.success_rate)}%
+                                        </small>` : ''
+                                    }
                                 </div>
                             </div>
                         </div>

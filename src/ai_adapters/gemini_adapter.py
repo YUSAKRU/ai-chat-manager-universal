@@ -24,13 +24,8 @@ class GeminiAdapter(BaseAIAdapter):
             "gemini-2.5-flash"       # Son fallback
         ]
         
-    async def send_message(self, message: str, context: Optional[str] = None) -> AIResponse:
+    async def _send_message_impl(self, message: str, context: Optional[str] = None) -> AIResponse:
         """Gemini'ye mesaj gönder - Model rotation + retry ile"""
-        
-        # Rate limit kontrolü
-        rate_limit = self.check_rate_limit()
-        if not rate_limit['available']:
-            raise Exception(f"Rate limit aşıldı. {rate_limit['retry_after']} saniye bekleyin.")
         
         # Model rotation ile retry
         for attempt, model_to_try in enumerate(self.fallback_models):
@@ -180,10 +175,7 @@ class GeminiAdapter(BaseAIAdapter):
             total_tokens = int(input_tokens + output_tokens)
             
             # Maliyet hesapla
-            cost = self._calculate_cost(int(input_tokens), int(output_tokens))
-            
-            # İstatistikleri güncelle
-            self._update_stats(total_tokens, cost)
+            cost = self._calculate_cost(model_name, int(input_tokens), int(output_tokens))
             
             return AIResponse(
                 content=response_text,
@@ -192,7 +184,7 @@ class GeminiAdapter(BaseAIAdapter):
                     "input_tokens": int(input_tokens),
                     "output_tokens": int(output_tokens),
                     "total_tokens": total_tokens,
-                    "cost": cost,
+                    "total_cost": cost,
                     "finish_reason": finish_reason
                 }
             )
@@ -201,35 +193,44 @@ class GeminiAdapter(BaseAIAdapter):
             self.stats['errors'] += 1
             raise Exception(f"Gemini API hatası ({model_name}): {str(e)}")
     
-    def _calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
-        """Gemini maliyet hesaplama"""
-        # Gemini free tier modeller için maliyet 0
-        free_models = [
-            "gemini-pro", "gemini-1.5-flash", "gemini-2.5-flash",
-            "gemini-1.5-flash-002", "gemini-2.0-flash-001"  # Yeni ücretsiz modeller
-        ]
-        if any(free_model in self.model for free_model in free_models):
-            return 0.0
+    def _calculate_cost(self, model_name: str, input_tokens: int, output_tokens: int) -> float:
+        """Gemini maliyet hesaplama - 2025 güncel fiyatlar"""
         
-        # Pro modeller için fiyatlandırma
-        costs = {
-            "gemini-1.5-pro": {
-                "input": 0.00125,  # $1.25 per 1M tokens
-                "output": 0.00375  # $3.75 per 1M tokens
-            },
-            "gemini-2.5-pro": {
-                "input": 0.00125,  # Yaklaşık fiyat (güncel olmayabilir)
-                "output": 0.00375  # Yaklaşık fiyat (güncel olmayabilir)
-            }
+        # 2025 güncel Gemini fiyatları (USD per 1M tokens)
+        cost_table = {
+            # Free tier modeller - $0
+            "gemini-1.5-flash": {"input": 0.0, "output": 0.0},
+            "gemini-1.5-flash-002": {"input": 0.0, "output": 0.0},
+            "gemini-2.0-flash": {"input": 0.0, "output": 0.0},
+            "gemini-2.0-flash-001": {"input": 0.0, "output": 0.0},
+            "gemini-2.5-flash": {"input": 0.0, "output": 0.0},
+            
+            # Pro modeller - Ücretli
+            "gemini-1.5-pro": {"input": 1.25, "output": 3.75},
+            "gemini-1.5-pro-002": {"input": 1.25, "output": 3.75},
+            "gemini-2.0-pro": {"input": 2.50, "output": 7.50},  # Tahmini
+            "gemini-2.5-pro": {"input": 2.50, "output": 7.50},  # Tahmini
         }
         
-        if self.model in costs:
-            cost_config = costs[self.model]
-            input_cost = (input_tokens / 1_000_000) * cost_config["input"]
-            output_cost = (output_tokens / 1_000_000) * cost_config["output"]
-            return input_cost + output_cost
+        # Model için fiyat bulma
+        model_cost = None
+        for cost_model, prices in cost_table.items():
+            if cost_model in model_name:
+                model_cost = prices
+                break
         
-        return 0.0
+        # Eğer model bulunamazsa, "pro" içeriyorsa ücretli, yoksa ücretsiz
+        if model_cost is None:
+            if "pro" in model_name.lower():
+                model_cost = {"input": 1.25, "output": 3.75}  # Default pro pricing
+            else:
+                model_cost = {"input": 0.0, "output": 0.0}  # Default free
+        
+        # Maliyet hesaplama
+        input_cost = (input_tokens / 1_000_000) * model_cost["input"]
+        output_cost = (output_tokens / 1_000_000) * model_cost["output"]
+        
+        return round(input_cost + output_cost, 6)  # 6 decimal precision
     
     def _sanitize_prompt(self, text: str) -> str:
         """Gemini güvenlik filtresi için prompt'u optimize et"""

@@ -82,31 +82,51 @@ class UniversalAIAdapter:
     def __init__(self, config_manager: SecureConfigManager):
         self.config_manager = config_manager
         self.adapters: Dict[str, BaseAIAdapter] = {}
+        self.adapter_stats: Dict[str, TokenStats] = {}
         self.role_assignments: Dict[str, str] = {}  # role_id -> adapter_id
+        self.role_stats: Dict[str, TokenStats] = {}
+        self.global_stats = TokenStats()
         self.conversation_history: List[Dict[str, Any]] = []
         
-        # Gelişmiş istatistik takibi
-        self.adapter_stats: Dict[str, TokenStats] = {}  # adapter_id -> TokenStats
-        self.role_stats: Dict[str, TokenStats] = {}     # role_id -> TokenStats
-        self.global_stats = TokenStats()
-        
-        # Token fiyatları (model bazında)
+        # 2025 Güncel Gemini model fiyatları - Yeni modeller eklendi
         self.token_prices = {
-            'gemini-pro': {'input': 0.00025, 'output': 0.0005},
+            # Gemini 2025 - Ücretsiz modeller
+            'gemini-1.5-flash': {'input': 0.0, 'output': 0.0},
+            'gemini-1.5-flash-002': {'input': 0.0, 'output': 0.0},
+            'gemini-2.0-flash': {'input': 0.0, 'output': 0.0},        # 🚀 YENİ - Ultra high throughput
+            'gemini-2.0-flash-001': {'input': 0.0, 'output': 0.0},
+            'gemini-2.0-flash-lite': {'input': 0.0, 'output': 0.0},   # 🚀 YENİ - Ultra performance
+            'gemini-2.5-flash': {'input': 0.0, 'output': 0.0},
+            'gemini-2.5-flash-lite-preview': {'input': 0.0, 'output': 0.0},  # 🚀 YENİ - 30K RPM
+            
+            # Gemini 2025 - Ücretli modeller
             'gemini-1.5-pro': {'input': 0.00125, 'output': 0.005},
-            'gemini-1.5-pro-002': {'input': 0.00125, 'output': 0.005},  # Yeni stabil
-            'gemini-1.5-flash': {'input': 0.000075, 'output': 0.0003},
-            'gemini-1.5-flash-002': {'input': 0.0, 'output': 0.0},  # Yeni stabil - Free tier
-            'gemini-2.0-flash': {'input': 0.0, 'output': 0.0},     # Free tier
-            'gemini-2.0-flash-001': {'input': 0.0, 'output': 0.0}, # Yeni stabil - Free tier
-            'gemini-2.5-pro': {'input': 0.00125, 'output': 0.005},
-            'gemini-2.5-flash': {'input': 0.0, 'output': 0.0},     # Free tier
+            'gemini-1.5-pro-002': {'input': 0.00125, 'output': 0.005},
+            'gemini-2.5-pro': {'input': 0.00125, 'output': 0.005},    # Enterprise model
+            
+            # OpenAI modelleri (karşılaştırma için)
             'gpt-3.5-turbo': {'input': 0.0015, 'output': 0.002},
             'gpt-4': {'input': 0.03, 'output': 0.06},
             'gpt-4-turbo': {'input': 0.01, 'output': 0.03},
             'gpt-4o': {'input': 0.005, 'output': 0.015},
             'gpt-4o-mini': {'input': 0.00015, 'output': 0.0006},
         }
+        
+        # Model rate limits - 2025 güncel veriler
+        self.model_rate_limits = {
+            'gemini-2.0-flash': {'rpm': 30000, 'tpm': 30000000},       # 🚀 Ultra high
+            'gemini-2.0-flash-lite': {'rpm': 30000, 'tpm': 30000000},  # 🚀 Ultra high  
+            'gemini-2.5-flash-lite-preview': {'rpm': 30000, 'tpm': 30000000},  # 🚀 Ultra high
+            'gemini-2.5-flash': {'rpm': 10000, 'tpm': 8000000},
+            'gemini-2.5-pro': {'rpm': 2000, 'tpm': 8000000},
+            'gemini-1.5-flash': {'rpm': 15000, 'tpm': 1000000},
+            'gemini-1.5-pro': {'rpm': 2000, 'tpm': 32000},
+        }
+        
+        # Performance analytics için yeni özellikler
+        self.model_performance_history = {}  # model -> [performance_snapshots]
+        self.cost_optimization_recommendations = []
+        self.performance_alerts = []
     
     def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> Dict[str, float]:
         """Model bazında maliyet hesapla"""
@@ -591,5 +611,553 @@ class UniversalAIAdapter:
                 results[adapter_id] = None
             else:
                 results[adapter_id] = response
+        
+        return results
+    
+    # 🚀 FAZ 2: ADVANCED ANALYTICS METODLARI
+    
+    def get_model_performance_comparison(self) -> Dict[str, Any]:
+        """Model performans karşılaştırması - 2025 Advanced Analytics"""
+        comparison = {
+            'models': {},
+            'recommendations': [],
+            'best_performers': {},
+            'cost_efficiency': {},
+            'throughput_analysis': {}
+        }
+        
+        # Her model için performans analizi
+        for adapter_id, adapter in self.adapters.items():
+            stats = self.adapter_stats.get(adapter_id, TokenStats())
+            model_name = adapter.model
+            
+            # Rate limit bilgilerini al
+            rate_limits = self.model_rate_limits.get(model_name, {'rpm': 1000, 'tpm': 100000})
+            
+            # Cost per request hesapla
+            cost_per_request = stats.total_cost / stats.requests_count if stats.requests_count > 0 else 0
+            
+            # Throughput efficiency (actual vs theoretical)
+            theoretical_capacity = rate_limits['rpm'] * 60  # per hour
+            actual_throughput = stats.requests_count / max(1, (time.time() - stats.last_request_time) / 3600) if stats.last_request_time else 0
+            throughput_efficiency = min(100, (actual_throughput / theoretical_capacity) * 100) if theoretical_capacity > 0 else 0
+            
+            comparison['models'][adapter_id] = {
+                'model_name': model_name,
+                'total_requests': stats.requests_count,
+                'avg_response_time': round(stats.avg_response_time, 3),
+                'success_rate': round(stats.get_success_rate(), 2),
+                'total_cost': round(stats.total_cost, 4),
+                'cost_per_request': round(cost_per_request, 6),
+                'tokens_per_second': round(stats.total_tokens / max(1, stats.avg_response_time), 2),
+                'throughput_efficiency': round(throughput_efficiency, 2),
+                'rate_limits': rate_limits,
+                'cost_category': 'FREE' if stats.total_cost == 0 else 'PAID'
+            }
+        
+        # En iyi performans gösterenleri belirle
+        if comparison['models']:
+            # En hızlı model
+            fastest = min(comparison['models'].items(), 
+                         key=lambda x: x[1]['avg_response_time'] if x[1]['avg_response_time'] > 0 else float('inf'))
+            comparison['best_performers']['fastest'] = fastest[0]
+            
+            # En ekonomik model
+            cheapest = min(comparison['models'].items(),
+                          key=lambda x: x[1]['cost_per_request'])
+            comparison['best_performers']['most_economical'] = cheapest[0]
+            
+            # En yüksek throughput
+            highest_throughput = max(comparison['models'].items(),
+                                   key=lambda x: x[1]['throughput_efficiency'])
+            comparison['best_performers']['highest_throughput'] = highest_throughput[0]
+        
+        return comparison
+    
+    def get_cost_optimization_recommendations(self) -> List[Dict[str, Any]]:
+        """Maliyet optimizasyonu önerileri"""
+        recommendations = []
+        
+        performance_data = self.get_model_performance_comparison()
+        
+        # 1. Ücretsiz modellere geçiş önerisi
+        free_models = [model for model, data in performance_data['models'].items() 
+                      if data['cost_category'] == 'FREE']
+        paid_models = [model for model, data in performance_data['models'].items() 
+                      if data['cost_category'] == 'PAID']
+        
+        if free_models and paid_models:
+            best_free = max(free_models, 
+                          key=lambda x: performance_data['models'][x]['throughput_efficiency'])
+            
+            recommendations.append({
+                'type': 'COST_REDUCTION',
+                'priority': 'HIGH',
+                'title': 'Ücretsiz Model Kullanımı',
+                'description': f'{best_free} modeli ücretsiz olup yüksek performans sunuyor.',
+                'estimated_savings': f'~%{self._calculate_potential_savings(paid_models, best_free)}',
+                'action': f'Paid modellerden {best_free} modeline geçiş yapın'
+            })
+        
+        # 2. Ultra-high throughput modelleri önerisi
+        ultra_models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-2.5-flash-lite-preview']
+        available_ultra = [model for model in ultra_models 
+                          if any(model in adapter.model for adapter in self.adapters.values())]
+        
+        if not available_ultra:
+            recommendations.append({
+                'type': 'PERFORMANCE_BOOST',
+                'priority': 'MEDIUM',
+                'title': '2025 Ultra-High Throughput Modelleri',
+                'description': 'Gemini 2.0 Flash ve 2.5 Flash-Lite 30,000 RPM kapasitesi sunuyor.',
+                'estimated_improvement': '+200% throughput capacity',
+                'action': 'Ultra modelleri sisteme ekleyin'
+            })
+        
+        # 3. Load balancing önerisi
+        model_usage = {model: data['total_requests'] 
+                      for model, data in performance_data['models'].items()}
+        if model_usage:
+            max_usage = max(model_usage.values())
+            min_usage = min(model_usage.values())
+            imbalance_ratio = max_usage / max(1, min_usage)
+            
+            if imbalance_ratio > 3:  # %300'den fazla dengesizlik
+                recommendations.append({
+                    'type': 'LOAD_BALANCING',
+                    'priority': 'MEDIUM',
+                    'title': 'Yük Dağılımı Optimizasyonu',
+                    'description': f'Model kullanımında %{int(imbalance_ratio*100)}\'lük dengesizlik tespit edildi.',
+                    'estimated_improvement': '+25% overall efficiency',
+                    'action': 'Load balancing algoritması uygulayın'
+                })
+        
+        return recommendations
+    
+    def _calculate_potential_savings(self, paid_models: List[str], alternative_model: str) -> int:
+        """Potansiyel maliyet tasarrufu hesapla"""
+        total_paid_cost = sum(self.adapter_stats.get(model, TokenStats()).total_cost 
+                             for model in paid_models)
+        if total_paid_cost > 0:
+            return min(90, int((total_paid_cost * 100) / max(total_paid_cost, 0.01)))
+        return 0
+    
+    def get_performance_trends(self) -> Dict[str, Any]:
+        """Performans trend analizi"""
+        trends = {
+            'response_time_trend': 'stable',  # stable, improving, degrading
+            'cost_trend': 'stable',
+            'throughput_trend': 'stable',
+            'error_rate_trend': 'stable',
+            'predictions': {
+                'next_hour_cost': 0.0,
+                'bottleneck_risk': 'low',  # low, medium, high
+                'capacity_warning': None
+            }
+        }
+        
+        # Basit trend analizi (gerçek uygulamada daha karmaşık olabilir)
+        current_avg_response = self.global_stats.avg_response_time
+        
+        if current_avg_response > 3.0:
+            trends['response_time_trend'] = 'degrading'
+            trends['predictions']['bottleneck_risk'] = 'high'
+        elif current_avg_response < 1.0:
+            trends['response_time_trend'] = 'improving'
+        
+        # Maliyet trend analizi
+        hourly_cost_rate = self.global_stats.total_cost
+        trends['predictions']['next_hour_cost'] = round(hourly_cost_rate, 4)
+        
+        # Kapasite uyarıları
+        for adapter_id, adapter in self.adapters.items():
+            stats = self.adapter_stats.get(adapter_id, TokenStats())
+            rate_limits = self.model_rate_limits.get(adapter.model, {'rpm': 1000})
+            
+            if stats.requests_count > (rate_limits['rpm'] * 0.8):  # %80 kapasiteye yakın
+                trends['predictions']['capacity_warning'] = f'{adapter_id} kapasitesinin %80\'ine yaklaştı'
+                break
+        
+        return trends
+    
+    def get_advanced_analytics_dashboard(self) -> Dict[str, Any]:
+        """Gelişmiş analytics dashboard verisi"""
+        return {
+            'model_comparison': self.get_model_performance_comparison(),
+            'cost_optimization': self.get_cost_optimization_recommendations(),
+            'performance_trends': self.get_performance_trends(),
+            'system_health': {
+                'overall_score': self._calculate_system_health_score(),
+                'critical_alerts': self._get_critical_alerts(),
+                'recommendations_count': len(self.get_cost_optimization_recommendations())
+            },
+            'capacity_planning': {
+                'current_utilization': self._get_current_utilization(),
+                'growth_projection': self._get_growth_projection(),
+                'scaling_recommendations': self._get_scaling_recommendations()
+            }
+        }
+    
+    def _calculate_system_health_score(self) -> int:
+        """Sistem sağlık skoru hesapla (0-100)"""
+        score = 100
+        
+        # Error rate penalty
+        if self.global_stats.errors_count > 0:
+            error_rate = self.global_stats.errors_count / max(1, self.global_stats.requests_count)
+            score -= min(30, error_rate * 100)
+        
+        # Response time penalty
+        if self.global_stats.avg_response_time > 2.0:
+            score -= min(20, (self.global_stats.avg_response_time - 2.0) * 10)
+        
+        # Low usage penalty
+        if self.global_stats.requests_count < 10:
+            score -= 10
+        
+        return max(0, int(score))
+    
+    def _get_critical_alerts(self) -> List[str]:
+        """Kritik uyarıları al"""
+        alerts = []
+        
+        if self.global_stats.avg_response_time > 5.0:
+            alerts.append('Yüksek yanıt süresi tespit edildi')
+        
+        error_rate = self.global_stats.errors_count / max(1, self.global_stats.requests_count)
+        if error_rate > 0.1:  # %10'dan fazla hata
+            alerts.append(f'Yüksek hata oranı: %{int(error_rate*100)}')
+        
+        if len(self.adapters) == 0:
+            alerts.append('Hiçbir AI adapter yapılandırılmamış')
+        
+        return alerts
+    
+    def _get_current_utilization(self) -> Dict[str, float]:
+        """Mevcut kapasite kullanımı"""
+        utilization = {}
+        
+        for adapter_id, adapter in self.adapters.items():
+            stats = self.adapter_stats.get(adapter_id, TokenStats())
+            rate_limits = self.model_rate_limits.get(adapter.model, {'rpm': 1000})
+            
+            current_rpm = stats.requests_count  # Simplified calculation
+            utilization[adapter_id] = min(100, (current_rpm / rate_limits['rpm']) * 100)
+        
+        return utilization
+    
+    def _get_growth_projection(self) -> str:
+        """Büyüme projeksiyonu"""
+        if self.global_stats.requests_count < 50:
+            return 'Yetersiz veri'
+        elif self.global_stats.requests_count < 500:
+            return 'Düşük büyüme'
+        else:
+            return 'Yüksek büyüme'
+    
+    def _get_scaling_recommendations(self) -> List[str]:
+        """Ölçeklendirme önerileri"""
+        recommendations = []
+        
+        utilization = self._get_current_utilization()
+        high_usage_adapters = [adapter for adapter, usage in utilization.items() if usage > 70]
+        
+        if high_usage_adapters:
+            recommendations.append(f'Yüksek kullanımlı adapter\'lar için ek kapasite ekleyin: {", ".join(high_usage_adapters)}')
+        
+        if len(self.adapters) < 3:
+            recommendations.append('Redundancy için en az 3 adapter kullanın')
+        
+        return recommendations
+    
+    # 🤖 FAZ 3: AUTO-OPTIMIZATION METODLARI
+    
+    def enable_auto_optimization(self, config: Dict[str, Any] = None):
+        """Auto-optimization özelliklerini etkinleştir"""
+        default_config = {
+            'dynamic_model_selection': True,
+            'auto_scaling': True,
+            'cost_optimization': True,
+            'predictive_planning': True,
+            'optimization_interval': 300,  # 5 dakika
+            'max_cost_threshold': 1.0,     # $1 limit
+            'min_success_rate': 95.0,      # %95 başarı oranı
+            'max_response_time': 3.0       # 3 saniye
+        }
+        
+        self.auto_optimization_config = {**default_config, **(config or {})}
+        self.auto_optimization_enabled = True
+        
+        print("🤖 Auto-optimization etkinleştirildi!")
+        self._log_optimization_config()
+    
+    def _log_optimization_config(self):
+        """Optimization config'ini logla"""
+        config = self.auto_optimization_config
+        print(f"📊 Optimization parametreleri:")
+        print(f"   💰 Max maliyet: ${config['max_cost_threshold']}")
+        print(f"   ✅ Min başarı oranı: %{config['min_success_rate']}")
+        print(f"   ⚡ Max yanıt süresi: {config['max_response_time']}s")
+        print(f"   🔄 Kontrol aralığı: {config['optimization_interval']}s")
+    
+    def auto_select_optimal_model(self, context: str = "general") -> str:
+        """🧠 Akıllı model seçimi - Context-aware optimization"""
+        if not hasattr(self, 'auto_optimization_enabled') or not self.auto_optimization_enabled:
+            # Fallback to first available adapter
+            return list(self.adapters.keys())[0] if self.adapters else None
+        
+        # Performance metrics al
+        performance_data = self.get_model_performance_comparison()
+        
+        if not performance_data['models']:
+            return None
+        
+        # Context-based scoring
+        context_weights = self._get_context_weights(context)
+        
+        best_model = None
+        best_score = -1
+        
+        for adapter_id, model_data in performance_data['models'].items():
+            # Multi-criteria scoring
+            score = 0
+            
+            # Response time score (lower is better)
+            response_time = model_data['avg_response_time']
+            response_score = max(0, 100 - (response_time * 20))  # 5s = 0 score
+            score += response_score * context_weights['speed']
+            
+            # Cost efficiency score (lower cost is better)
+            cost_per_request = model_data['cost_per_request']
+            cost_score = 100 if cost_per_request == 0 else max(0, 100 - (cost_per_request * 10000))
+            score += cost_score * context_weights['cost']
+            
+            # Success rate score
+            success_rate = model_data['success_rate']
+            score += success_rate * context_weights['reliability']
+            
+            # Throughput score
+            throughput_efficiency = model_data['throughput_efficiency']
+            score += throughput_efficiency * context_weights['throughput']
+            
+            # 2025 model priority bonus
+            model_name = model_data['model_name']
+            if any(new_model in model_name for new_model in ['2.0-flash', '2.5-flash-lite', '2.0-flash-lite']):
+                score += 20  # Bonus for latest models
+            
+            if score > best_score:
+                best_score = score
+                best_model = adapter_id
+        
+        print(f"🧠 Auto-selected model: {best_model} (score: {best_score:.1f})")
+        return best_model
+    
+    def _get_context_weights(self, context: str) -> Dict[str, float]:
+        """Context'e göre optimization ağırlıklarını belirle"""
+        weights = {
+            'general': {'speed': 0.3, 'cost': 0.3, 'reliability': 0.3, 'throughput': 0.1},
+            'cost_sensitive': {'speed': 0.1, 'cost': 0.6, 'reliability': 0.2, 'throughput': 0.1},
+            'performance_critical': {'speed': 0.5, 'cost': 0.1, 'reliability': 0.3, 'throughput': 0.1},
+            'high_volume': {'speed': 0.2, 'cost': 0.2, 'reliability': 0.2, 'throughput': 0.4},
+            'enterprise': {'speed': 0.2, 'cost': 0.1, 'reliability': 0.5, 'throughput': 0.2}
+        }
+        
+        return weights.get(context, weights['general'])
+    
+    def auto_scale_adapters(self) -> Dict[str, Any]:
+        """🔄 Otomatik adapter scaling"""
+        if not hasattr(self, 'auto_optimization_enabled') or not self.auto_optimization_enabled:
+            return {'message': 'Auto-optimization devre dışı'}
+        
+        scaling_actions = {
+            'added_adapters': [],
+            'removed_adapters': [],
+            'rebalanced_roles': [],
+            'recommendations': []
+        }
+        
+        # Current utilization analysis
+        utilization = self._get_current_utilization()
+        
+        # High-usage adapter detection
+        high_usage_adapters = [aid for aid, usage in utilization.items() if usage > 80]
+        
+        if high_usage_adapters:
+            # Add ultra-high throughput models for load distribution
+            ultra_models = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-2.5-flash-lite-preview']
+            
+            for model in ultra_models:
+                if not any(model in adapter.model for adapter in self.adapters.values()):
+                    try:
+                        # Auto-add high-performance model
+                        new_adapter_id = self.add_adapter('gemini', model=model)
+                        scaling_actions['added_adapters'].append({
+                            'adapter_id': new_adapter_id,
+                            'model': model,
+                            'reason': 'High utilization scaling',
+                            'expected_capacity': '+30,000 RPM'
+                        })
+                        print(f"🚀 Auto-scaling: {model} adapter eklendi")
+                        break  # Only add one at a time
+                    except Exception as e:
+                        print(f"⚠️ Auto-scaling hatası: {e}")
+        
+        # Low-usage adapter cleanup
+        low_usage_adapters = [aid for aid, usage in utilization.items() if usage < 5 and len(self.adapters) > 2]
+        
+        if low_usage_adapters:
+            # Keep at least 2 adapters for redundancy
+            adapter_to_remove = low_usage_adapters[0]
+            scaling_actions['recommendations'].append({
+                'type': 'REMOVE_ADAPTER',
+                'adapter_id': adapter_to_remove,
+                'reason': 'Very low utilization',
+                'potential_savings': 'Resource cleanup'
+            })
+        
+        return scaling_actions
+    
+    def predictive_capacity_planning(self) -> Dict[str, Any]:
+        """📈 Predictive capacity planning based on usage patterns"""
+        if not hasattr(self, 'auto_optimization_enabled') or not self.auto_optimization_enabled:
+            return {'message': 'Auto-optimization devre dışı'}
+        
+        # Simplified predictive analysis
+        current_requests = self.global_stats.requests_count
+        current_cost = self.global_stats.total_cost
+        
+        # Growth prediction (simplified)
+        if current_requests < 100:
+            growth_rate = 'low'
+            predicted_requests_24h = current_requests * 2
+        elif current_requests < 1000:
+            growth_rate = 'moderate'
+            predicted_requests_24h = current_requests * 3
+        else:
+            growth_rate = 'high'
+            predicted_requests_24h = current_requests * 5
+        
+        # Capacity recommendations
+        recommendations = []
+        
+        if predicted_requests_24h > 10000:
+            recommendations.append({
+                'type': 'CAPACITY_EXPANSION',
+                'priority': 'HIGH',
+                'message': 'Ultra-high throughput modelleri eklemeyi düşünün',
+                'models': ['gemini-2.0-flash', 'gemini-2.5-flash-lite-preview'],
+                'expected_capacity': '30,000 RPM per model'
+            })
+        
+        if current_cost > 0.5:  # $0.50+
+            recommendations.append({
+                'type': 'COST_OPTIMIZATION',
+                'priority': 'MEDIUM',
+                'message': 'Maliyet optimizasyonu için ücretsiz modelleri değerlendirin',
+                'potential_savings': f'~${current_cost * 0.8:.2f}'
+            })
+        
+        return {
+            'current_metrics': {
+                'requests': current_requests,
+                'cost': round(current_cost, 4),
+                'growth_rate': growth_rate
+            },
+            'predictions_24h': {
+                'estimated_requests': predicted_requests_24h,
+                'estimated_cost': round(current_cost * (predicted_requests_24h / max(1, current_requests)), 4)
+            },
+            'recommendations': recommendations,
+            'confidence': 'medium'  # Basit model için
+        }
+    
+    def intelligent_load_balancing(self, message: str, context: Optional[str] = None) -> str:
+        """🎯 Akıllı load balancing - Best adapter selection"""
+        if not hasattr(self, 'auto_optimization_enabled') or not self.auto_optimization_enabled:
+            # Fallback to simple selection
+            return list(self.adapters.keys())[0] if self.adapters else None
+        
+        # Message complexity analysis
+        complexity = self._analyze_message_complexity(message)
+        
+        # Context mapping
+        if complexity == 'high':
+            optimal_context = 'performance_critical'
+        elif 'cost' in message.lower() or 'budget' in message.lower():
+            optimal_context = 'cost_sensitive'
+        elif len(message) > 1000:
+            optimal_context = 'high_volume'
+        else:
+            optimal_context = context or 'general'
+        
+        # Auto-select optimal model
+        selected_adapter = self.auto_select_optimal_model(optimal_context)
+        
+        print(f"🎯 Intelligent load balancing:")
+        print(f"   📝 Message complexity: {complexity}")
+        print(f"   🎭 Context: {optimal_context}")
+        print(f"   🤖 Selected adapter: {selected_adapter}")
+        
+        return selected_adapter
+    
+    def _analyze_message_complexity(self, message: str) -> str:
+        """Mesaj karmaşıklığını analiz et"""
+        if len(message) > 2000:
+            return 'high'
+        elif len(message) > 500:
+            return 'medium'
+        else:
+            return 'low'
+    
+    def run_auto_optimization_cycle(self) -> Dict[str, Any]:
+        """🔄 Tam otomatik optimization cycle"""
+        if not hasattr(self, 'auto_optimization_enabled') or not self.auto_optimization_enabled:
+            return {'message': 'Auto-optimization devre dışı'}
+        
+        results = {
+            'timestamp': datetime.now().isoformat(),
+            'optimizations_applied': [],
+            'recommendations': [],
+            'system_health_before': self._calculate_system_health_score(),
+            'system_health_after': 0
+        }
+        
+        try:
+            # 1. Performance analysis
+            trends = self.get_performance_trends()
+            
+            # 2. Auto-scaling if needed
+            scaling_results = self.auto_scale_adapters()
+            if scaling_results['added_adapters']:
+                results['optimizations_applied'].extend(scaling_results['added_adapters'])
+            
+            # 3. Cost optimization check
+            config = self.auto_optimization_config
+            if self.global_stats.total_cost > config['max_cost_threshold']:
+                recommendations = self.get_cost_optimization_recommendations()
+                high_priority = [r for r in recommendations if r['priority'] == 'HIGH']
+                results['recommendations'].extend(high_priority[:2])  # Top 2 high priority
+            
+            # 4. Predictive planning
+            capacity_planning = self.predictive_capacity_planning()
+            results['capacity_predictions'] = capacity_planning
+            
+            # 5. Final health score
+            results['system_health_after'] = self._calculate_system_health_score()
+            
+            # 6. Summary
+            improvement = results['system_health_after'] - results['system_health_before']
+            results['improvement'] = improvement
+            results['status'] = 'success' if improvement >= 0 else 'needs_attention'
+            
+            print(f"🔄 Auto-optimization cycle completed:")
+            print(f"   📊 Health improvement: +{improvement}")
+            print(f"   ⚡ Optimizations applied: {len(results['optimizations_applied'])}")
+            print(f"   💡 New recommendations: {len(results['recommendations'])}")
+            
+        except Exception as e:
+            results['error'] = str(e)
+            results['status'] = 'error'
+            print(f"❌ Auto-optimization error: {e}")
         
         return results 

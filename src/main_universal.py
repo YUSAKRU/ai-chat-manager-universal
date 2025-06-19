@@ -120,6 +120,20 @@ class UniversalChatManager:
                 original_exception=e
             )
         
+        # 🤖 Auto-optimization etkinleştir (FAZ 3)
+        logger.info("🤖 Auto-optimization etkinleştiriliyor...")
+        try:
+            auto_config = {
+                'max_cost_threshold': 2.0,      # $2 günlük limit
+                'min_success_rate': 95.0,       # %95 başarı oranı
+                'max_response_time': 3.0,       # 3 saniye
+                'optimization_interval': 300    # 5 dakikada bir kontrol
+            }
+            self.ai_adapter.enable_auto_optimization(auto_config)
+            logger.info("✅ Auto-optimization aktif!")
+        except Exception as e:
+            logger.warning(f"⚠️ Auto-optimization başlatılamadı: {e}")
+        
         logger.info(f"{Fore.GREEN}✅ Tüm bileşenler başarıyla başlatıldı!{Style.RESET_ALL}")
     
     async def _configure_adapters(self, config_manager: SecureConfigManager):
@@ -196,6 +210,7 @@ class UniversalChatManager:
         print("  - 'chat' : AI'lar arası konuşma başlat")
         print("  - 'status' : Sistem durumunu göster")
         print("  - 'analytics' : Analytics özeti göster")
+        print("  - 'optimize' : Auto-optimization cycle çalıştır")
         print("  - 'exit' : Çıkış yap\n")
         
         try:
@@ -214,8 +229,18 @@ class UniversalChatManager:
                         self._show_status()
                     elif command.lower() == 'analytics':
                         self._show_analytics()
+                    elif command.lower() == 'optimize':
+                        print("🔄 Auto-optimization cycle başlatılıyor...")
+                        try:
+                            results = self.ai_adapter.run_auto_optimization_cycle()
+                            print(f"✅ Optimization tamamlandı!")
+                            print(f"📊 Health Score: {results.get('system_health_after', 'N/A')}")
+                            print(f"⚡ Uygulanmış optimizasyonlar: {len(results.get('optimizations_applied', []))}")
+                            print(f"💡 Yeni öneriler: {len(results.get('recommendations', []))}")
+                        except Exception as e:
+                            print(f"❌ Optimization hatası: {e}")
                     else:
-                        print(f"{Fore.RED}Geçersiz komut. 'exit', 'chat', 'status' veya 'analytics' yazın.{Style.RESET_ALL}")
+                        print(f"{Fore.RED}Geçersiz komut. 'exit', 'chat', 'status', 'analytics' veya 'optimize' yazın.{Style.RESET_ALL}")
                 
                 except KeyboardInterrupt:
                     break
