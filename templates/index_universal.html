@@ -3,706 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chrome Chat Manager - Universal Edition</title>
+    <meta name="description" content="AI Chrome Chat Manager - Modern AI Orchestration with Multi-Specialist Coordination">
+    <meta name="keywords" content="AI, ChatGPT, Claude, Gemini, Orchestrator, AI Management">
+    <meta name="author" content="AI Chrome Chat Manager">
+    <meta name="theme-color" content="#ffffff">
+    
+    <title>🤖 AI Orchestrator - Universal Edition | Smart AI Coordination</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/css/design-system.css" as="style">
+    <link rel="preload" href="/static/js/theme-manager.js" as="script">
+    <link rel="preload" href="/static/js/animation-utils.js" as="script">
+    
+    <!-- External CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Our Design System -->
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    
     <style>
-        :root {
-            --primary-color: #4299e1;
-            --success-color: #48bb78;
-            --warning-color: #ed8936;
-            --danger-color: #e53e3e;
-            --purple-color: #9f7aea;
-            --bg-color: #f5f7fa;
-            --card-bg: #ffffff;
-            --text-primary: #1a202c;
-            --text-secondary: #718096;
+        /* Template-specific enhancements */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+            color: var(--text-inverse);
+            padding: var(--space-20) 0;
+            margin-bottom: var(--space-12);
+            position: relative;
+            overflow: hidden;
         }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
         }
-        
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        [data-theme="dark"] .hero-section {
+            background: linear-gradient(135deg, var(--secondary-800) 0%, var(--secondary-900) 100%);
+        }
+
+        /* Enhanced navbar */
         .navbar {
-            background-color: var(--card-bg);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: var(--bg-surface) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-primary);
+            box-shadow: var(--shadow-sm);
         }
-        
-        .main-container {
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
+
+        .navbar-brand {
+            font-weight: var(--font-weight-bold);
+            color: var(--text-primary) !important;
+            font-size: var(--font-size-xl);
         }
-        
-        /* Tab Navigation */
+
+        /* Enhanced tab navigation */
         .nav-tabs {
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-primary);
+            margin-bottom: var(--space-8);
         }
-        
+
         .nav-tabs .nav-link {
             color: var(--text-secondary);
             border: none;
-            padding: 12px 24px;
-            font-weight: 500;
-            transition: all 0.2s;
+            padding: var(--space-4) var(--space-6);
+            font-weight: var(--font-weight-medium);
+            transition: all var(--transition-base);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            position: relative;
         }
-        
+
         .nav-tabs .nav-link:hover {
-            color: var(--primary-color);
+            color: var(--primary-500);
+            background: var(--bg-tertiary);
         }
-        
+
         .nav-tabs .nav-link.active {
-            color: var(--primary-color);
-            background: none;
-            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-500);
+            background: var(--bg-surface);
+            border-bottom: 3px solid var(--primary-500);
         }
-        
-        /* Analytics Cards */
+
+        /* Enhanced metrics cards */
         .metric-card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
             height: 100%;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        }
-        
-        .metric-card.cost {
-            border-top: 4px solid var(--success-color);
-        }
-        
-        .metric-card.requests {
-            border-top: 4px solid var(--primary-color);
-        }
-        
-        .metric-card.success {
-            border-top: 4px solid var(--purple-color);
-        }
-        
-        .metric-card.speed {
-            border-top: 4px solid var(--warning-color);
-        }
-        
-        .metric-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-        
-        .metric-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        
-        .metric-change {
-            font-size: 13px;
-            color: var(--success-color);
-        }
-        
-        .metric-change.negative {
-            color: var(--danger-color);
-        }
-        
-        /* Token Usage */
-        .token-usage-card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-        
-        .progress-bar-custom {
-            height: 20px;
-            background: #e2e8f0;
-            border-radius: 10px;
+            position: relative;
             overflow: hidden;
-            display: flex;
         }
-        
-        .progress-input {
-            background: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: 500;
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity var(--transition-base);
         }
-        
-        .progress-output {
-            background: var(--success-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-            font-weight: 500;
+
+        .metric-card:hover::before {
+            opacity: 1;
         }
-        
-        /* AI Cards */
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .metric-card.cost::before { background: var(--gradient-success); }
+        .metric-card.requests::before { background: var(--gradient-primary); }
+        .metric-card.success::before { background: var(--gradient-warning); }
+        .metric-card.speed::before { background: var(--gradient-danger); }
+
+        /* Enhanced AI cards */
         .ai-card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid var(--primary-color);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
             height: 100%;
         }
-        
-        .ai-card.inactive {
-            opacity: 0.6;
-            border-left-color: #cbd5e0;
+
+        .ai-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
-        
-        .ai-status {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 13px;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success-color);
-        }
-        
-        .status-dot.inactive {
-            background: #cbd5e0;
-        }
-        
-        .ai-stat {
-            text-align: center;
-            padding: 10px;
-            background: #f7fafc;
-            border-radius: 8px;
-        }
-        
-        .ai-stat-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-        
-        .ai-stat-value {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        /* Chat Interface */
+
+        /* Enhanced chat interface */
         .chat-container {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
             height: 600px;
             display: flex;
             flex-direction: column;
         }
-        
+
+        .chat-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--border-primary);
+            background: var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f7fafc;
+            padding: var(--space-6);
+            background: var(--bg-secondary);
         }
-        
-        .message {
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 8px;
-            background: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        
-        .message-role {
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        
-        .message-time {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        
+
         .chat-input {
-            padding: 20px;
-            border-top: 1px solid #e2e8f0;
+            padding: var(--space-6);
+            border-top: 1px solid var(--border-primary);
+            background: var(--bg-surface);
         }
-        
-        /* Live Chat Stream */
-        .live-chat-container {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            height: 500px;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .chat-header {
-            padding: 20px 20px 15px 20px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 12px 12px 0 0;
-        }
-        
-        .chat-controls {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .chat-controls .btn {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        
-        .live-chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            background: #f8fafc;
-            scroll-behavior: smooth;
-        }
-        
-        .ai-message {
-            margin-bottom: 15px;
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .ai-message.project_manager {
-            text-align: left;
-        }
-        
-        .ai-message.lead_developer {
-            text-align: right;
-        }
-        
-        .message-bubble {
-            display: inline-block;
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            word-wrap: break-word;
-            position: relative;
-            margin: 4px 0;
-        }
-        
-        .message-bubble.pm {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-bottom-left-radius: 4px;
-        }
-        
-        .message-bubble.ld {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-        
-        .message-header-inline {
+
+        /* Connection status indicator */
+        .connection-status {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 11px;
-            opacity: 0.9;
+            gap: var(--space-2);
         }
-        
-        .role-icon {
-            width: 18px;
-            height: 18px;
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: white;
+            animation: pulse 2s infinite;
         }
-        
-        .role-icon.pm {
-            background: #4299e1;
+
+        .status-dot.online {
+            background: var(--success-500);
         }
-        
-        .role-icon.ld {
-            background: #ed8936;
+
+        .status-dot.offline {
+            background: var(--danger-500);
         }
-        
-        .message-content {
-            font-size: 13px;
-            line-height: 1.4;
-        }
-        
-        .conversation-status {
-            padding: 12px 20px;
-            border-top: 1px solid #e2e8f0;
-            background: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            border-radius: 0 0 12px 12px;
-        }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .turn-counter {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        
-        .thinking-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-style: italic;
-            opacity: 0.7;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
-        
-        /* Director Intervention Panel */
-        .director-intervention {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-            border: 2px solid #e17055;
-            border-radius: 12px;
-            margin: 15px 0;
-            padding: 0;
-            animation: slideDown 0.3s ease-out;
-            box-shadow: 0 4px 15px rgba(225, 112, 85, 0.3);
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: var(--space-12) 0;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+            .metric-card {
+                margin-bottom: var(--space-4);
+            }
+
+            .nav-tabs .nav-link {
+                padding: var(--space-3) var(--space-4);
+                font-size: var(--font-size-sm);
             }
         }
-        
-        .intervention-header {
-            background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 10px 10px 0 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        .intervention-header small {
-            margin-left: auto;
-            opacity: 0.9;
-            font-weight: 400;
-        }
-        
-        .intervention-input {
-            padding: 15px;
-        }
-        
-        .intervention-input .input-group {
-            margin-bottom: 10px;
-        }
-        
-        .intervention-input textarea {
-            resize: none;
-            border-radius: 8px 0 0 8px;
-            border: 2px solid #e17055;
-            background: rgba(255, 255, 255, 0.95);
-            font-size: 13px;
-        }
-        
-        .intervention-input textarea:focus {
-            border-color: #d63031;
-            box-shadow: 0 0 0 0.2rem rgba(225, 112, 85, 0.25);
-        }
-        
-        .intervention-input .btn {
-            border-radius: 0 8px 8px 0;
-            border: 2px solid #e17055;
-            border-left: none;
-            background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
-            color: white;
-            font-weight: 600;
-            padding: 8px 16px;
-            transition: all 0.2s;
-        }
-        
-        .intervention-input .btn:hover {
-            background: linear-gradient(135deg, #d63031 0%, #c0392b 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(214, 48, 49, 0.4);
-        }
-        
-        .intervention-tips {
-            font-style: italic;
-        }
-        
-        /* Director Message Bubble */
-        .ai-message.director {
-            text-align: center;
-            margin: 20px 0;
-        }
-        
-        .message-bubble.director {
-            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
-            color: white;
-            max-width: 95%;
-            border-radius: 25px;
-            padding: 16px 24px;
-            font-weight: 600;
-            border: 3px solid #d63031;
-            box-shadow: 0 4px 15px rgba(225, 112, 85, 0.4);
-            position: relative;
-        }
-        
-        .message-bubble.director::before {
-            content: "🎯";
-            position: absolute;
-            left: -15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #d63031;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        
-        .intervention-notification {
-            background: rgba(225, 112, 85, 0.1);
-            border: 1px solid #e17055;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin: 10px 0;
-            text-align: center;
-            font-size: 12px;
-            color: #d63031;
-            font-weight: 500;
-        }
-        
-        /* Memory & Tasks Modals */
-        .conversation-item {
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: white;
-        }
-        
-        .conversation-item:hover {
-            border-color: var(--primary-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .conversation-item.active {
-            border-color: var(--primary-color);
-            background: var(--primary-color);
-            color: white;
-        }
-        
-        .conversation-item-header {
-            display: flex;
-            justify-content: between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-        
-        .conversation-snippet {
-            font-size: 13px;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
-        
-        .conversation-item.active .conversation-snippet {
-            color: rgba(255,255,255,0.8);
-        }
-        
-        .conversation-stats {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        
-        .memory-message {
-            padding: 15px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            border-left: 4px solid #e2e8f0;
-        }
-        
-        .memory-message.pm {
-            border-left-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        }
-        
-        .memory-message.ld {
-            border-left-color: #f093fb;
-            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
-        }
-        
-        .memory-message.director {
-            border-left-color: #e17055;
-            background: linear-gradient(135deg, rgba(253, 203, 110, 0.1) 0%, rgba(225, 112, 85, 0.1) 100%);
-        }
-        
-        .role-badge {
-            font-weight: 600;
-            font-size: 12px;
-        }
-        
-        .task-item {
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            background: white;
-        }
-        
-        .task-item.task-urgent {
-            border-left: 4px solid #dc3545;
-        }
-        
-        .task-item.task-high {
-            border-left: 4px solid #ffc107;
-        }
-        
-        .task-item.task-medium {
-            border-left: 4px solid #0d6efd;
-        }
-        
-        .task-item.task-low {
-            border-left: 4px solid #198754;
-        }
-        
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-        
-        .task-title {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        
-        .task-badges {
-            display: flex;
-            gap: 6px;
-        }
-        
-        .task-description {
-            font-size: 13px;
-            color: #64748b;
-            margin-bottom: 10px;
-        }
-        
-        .task-meta {
-            margin-bottom: 10px;
-        }
-        
-        .task-actions {
-            display: flex;
-            gap: 8px;
+
+        /* Print styles */
+        @media print {
+            .hero-section,
+            .navbar,
+            .nav-tabs,
+            .chat-container {
+                display: none !important;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                🤖 AI Chrome Chat Manager <span class="badge bg-primary">Universal</span>
+            <a class="navbar-brand gradient-text" href="/">
+                <i class="bi bi-robot"></i>
+                AI Orchestrator
+                <span class="badge bg-primary ms-2">v2.0</span>
             </a>
+            
             <div class="navbar-nav me-auto">
-                <a class="nav-link" href="/api-management">
-                    <i class="bi bi-key-fill"></i> API Yönetimi
+                <a class="nav-link hover-lift" href="/api-management">
+                    <i class="bi bi-key-fill"></i>
+                    <span class="d-none d-sm-inline">API Yönetimi</span>
                 </a>
             </div>
-            <div class="ms-auto">
-                <span class="text-muted" id="connection-status">
-                    <i class="bi bi-circle-fill text-success"></i> Bağlı
-                </span>
+            
+            <div class="navbar-nav ms-auto">
+                <div class="connection-status">
+                    <span class="status-dot online" id="status-indicator"></span>
+                    <span class="text-sm" id="connection-status">Bağlı</span>
+                </div>
+                <!-- Theme toggle will be automatically added here by theme-manager.js -->
             </div>
         </div>
     </nav>
 
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content text-center" data-animate="fadeInUp">
+                <h1 class="display-4 font-bold mb-4">
+                    🧠 AI Orchestrator Universal
+                </h1>
+                <p class="lead mb-6">
+                    Akıllı uzman koordinasyonu ile AI güçlerini birleştirin
+                </p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <button class="btn-modern btn-primary btn-lg" onclick="scrollToSection('analytics')">
+                        <i class="bi bi-graph-up"></i>
+                        Dashboard'a Git
+                    </button>
+                    <button class="btn-modern btn-secondary btn-lg glass-effect" onclick="scrollToSection('chat')">
+                        <i class="bi bi-chat-dots"></i>
+                        Konuşmaya Başla
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Main Container -->
-    <div class="main-container">
+    <div class="container-fluid px-4" style="margin-top: 120px;">
         <!-- Tab Navigation -->
-        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist" data-animate="fadeInUp" data-delay="100">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button">
-                    <i class="bi bi-graph-up"></i> Analytics
+                <button class="nav-link active focus-ring" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                    <i class="bi bi-graph-up"></i>
+                    <span class="d-none d-sm-inline ms-2">Analytics</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button">
-                    <i class="bi bi-chat-dots"></i> AI Konuşmaları
+                <button class="nav-link focus-ring" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
+                    <i class="bi bi-chat-dots"></i>
+                    <span class="d-none d-sm-inline ms-2">AI Konuşmaları</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button">
-                    <i class="bi bi-gear"></i> Ayarlar
+                <button class="nav-link focus-ring" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                    <i class="bi bi-gear"></i>
+                    <span class="d-none d-sm-inline ms-2">Ayarlar</span>
                 </button>
             </li>
         </ul>
@@ -710,153 +310,169 @@
         <!-- Tab Content -->
         <div class="tab-content" id="mainTabContent">
             <!-- Analytics Tab -->
-            <div class="tab-pane fade show active" id="analytics" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">📊 Analytics Dashboard</h2>
-                    <div class="dashboard-actions">
-                        <button class="btn btn-outline-primary btn-sm me-2" onclick="showMemoryModal()">
-                            <i class="bi bi-clock-history"></i> Geçmiş Konuşmalar
+            <div class="tab-pane fade show active" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
+                <div class="d-flex justify-content-between align-items-center mb-6" data-animate="fadeInUp" data-delay="200">
+                    <div>
+                        <h2 class="mb-2">📊 Analytics Dashboard</h2>
+                        <p class="text-secondary mb-0">AI performans metrikleri ve sistem durumu</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn-modern btn-secondary" onclick="showMemoryModal()">
+                            <i class="bi bi-clock-history"></i>
+                            <span class="d-none d-sm-inline">Geçmiş</span>
                         </button>
-                        <button class="btn btn-outline-warning btn-sm" onclick="showTasksModal()">
-                            <i class="bi bi-list-task"></i> Görev Listesi (<span id="active-tasks-count">0</span>)
+                        <button class="btn-modern btn-warning" onclick="showTasksModal()">
+                            <i class="bi bi-list-task"></i>
+                            <span class="d-none d-sm-inline">Görevler</span>
+                            <span class="badge bg-white text-dark ms-1" id="active-tasks-count">0</span>
                         </button>
                     </div>
                 </div>
                 
                 <!-- Primary Metrics -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-3">
+                <div class="row g-4 mb-6">
+                    <div class="col-lg-3 col-md-6" data-animate="fadeInUp" data-delay="300">
                         <div class="metric-card cost">
-                            <div class="metric-label">
-                                <i class="bi bi-currency-dollar"></i> TOPLAM MALİYET
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="p-3 rounded-circle bg-success-100 text-success-600 me-3">
+                                    <i class="bi bi-currency-dollar fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-secondary">Toplam Maliyet</div>
+                                    <div class="text-2xl font-bold" id="total-cost">$0.00</div>
+                                </div>
                             </div>
-                            <div class="metric-value" id="total-cost">$0.00</div>
-                            <div class="metric-change" id="cost-change">Başlangıç</div>
+                            <div class="text-sm text-success-600" id="cost-change">Başlangıç</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    
+                    <div class="col-lg-3 col-md-6" data-animate="fadeInUp" data-delay="400">
                         <div class="metric-card requests">
-                            <div class="metric-label">
-                                <i class="bi bi-arrow-repeat"></i> TOPLAM İSTEK
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="p-3 rounded-circle bg-primary-100 text-primary-600 me-3">
+                                    <i class="bi bi-arrow-repeat fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-secondary">Toplam İstek</div>
+                                    <div class="text-2xl font-bold" id="total-requests">0</div>
+                                </div>
                             </div>
-                            <div class="metric-value" id="total-requests">0</div>
-                            <div class="metric-change" id="requests-change">0 RPM</div>
+                            <div class="text-sm text-primary-600" id="requests-change">0 RPM</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    
+                    <div class="col-lg-3 col-md-6" data-animate="fadeInUp" data-delay="500">
                         <div class="metric-card success">
-                            <div class="metric-label">
-                                <i class="bi bi-check-circle"></i> BAŞARI ORANI
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="p-3 rounded-circle bg-warning-100 text-warning-600 me-3">
+                                    <i class="bi bi-check-circle fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-secondary">Başarı Oranı</div>
+                                    <div class="text-2xl font-bold" id="success-rate">100%</div>
+                                </div>
                             </div>
-                            <div class="metric-value" id="success-rate">100%</div>
-                            <div class="metric-change negative" id="error-count">0 hata</div>
+                            <div class="text-sm text-danger-600" id="error-count">0 hata</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    
+                    <div class="col-lg-3 col-md-6" data-animate="fadeInUp" data-delay="600">
                         <div class="metric-card speed">
-                            <div class="metric-label">
-                                <i class="bi bi-lightning"></i> ORTALAMA YANIT
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="p-3 rounded-circle bg-danger-100 text-danger-600 me-3">
+                                    <i class="bi bi-lightning fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-secondary">Ortalama Yanıt</div>
+                                    <div class="text-2xl font-bold" id="avg-response">0.0s</div>
+                                </div>
                             </div>
-                            <div class="metric-value" id="avg-response">0.0s</div>
-                            <div class="metric-change" id="fastest-model">Bekleniyor</div>
+                            <div class="text-sm text-secondary" id="fastest-model">Bekleniyor</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Token Usage -->
-                <div class="token-usage-card">
-                    <h5 class="mb-3">
-                        <i class="bi bi-bar-chart"></i> TOKEN KULLANIMI
-                    </h5>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Toplam: <strong id="total-tokens">0</strong> token</span>
-                        <span>
-                            Input: <span id="input-tokens">0</span> (<span id="input-percentage">0%</span>) | 
-                            Output: <span id="output-tokens">0</span> (<span id="output-percentage">0%</span>)
-                        </span>
+                <div class="card-modern mb-6" data-animate="fadeInUp" data-delay="700">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-bar-chart me-2"></i>
+                            Token Kullanımı
+                        </h5>
                     </div>
-                    <div class="progress-bar-custom">
-                        <div class="progress-input" id="progress-input" style="width: 0%">0%</div>
-                        <div class="progress-output" id="progress-output" style="width: 0%">0%</div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-sm">Toplam: <strong id="total-tokens">0</strong> token</span>
+                            <span class="text-sm">
+                                Input: <span id="input-tokens">0</span> (<span id="input-percentage">0%</span>) | 
+                                Output: <span id="output-tokens">0</span> (<span id="output-percentage">0%</span>)
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-primary" id="progress-input" style="width: 0%">0%</div>
+                            <div class="progress-bar bg-success" id="progress-output" style="width: 0%">0%</div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Live Conversation & AI Performance -->
                 <div class="row g-4">
-                    <!-- AI Performance Cards (Left Column) -->
+                    <!-- AI Performance Cards -->
                     <div class="col-lg-6">
-                        <h5 class="mb-3">AI Performans Dökümü</h5>
+                        <h5 class="mb-4" data-animate="fadeInLeft" data-delay="800">
+                            <i class="bi bi-cpu"></i>
+                            AI Performans Dökümü
+                        </h5>
                         <div class="row g-3" id="ai-cards-container">
                             <!-- AI cards will be dynamically inserted here -->
                         </div>
                     </div>
                     
-                    <!-- Live Conversation Stream (Right Column) -->
+                    <!-- Live Conversation Stream -->
                     <div class="col-lg-6">
-                        <div class="live-chat-container">
+                        <div class="chat-container" data-animate="fadeInRight" data-delay="800">
                             <div class="chat-header">
                                 <h5 class="mb-0">
-                                    <i class="bi bi-chat-dots-fill"></i> Canlı AI Konuşması
+                                    <i class="bi bi-chat-dots-fill"></i>
+                                    Canlı AI Konuşması
                                 </h5>
-                                <div class="chat-controls">
-                                    <button class="btn btn-sm btn-success" id="start-conversation" onclick="startAIConversation()">
-                                        <i class="bi bi-play-fill"></i> Başlat
+                                <div class="d-flex gap-2">
+                                    <button class="btn-modern btn-success btn-sm" id="start-conversation" onclick="startAIConversation()">
+                                        <i class="bi bi-play-fill"></i>
+                                        <span class="d-none d-sm-inline">Başlat</span>
                                     </button>
-                                    <button class="btn btn-sm btn-warning" id="pause-conversation" onclick="pauseConversation()" disabled>
-                                        <i class="bi bi-pause-fill"></i> Duraklat
+                                    <button class="btn-modern btn-warning btn-sm" id="pause-conversation" onclick="pauseConversation()" disabled>
+                                        <i class="bi bi-pause-fill"></i>
+                                        <span class="d-none d-sm-inline">Duraklat</span>
                                     </button>
-                                    <button class="btn btn-sm btn-danger" id="clear-conversation" onclick="clearConversation()">
-                                        <i class="bi bi-trash"></i> Temizle
+                                    <button class="btn-modern btn-danger btn-sm" id="clear-conversation" onclick="clearConversation()">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
                             </div>
                             
-                            <div class="live-chat-messages" id="live-chat-messages">
-                                <div class="text-center text-muted p-4">
-                                    <i class="bi bi-robot" style="font-size: 48px; opacity: 0.3;"></i>
-                                    <p class="mt-2 mb-0">AI konuşması başlatılmayı bekliyor...</p>
-                                    <small>Yukarıdaki "Başlat" butonuna tıklayın</small>
-                                </div>
-                            </div>
-                            
-                            <!-- Director Intervention Panel -->
-                            <div class="director-intervention" id="director-intervention" style="display: none;">
-                                <div class="intervention-header">
-                                    <i class="bi bi-megaphone-fill"></i>
-                                    <span>Yönetici Müdahalesi</span>
-                                    <small class="text-muted">Konuşmaya doğrudan müdahale edin</small>
-                                </div>
-                                <div class="intervention-input">
-                                    <div class="input-group">
-                                        <textarea class="form-control" 
-                                                id="intervention-message" 
-                                                placeholder="AI'lara yön verin, yeni görevler atayın veya konuyu değiştirin..."
-                                                rows="2"></textarea>
-                                        <button class="btn btn-warning" 
-                                                id="send-intervention" 
-                                                onclick="sendDirectorIntervention()">
-                                            <i class="bi bi-megaphone"></i> Müdahale Et
-                                        </button>
+                            <div class="chat-messages" id="live-chat-messages">
+                                <div class="text-center text-muted p-5">
+                                    <div class="floating">
+                                        <i class="bi bi-robot" style="font-size: 48px; opacity: 0.3;"></i>
                                     </div>
-                                    <div class="intervention-tips">
-                                        <small class="text-muted">
-                                            💡 İpucu: "Daha teknik detaylara odaklanın" veya "Bu konuyu özetleyin ve yeni bir görev önerin"
-                                        </small>
-                                    </div>
+                                    <p class="mt-3 mb-0">AI konuşması başlatılmayı bekliyor...</p>
+                                    <small class="text-muted">Yukarıdaki "Başlat" butonuna tıklayın</small>
                                 </div>
                             </div>
                             
-                            <div class="conversation-status" id="conversation-status">
-                                <span class="status-indicator">
-                                    <i class="bi bi-circle-fill text-secondary"></i> Beklemede
-                                </span>
-                                <span class="turn-counter" id="turn-counter">Tur: 0/0</span>
-                                <button class="btn btn-sm btn-outline-warning" 
-                                        id="toggle-intervention" 
-                                        onclick="toggleInterventionPanel()"
-                                        style="display: none;">
-                                    <i class="bi bi-megaphone"></i> Müdahale
-                                </button>
+                            <div class="chat-input">
+                                <div class="d-flex align-items-center justify-content-between text-sm">
+                                    <span class="connection-status">
+                                        <i class="bi bi-circle-fill text-secondary"></i>
+                                        <span id="conversation-status">Beklemede</span>
+                                    </span>
+                                    <span id="turn-counter">Tur: 0/0</span>
+                                    <button class="btn-modern btn-warning btn-sm" id="toggle-intervention" onclick="toggleInterventionPanel()" style="display: none;">
+                                        <i class="bi bi-megaphone"></i>
+                                        Müdahale
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -864,52 +480,66 @@
             </div>
 
             <!-- Chat Tab -->
-            <div class="tab-pane fade" id="chat" role="tabpanel">
+            <div class="tab-pane fade" id="chat" role="tabpanel" aria-labelledby="chat-tab">
                 <div class="row">
                     <div class="col-lg-8">
-                        <div class="chat-container">
-                            <div class="chat-messages" id="chat-messages">
-                                <div class="text-center text-muted p-5">
-                                    <i class="bi bi-chat-dots" style="font-size: 48px;"></i>
-                                    <p class="mt-3">Henüz konuşma yok. Aşağıdan bir konuşma başlatın.</p>
-                                </div>
+                        <div class="card-modern" data-animate="fadeInUp">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-chat-dots"></i>
+                                    AI Konuşma Merkezi
+                                </h5>
                             </div>
-                            <div class="chat-input">
-                                <form id="chat-form">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="chat-input" placeholder="Mesajınızı yazın...">
-                                        <button class="btn btn-primary" type="submit">
-                                            <i class="bi bi-send"></i> Gönder
-                                        </button>
+                            <div class="card-body p-0">
+                                <div class="chat-messages" id="chat-messages" style="height: 500px; overflow-y: auto; padding: var(--space-6);">
+                                    <div class="text-center text-muted p-5">
+                                        <i class="bi bi-chat-dots floating" style="font-size: 48px; opacity: 0.3;"></i>
+                                        <p class="mt-3">Henüz konuşma yok. Aşağıdan bir konuşma başlatın.</p>
                                     </div>
-                                </form>
+                                </div>
+                                <div class="chat-input">
+                                    <form id="chat-form">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control focus-ring" id="chat-input" placeholder="Mesajınızı yazın...">
+                                            <button class="btn-modern btn-primary" type="submit">
+                                                <i class="bi bi-send"></i>
+                                                <span class="d-none d-sm-inline">Gönder</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    
                     <div class="col-lg-4">
-                        <div class="card">
+                        <div class="card-modern" data-animate="fadeInUp" data-delay="200">
+                            <div class="card-header">
+                                <h5 class="mb-0">Hızlı İşlemler</h5>
+                            </div>
                             <div class="card-body">
-                                <h5 class="card-title">Hızlı İşlemler</h5>
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-outline-primary" onclick="startConversation()">
-                                        <i class="bi bi-play-circle"></i> Konuşma Başlat
+                                <div class="d-grid gap-3">
+                                    <button class="btn-modern btn-primary" onclick="startConversation()">
+                                        <i class="bi bi-play-circle"></i>
+                                        Konuşma Başlat
                                     </button>
-                                    <button class="btn btn-outline-secondary" onclick="clearHistory()">
-                                        <i class="bi bi-trash"></i> Geçmişi Temizle
+                                    <button class="btn-modern btn-secondary" onclick="clearHistory()">
+                                        <i class="bi bi-trash"></i>
+                                        Geçmişi Temizle
                                     </button>
                                 </div>
                                 
-                                <hr>
+                                <hr class="my-4">
                                 
-                                <h6>Konuşma Ayarları</h6>
+                                <h6 class="mb-3">Konuşma Ayarları</h6>
                                 <div class="mb-3">
-                                    <label class="form-label">Maksimum Tur Sayısı</label>
-                                    <input type="number" class="form-control" id="max-turns" value="3" min="1" max="10">
+                                    <label class="form-label text-sm">Maksimum Tur Sayısı</label>
+                                    <input type="number" class="form-control focus-ring" id="max-turns" value="3" min="1" max="10">
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label">İlk Prompt</label>
-                                    <textarea class="form-control" id="initial-prompt" rows="3">AI destekli bir proje geliştiriyoruz. Önceliklerimizi belirleyelim.</textarea>
+                                    <label class="form-label text-sm">İlk Prompt</label>
+                                    <textarea class="form-control focus-ring" id="initial-prompt" rows="3">AI destekli bir proje geliştiriyoruz. Önceliklerimizi belirleyelim.</textarea>
                                 </div>
                             </div>
                         </div>
@@ -918,122 +548,293 @@
             </div>
 
             <!-- Settings Tab -->
-            <div class="tab-pane fade" id="settings" role="tabpanel">
+            <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="card">
+                        <div class="card-modern" data-animate="fadeInUp">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-people"></i>
+                                    Rol Atamaları
+                                </h5>
+                            </div>
                             <div class="card-body">
-                                <h5 class="card-title">Rol Atamaları</h5>
                                 <div id="role-assignments">
-                                    <!-- Role assignments will be loaded here -->
+                                    <div class="loading-pulse">
+                                        Rol atamaları yükleniyor...
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Sistem Durumu</h5>
-                                <div id="system-status">
-                                    <!-- System status will be loaded here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Memory Modal -->
-    <div class="modal fade" id="memoryModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-clock-history"></i> Konuşma Geçmişi & Proje Hafızası
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <!-- Conversation List -->
-                        <div class="col-md-4">
-                            <h6>📝 Geçmiş Konuşmalar</h6>
-                            <div class="conversation-search mb-3">
-                                <input type="text" class="form-control form-control-sm" 
-                                       id="conversation-search" placeholder="Konuşmalarda ara...">
-                            </div>
-                            <div id="conversation-list" class="conversation-list">
-                                <!-- Konuşmalar dinamik olarak eklenecek -->
-                            </div>
-                        </div>
-                        
-                        <!-- Conversation Details -->
-                        <div class="col-md-8">
-                            <div id="conversation-details" class="conversation-details">
-                                <div class="text-center text-muted p-5">
-                                    <i class="bi bi-chat-left-dots" style="font-size: 48px; opacity: 0.3;"></i>
-                                    <p class="mt-3">Görüntülemek için bir konuşma seçin</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
-                    <button type="button" class="btn btn-primary" id="continue-conversation" style="display: none;">
-                        <i class="bi bi-arrow-right"></i> Bu Konuşmaya Devam Et
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tasks Modal -->
-    <div class="modal fade" id="tasksModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-list-task"></i> Proje Görev Listesi
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="task-filters mb-3">
-                        <div class="btn-group btn-group-sm" role="group">
-                            <input type="radio" class="btn-check" name="task-filter" id="filter-all" checked>
-                            <label class="btn btn-outline-primary" for="filter-all">Tümü</label>
-                            
-                            <input type="radio" class="btn-check" name="task-filter" id="filter-pending">
-                            <label class="btn btn-outline-warning" for="filter-pending">Bekleyen</label>
-                            
-                            <input type="radio" class="btn-check" name="task-filter" id="filter-progress">
-                            <label class="btn btn-outline-info" for="filter-progress">Devam Eden</label>
-                            
-                            <input type="radio" class="btn-check" name="task-filter" id="filter-completed">
-                            <label class="btn btn-outline-success" for="filter-completed">Tamamlanan</label>
                         </div>
                     </div>
                     
-                    <div id="tasks-list" class="tasks-list">
-                        <!-- Görevler dinamik olarak eklenecek -->
+                    <div class="col-md-6">
+                        <div class="card-modern" data-animate="fadeInUp" data-delay="200">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-speedometer2"></i>
+                                    Sistem Durumu
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="system-status">
+                                    <div class="loading-pulse">
+                                        Sistem durumu kontrol ediliyor...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
-                    <button type="button" class="btn btn-success" onclick="refreshTasks()">
-                        <i class="bi bi-arrow-clockwise"></i> Yenile
-                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="/static/js/analytics.js"></script>
+    <script src="/static/js/theme-manager.js"></script>
+    <script src="/static/js/animation-utils.js"></script>
+    <script src="/static/js/main.js"></script>
+    
+    <script>
+        // Enhanced initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize components
+            initializeApp();
+            
+            // Load initial data
+            loadAnalyticsData();
+            loadSystemStatus();
+            loadRoleAssignments();
+            
+            // Setup event listeners
+            setupEventListeners();
+        });
+
+        function initializeApp() {
+            console.log('🚀 AI Orchestrator v2.0 initialized');
+            
+            // Update connection status
+            updateConnectionStatus(true);
+            
+            // Focus management
+            const activeTab = document.querySelector('.nav-link.active');
+            if (activeTab) {
+                activeTab.focus();
+            }
+        }
+
+        function updateConnectionStatus(isConnected) {
+            const indicator = document.getElementById('status-indicator');
+            const status = document.getElementById('connection-status');
+            
+            if (isConnected) {
+                indicator.className = 'status-dot online';
+                status.textContent = 'Bağlı';
+            } else {
+                indicator.className = 'status-dot offline';
+                status.textContent = 'Bağlantı Kesildi';
+            }
+        }
+
+        function scrollToSection(sectionId) {
+            const tabButton = document.querySelector(`#${sectionId}-tab`);
+            if (tabButton) {
+                tabButton.click();
+                
+                // Smooth scroll to top of content
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: 100,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            }
+        }
+
+        function loadAnalyticsData() {
+            // Simulate loading analytics data
+            setTimeout(() => {
+                if (window.animationUtils) {
+                    window.animationUtils.countUp(
+                        document.getElementById('total-requests'), 
+                        0, 156, 2000
+                    );
+                    
+                    window.animationUtils.typeText(
+                        document.getElementById('cost-change'), 
+                        '+12% bu ay', 30
+                    );
+                }
+            }, 1000);
+        }
+
+        function loadSystemStatus() {
+            const statusContainer = document.getElementById('system-status');
+            
+            // Show skeleton loading
+            if (window.animationUtils) {
+                window.animationUtils.showSkeleton(statusContainer, 4);
+            }
+            
+            // Simulate API call
+            setTimeout(() => {
+                const statusHtml = `
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-sm">Gemini API</span>
+                        <span class="badge bg-success">Aktif</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-sm">OpenAI API</span>
+                        <span class="badge bg-warning">Sınırlı</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-sm">Sistem Sağlığı</span>
+                        <span class="badge bg-success">Mükemmel</span>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="text-sm">Uptime</span>
+                        <span class="text-sm font-medium">99.9%</span>
+                    </div>
+                `;
+                
+                if (window.animationUtils) {
+                    window.animationUtils.hideSkeleton(statusContainer, statusHtml);
+                } else {
+                    statusContainer.innerHTML = statusHtml;
+                }
+            }, 2000);
+        }
+
+        function loadRoleAssignments() {
+            const container = document.getElementById('role-assignments');
+            
+            // Show skeleton loading
+            if (window.animationUtils) {
+                window.animationUtils.showSkeleton(container, 5);
+            }
+            
+            // Simulate API call
+            setTimeout(() => {
+                const rolesHtml = `
+                    <div class="specialist-card pm mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 rounded bg-primary-100 text-primary-600 me-3">
+                                <i class="bi bi-clipboard-check"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">Proje Yöneticisi</div>
+                                <div class="text-sm text-secondary">Gemini Pro</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="specialist-card dev mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2 rounded bg-success-100 text-success-600 me-3">
+                                <i class="bi bi-code-slash"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium">Lead Developer</div>
+                                <div class="text-sm text-secondary">Gemini Flash</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (window.animationUtils) {
+                    window.animationUtils.hideSkeleton(container, rolesHtml);
+                } else {
+                    container.innerHTML = rolesHtml;
+                }
+            }, 1500);
+        }
+
+        function setupEventListeners() {
+            // Tab change animations
+            document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(e) {
+                    const targetPanel = document.querySelector(e.target.getAttribute('data-bs-target'));
+                    const animatedElements = targetPanel.querySelectorAll('[data-animate]');
+                    
+                    if (window.animationUtils) {
+                        window.animationUtils.staggerAnimation(animatedElements, 'bounce-in', 100);
+                    }
+                });
+            });
+
+            // Form submissions
+            document.getElementById('chat-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const input = document.getElementById('chat-input');
+                const message = input.value.trim();
+                
+                if (message) {
+                    addChatMessage(message, 'user');
+                    input.value = '';
+                    
+                    // Simulate AI response
+                    setTimeout(() => {
+                        addChatMessage('Bu harika bir proje fikri! Hemen başlayalım.', 'assistant');
+                    }, 1000);
+                }
+            });
+        }
+
+        function addChatMessage(message, type) {
+            const messagesContainer = document.getElementById('chat-messages');
+            
+            // Clear empty state
+            if (messagesContainer.querySelector('.text-center')) {
+                messagesContainer.innerHTML = '';
+            }
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = `message-bubble ${type} mb-3`;
+            messageElement.textContent = message;
+            
+            messagesContainer.appendChild(messageElement);
+            
+            // Animate message
+            if (window.animationUtils) {
+                window.animationUtils.animateMessage(messageElement, type);
+            }
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Placeholder functions for buttons
+        function showMemoryModal() {
+            console.log('Memory modal would open here');
+        }
+
+        function showTasksModal() {
+            console.log('Tasks modal would open here');
+        }
+
+        function startAIConversation() {
+            console.log('AI conversation would start here');
+        }
+
+        function pauseConversation() {
+            console.log('Conversation would pause here');
+        }
+
+        function clearConversation() {
+            console.log('Conversation would clear here');
+        }
+
+        function startConversation() {
+            console.log('New conversation would start here');
+        }
+
+        function clearHistory() {
+            console.log('History would clear here');
+        }
+
+        function toggleInterventionPanel() {
+            console.log('Intervention panel would toggle here');
+        }
+    </script>
 </body>
 </html> 

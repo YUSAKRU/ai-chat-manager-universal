@@ -3,227 +3,598 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Orchestrator - Uzman Koordinatörü</title>
+    <meta name="description" content="AI Orchestrator - Smart Multi-Specialist AI Coordination Platform">
+    <meta name="keywords" content="AI Orchestrator, Multi-Specialist, AI Coordination, Smart Assistant">
+    <meta name="theme-color" content="#ffffff">
+    
+    <title>🧠 AI Orchestrator - Smart Specialist Coordination</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/static/css/design-system.css" as="style">
+    <link rel="preload" href="/static/js/theme-manager.js" as="script">
+    <link rel="preload" href="/static/js/animation-utils.js" as="script">
+    
+    <!-- External CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Our Design System -->
+    <link rel="stylesheet" href="/static/css/design-system.css">
+    
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* Orchestrator-specific enhancements */
+        .orchestrator-layout {
+            background: var(--bg-secondary);
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
         }
-        .main-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin: 20px auto;
-            max-width: 1200px;
-            min-height: calc(100vh - 40px);
+
+        .orchestrator-navbar {
+            background: var(--bg-surface) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-primary);
+            box-shadow: var(--shadow-lg);
+            padding: var(--space-4) 0;
         }
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px 20px 0 0;
-            padding: 1rem 2rem;
+
+        .orchestrator-navbar .navbar-brand {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--text-primary) !important;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
         }
-        .navbar-brand {
-            color: white !important;
-            font-weight: bold;
-            font-size: 1.5rem;
+
+        .orchestrator-navbar .navbar-brand i {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .chat-container {
-            height: 70vh;
-            overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin: 20px;
+
+        .main-orchestrator {
+            flex: 1;
+            display: flex;
+            padding: var(--space-6);
+            gap: var(--space-6);
         }
-        .message {
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 10px;
-            animation: fadeIn 0.3s ease-in;
-        }
-        .user-message {
-            background: #007bff;
-            color: white;
-            margin-left: 20%;
-            text-align: right;
-        }
-        .assistant-message {
-            background: white;
-            color: #333;
-            margin-right: 20%;
-            border: 1px solid #dee2e6;
-        }
-        .specialist-response {
-            background: #e9ecef;
-            color: #495057;
-            margin: 10px 0;
-            padding: 10px;
-            border-left: 4px solid #007bff;
-            border-radius: 5px;
-        }
-        .input-section {
-            padding: 20px;
-            background: white;
-            border-radius: 0 0 20px 20px;
-        }
-        .specialist-badges {
-            margin: 10px 0;
-        }
-        .specialist-badge {
-            display: inline-block;
-            background: #28a745;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            margin: 2px;
-            font-size: 0.8rem;
-        }
-        .suggested-actions {
-            margin-top: 10px;
-        }
-        .action-button {
-            margin: 2px;
-            font-size: 0.8rem;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        .specialist-info-card {
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            background: white;
-        }
-        .sidebar {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px;
+
+        /* Enhanced Sidebar */
+        .orchestrator-sidebar {
+            width: 320px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            padding: var(--space-6);
             height: fit-content;
+            position: sticky;
+            top: var(--space-6);
+        }
+
+        .sidebar-section {
+            margin-bottom: var(--space-8);
+        }
+
+        .sidebar-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-title {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .sidebar-title i {
+            color: var(--primary-500);
+        }
+
+        /* Enhanced Chat Area */
+        .orchestrator-chat {
+            flex: 1;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--border-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .chat-header h4 {
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: var(--font-weight-semibold);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: var(--space-6);
+            overflow-y: auto;
+            background: var(--bg-secondary);
+            max-height: calc(100vh - 320px);
+        }
+
+        .welcome-state {
+            text-align: center;
+            padding: var(--space-16) var(--space-6);
+            color: var(--text-muted);
+        }
+
+        .welcome-state i {
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: var(--space-4);
+            display: block;
+        }
+
+        .welcome-state h4 {
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+        }
+
+        .welcome-state p {
+            margin-bottom: var(--space-2);
+            line-height: var(--line-height-relaxed);
+        }
+
+        /* Enhanced Messages */
+        .orchestrator-message {
+            margin-bottom: var(--space-5);
+            animation: messageSlideIn 0.4s var(--transition-bounce);
+        }
+
+        .message-content {
+            padding: var(--space-5);
+            border-radius: var(--radius-lg);
+            position: relative;
+            word-wrap: break-word;
+            line-height: var(--line-height-relaxed);
+        }
+
+        .user-message .message-content {
+            background: var(--gradient-primary);
+            color: var(--text-inverse);
+            margin-left: 15%;
+            border-bottom-right-radius: var(--radius-sm);
+        }
+
+        .assistant-message .message-content {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+            margin-right: 15%;
+            border-bottom-left-radius: var(--radius-sm);
+        }
+
+        .message-header {
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--space-2);
+            font-size: var(--font-size-sm);
+        }
+
+        /* Specialist Badges */
+        .specialist-badges {
+            margin-top: var(--space-4);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .specialist-badge {
+            background: var(--gradient-success);
+            color: var(--text-inverse);
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-medium);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+        }
+
+        .specialist-responses {
+            margin-top: var(--space-4);
+        }
+
+        .specialist-response {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-left: 4px solid var(--primary-500);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
+        }
+
+        .specialist-response:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Enhanced Input Section */
+        .chat-input-section {
+            padding: var(--space-6);
+            border-top: 1px solid var(--border-primary);
+            background: var(--bg-surface);
+        }
+
+        .input-with-tips {
+            margin-top: var(--space-3);
+            font-size: var(--font-size-sm);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        /* Active Specialists */
+        .specialists-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .specialist-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+        }
+
+        .specialist-item:hover {
+            background: var(--bg-surface);
+            transform: translateX(4px);
+        }
+
+        .specialist-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: var(--font-size-sm);
+            flex-shrink: 0;
+        }
+
+        .specialist-icon.pm { background: var(--gradient-pm); }
+        .specialist-icon.dev { background: var(--gradient-dev); }
+        .specialist-icon.analyst { background: var(--gradient-analyst); }
+        .specialist-icon.designer { background: var(--gradient-designer); }
+        .specialist-icon.marketing { background: var(--gradient-marketing); }
+        .specialist-icon.qa { background: var(--gradient-qa); }
+        .specialist-icon.devops { background: var(--gradient-devops); }
+
+        .specialist-info {
+            flex: 1;
+        }
+
+        .specialist-name {
+            font-weight: var(--font-weight-medium);
+            font-size: var(--font-size-sm);
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .specialist-role {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+        }
+
+        /* Suggested Actions */
+        .actions-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2);
+        }
+
+        .action-button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-secondary);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-sm);
+            text-align: left;
+            transition: all var(--transition-base);
+            cursor: pointer;
+        }
+
+        .action-button:hover {
+            background: var(--primary-50);
+            border-color: var(--primary-200);
+            color: var(--primary-700);
+            transform: translateY(-1px);
+        }
+
+        /* System Status */
+        .status-indicators {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: var(--font-size-sm);
+        }
+
+        .status-badge {
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-medium);
+        }
+
+        .status-badge.success {
+            background: var(--success-100);
+            color: var(--success-700);
+        }
+
+        .status-badge.warning {
+            background: var(--warning-100);
+            color: var(--warning-700);
+        }
+
+        .status-badge.danger {
+            background: var(--danger-100);
+            color: var(--danger-700);
+        }
+
+        /* Loading States */
+        .thinking-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: var(--font-size-sm);
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            gap: var(--space-1);
+        }
+
+        .loading-dots span {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--primary-500);
+            animation: loadingDots 1.4s infinite ease-in-out both;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-orchestrator {
+                flex-direction: column;
+            }
+
+            .orchestrator-sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-orchestrator {
+                padding: var(--space-4);
+                gap: var(--space-4);
+            }
+
+            .user-message .message-content {
+                margin-left: 5%;
+            }
+
+            .assistant-message .message-content {
+                margin-right: 5%;
+            }
+
+            .chat-messages {
+                max-height: calc(100vh - 280px);
+            }
+
+            .specialist-badges {
+                justify-content: center;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .orchestrator-navbar,
+            .orchestrator-sidebar,
+            .chat-input-section {
+                display: none !important;
+            }
+
+            .orchestrator-chat {
+                border: none;
+                box-shadow: none;
+            }
         }
     </style>
 </head>
-<body>
-    <div class="main-container">
-        <!-- Navbar -->
-        <nav class="navbar">
-            <div class="container-fluid">
-                <span class="navbar-brand">
-                    <i class="fas fa-brain"></i> AI Orchestrator
-                </span>
-                <div class="d-flex">
-                    <button class="btn btn-outline-light me-2" onclick="showSpecialistInfo()">
-                        <i class="fas fa-users"></i> Uzmanlar
+<body class="orchestrator-layout">
+    <!-- Enhanced Navbar -->
+    <nav class="orchestrator-navbar">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <div class="navbar-brand">
+                    <i class="fas fa-brain"></i>
+                    AI Orchestrator
+                    <span class="badge bg-primary ms-2">v2.0</span>
+                </div>
+                
+                <div class="d-flex gap-3">
+                    <button class="btn-modern btn-secondary btn-sm" onclick="showSpecialistInfo()">
+                        <i class="fas fa-users"></i>
+                        <span class="d-none d-sm-inline">Uzmanlar</span>
                     </button>
-                    <button class="btn btn-outline-light" onclick="showApiManagement()">
-                        <i class="fas fa-key"></i> API Yönetimi
+                    <button class="btn-modern btn-primary btn-sm" onclick="showApiManagement()">
+                        <i class="fas fa-key"></i>
+                        <span class="d-none d-sm-inline">API Yönetimi</span>
                     </button>
-                </div>
-            </div>
-        </nav>
-
-        <div class="row g-0">
-            <!-- Sidebar -->
-            <div class="col-md-3">
-                <div class="sidebar">
-                    <h5><i class="fas fa-users"></i> Aktif Uzmanlar</h5>
-                    <div id="activeSpecialists">
-                        <p class="text-muted small">Henüz aktif uzman yok</p>
-                    </div>
-                    
-                    <h5 class="mt-4"><i class="fas fa-lightbulb"></i> Önerilen Aksiyonlar</h5>
-                    <div id="suggestedActions">
-                        <p class="text-muted small">Şu anda öneri yok</p>
-                    </div>
-
-                    <div class="mt-4">
-                        <h6>Sistem Durumu</h6>
-                        <div id="systemStatus">
-                            <span class="badge bg-secondary">Yükleniyor...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Chat Area -->
-            <div class="col-md-9">
-                <!-- Chat Container -->
-                <div class="chat-container" id="chatContainer">
-                    <div class="text-center text-muted">
-                        <i class="fas fa-comments fa-3x mb-3"></i>
-                        <h4>AI Orchestrator'a Hoş Geldiniz!</h4>
-                        <p>Mesajınızı yazın, gerekli uzmanlar otomatik olarak devreye girecek.</p>
-                        <p><strong>Örnek:</strong> "Selamünaleyküm. Bu gün bir mobil uygulamanın temellerini atmak istiyorum. Hadi kullanacağımız yapıya karar verelim."</p>
-                    </div>
-                </div>
-
-                <!-- Loading -->
-                <div class="loading" id="loading">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Uzmanlar düşünüyor...</span>
-                    </div>
-                    <p class="mt-2">Uzmanlar koordine ediliyor...</p>
-                </div>
-
-                <!-- Input Section -->
-                <div class="input-section">
-                    <div class="row">
-                        <div class="col-md-10">
-                            <textarea class="form-control" id="messageInput" rows="3" 
-                                placeholder="Mesajınızı yazın... (Örn: Yeni bir proje başlatmak istiyorum)"
-                                onkeypress="handleKeyPress(event)"></textarea>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button class="btn btn-primary w-100" onclick="sendMessage()">
-                                <i class="fas fa-paper-plane"></i> Gönder
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <small class="text-muted">
-                                💡 İpucu: Projelerin, teknik sorular, tasarım, pazarlama gibi konulardan bahsedin. 
-                                İlgili uzmanlar otomatik olarak devreye girecek.
-                            </small>
-                        </div>
-                    </div>
+                    <!-- Theme toggle will be automatically added here -->
                 </div>
             </div>
         </div>
+    </nav>
+
+    <div class="main-orchestrator">
+        <!-- Enhanced Sidebar -->
+        <aside class="orchestrator-sidebar" data-animate="fadeInLeft">
+            <!-- Active Specialists Section -->
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">
+                    <i class="fas fa-users"></i>
+                    Aktif Uzmanlar
+                </h5>
+                <div id="activeSpecialists" class="specialists-list">
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-user-plus opacity-50"></i>
+                        <p class="mb-0 mt-2 small">Henüz aktif uzman yok</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggested Actions Section -->
+            <div class="sidebar-section">
+                <h5 class="sidebar-title">
+                    <i class="fas fa-lightbulb"></i>
+                    Önerilen Aksiyonlar
+                </h5>
+                <div id="suggestedActions" class="actions-list">
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-magic opacity-50"></i>
+                        <p class="mb-0 mt-2 small">Şu anda öneri yok</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status Section -->
+            <div class="sidebar-section">
+                <h6 class="sidebar-title">
+                    <i class="fas fa-server"></i>
+                    Sistem Durumu
+                </h6>
+                <div id="systemStatus" class="status-indicators">
+                    <div class="status-item">
+                        <span>Durum</span>
+                        <span class="status-badge success">Yükleniyor...</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Enhanced Chat Area -->
+        <main class="orchestrator-chat" data-animate="fadeInRight" data-delay="200">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <h4>
+                    <i class="fas fa-comments"></i>
+                    AI Orchestrator'a Hoş Geldiniz!
+                </h4>
+                <p class="mb-0 text-secondary small">
+                    Mesajınızı yazın, gerekli uzmanlar otomatik olarak devreye girecek.
+                </p>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chatContainer">
+                <div class="welcome-state">
+                    <i class="fas fa-comments floating"></i>
+                    <h4>Uzman Koordinasyonu Başlasın!</h4>
+                    <p>Mesajınızı yazın, akıllı sistem hangi uzmanların gerekli olduğunu belirleyecek.</p>
+                    <p><strong>Örnek:</strong> "Selamünaleyküm. Bu gün bir mobil uygulamanın temellerini atmak istiyorum. Hadi kullanacağımız yapıya karar verelim."</p>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div class="thinking-indicator px-6 py-3" id="loading" style="display: none;">
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span>Uzmanlar koordine ediliyor...</span>
+            </div>
+
+            <!-- Enhanced Input Section -->
+            <div class="chat-input-section">
+                <div class="row g-3">
+                    <div class="col-md-10">
+                        <textarea class="form-control focus-ring" 
+                                  id="messageInput" 
+                                  rows="3" 
+                                  placeholder="Mesajınızı yazın... (Örn: Yeni bir proje başlatmak istiyorum)"
+                                  onkeydown="handleKeyPress(event)"></textarea>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn-modern btn-primary w-100 h-100" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                            <span class="d-none d-sm-inline d-block mt-1">Gönder</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="input-with-tips">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Proje, teknik sorular, tasarım, pazarlama gibi konulardan bahsedin. İlgili uzmanlar otomatik devreye girecek.</span>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Specialist Info Modal -->
+    <!-- Enhanced Specialist Info Modal -->
     <div class="modal fade" id="specialistModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-users"></i> Uzman Ekibi</h5>
+                    <h5 class="modal-title">
+                        <i class="fas fa-users"></i>
+                        Uzman Ekibi
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="specialistInfo">
-                    <!-- Specialist info will be loaded here -->
+                    <div class="loading-pulse">Uzman bilgileri yükleniyor...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- API Management Modal -->
+    <!-- Enhanced API Management Modal -->
     <div class="modal fade" id="apiModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-key"></i> API Yönetimi</h5>
+                    <h5 class="modal-title">
+                        <i class="fas fa-key"></i>
+                        API Yönetimi
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -232,15 +603,46 @@
                         <strong>Bilgi:</strong> API anahtarlarınızı güvenli bir şekilde yönetin. 
                         Farklı uzmanlar için farklı API sağlayıcıları kullanabilirsiniz.
                     </div>
-                    <iframe src="/api_management" style="width: 100%; height: 500px; border: none; border-radius: 10px;"></iframe>
+                    <iframe src="/api-management" 
+                            style="width: 100%; height: 500px; border: none; border-radius: var(--radius-md);"></iframe>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/theme-manager.js"></script>
+    <script src="/static/js/animation-utils.js"></script>
+    
     <script>
         let conversationHistory = [];
+
+        // Enhanced initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧠 AI Orchestrator v2.0 - Specialist Coordination Active');
+            
+            // Initialize components
+            initializeOrchestrator();
+            
+            // Load system status
+            updateSystemStatus();
+            
+            // Focus on message input
+            document.getElementById('messageInput').focus();
+        });
+
+        function initializeOrchestrator() {
+            // Add entrance animations to existing elements
+            const sidebar = document.querySelector('.orchestrator-sidebar');
+            const chat = document.querySelector('.orchestrator-chat');
+            
+            if (window.animationUtils) {
+                // Stagger sidebar sections
+                const sections = sidebar.querySelectorAll('.sidebar-section');
+                window.animationUtils.staggerAnimation(sections, 'bounce-in', 200);
+            }
+        }
 
         function handleKeyPress(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -305,20 +707,28 @@
             const chatContainer = document.getElementById('chatContainer');
             
             // Clear welcome message on first real message
-            if (chatContainer.children.length === 1 && chatContainer.children[0].className.includes('text-center')) {
+            if (chatContainer.querySelector('.welcome-state')) {
                 chatContainer.innerHTML = '';
             }
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}-message`;
+            messageDiv.className = `orchestrator-message ${type}-message`;
             
-            if (type === 'user') {
-                messageDiv.innerHTML = `<strong>Siz:</strong> ${message}`;
-            } else {
-                messageDiv.innerHTML = message;
+            const content = `
+                <div class="message-content">
+                    <div class="message-header">${type === 'user' ? '👤 Siz' : '🧠 Koordinatör'}</div>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            messageDiv.innerHTML = content;
+            chatContainer.appendChild(messageDiv);
+            
+            // Animate message
+            if (window.animationUtils) {
+                window.animationUtils.animateMessage(messageDiv, type);
             }
             
-            chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
@@ -326,98 +736,127 @@
             const chatContainer = document.getElementById('chatContainer');
             
             // Clear welcome message on first real message
-            if (chatContainer.children.length === 1 && chatContainer.children[0].className.includes('text-center')) {
+            if (chatContainer.querySelector('.welcome-state')) {
                 chatContainer.innerHTML = '';
             }
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message assistant-message';
+            messageDiv.className = 'orchestrator-message assistant-message';
             
-            let content = `<strong>🧠 Koordinatör:</strong><br>${data.primary_response}`;
+            let content = `
+                <div class="message-content">
+                    <div class="message-header">🧠 Koordinatör</div>
+                    <div>${data.primary_response}</div>
+            `;
             
             // Add specialist badges
-            if (data.active_specialists.length > 0) {
-                content += '<div class="specialist-badges"><strong>Aktif Uzmanlar:</strong><br>';
+            if (data.active_specialists && data.active_specialists.length > 0) {
+                content += '<div class="specialist-badges">';
                 data.active_specialists.forEach(specialist => {
-                    const specialistNames = {
-                        'project_manager': '📋 Proje Yöneticisi',
-                        'lead_developer': '💻 Kıdemli Geliştirici', 
-                        'business_analyst': '📊 İş Analisti',
-                        'ui_ux_designer': '🎨 UI/UX Tasarımcı',
-                        'marketing_specialist': '📈 Pazarlama Uzmanı',
-                        'qa_engineer': '🔍 QA Mühendisi',
-                        'devops_engineer': '⚙️ DevOps Mühendisi'
-                    };
-                    content += `<span class="specialist-badge">${specialistNames[specialist] || specialist}</span>`;
+                    const specialistInfo = getSpecialistDisplayInfo(specialist);
+                    content += `<span class="specialist-badge">${specialistInfo.icon} ${specialistInfo.name}</span>`;
                 });
                 content += '</div>';
             }
             
             // Add specialist responses if available
             if (data.specialist_responses && Object.keys(data.specialist_responses).length > 0) {
-                content += '<div class="mt-3"><strong>Uzman Görüşleri:</strong>';
+                content += '<div class="specialist-responses"><strong>Uzman Görüşleri:</strong>';
                 for (const [specialist, response] of Object.entries(data.specialist_responses)) {
-                    const specialistNames = {
-                        'project_manager': '📋 Proje Yöneticisi',
-                        'lead_developer': '💻 Kıdemli Geliştirici',
-                        'business_analyst': '📊 İş Analisti', 
-                        'ui_ux_designer': '🎨 UI/UX Tasarımcı',
-                        'marketing_specialist': '📈 Pazarlama Uzmanı',
-                        'qa_engineer': '🔍 QA Mühendisi',
-                        'devops_engineer': '⚙️ DevOps Mühendisi'
-                    };
-                    content += `<div class="specialist-response">
-                        <strong>${specialistNames[specialist] || specialist}:</strong><br>
-                        ${response}
-                    </div>`;
+                    const specialistInfo = getSpecialistDisplayInfo(specialist);
+                    content += `
+                        <div class="specialist-response">
+                            <strong>${specialistInfo.icon} ${specialistInfo.name}:</strong><br>
+                            ${response}
+                        </div>
+                    `;
                 }
                 content += '</div>';
             }
             
+            content += '</div></div>';
             messageDiv.innerHTML = content;
+            
             chatContainer.appendChild(messageDiv);
+            
+            // Animate message
+            if (window.animationUtils) {
+                window.animationUtils.animateMessage(messageDiv, 'assistant');
+            }
+            
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
         function updateActiveSpecialists(specialists) {
             const container = document.getElementById('activeSpecialists');
+            
             if (!specialists || specialists.length === 0) {
-                container.innerHTML = '<p class="text-muted small">Henüz aktif uzman yok</p>';
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-user-plus opacity-50"></i>
+                        <p class="mb-0 mt-2 small">Henüz aktif uzman yok</p>
+                    </div>
+                `;
                 return;
             }
             
-            const specialistNames = {
-                'project_manager': '📋 Proje Yöneticisi',
-                'lead_developer': '💻 Kıdemli Geliştirici',
-                'business_analyst': '📊 İş Analisti',
-                'ui_ux_designer': '🎨 UI/UX Tasarımcı', 
-                'marketing_specialist': '📈 Pazarlama Uzmanı',
-                'qa_engineer': '🔍 QA Mühendisi',
-                'devops_engineer': '⚙️ DevOps Mühendisi'
-            };
-            
             let html = '';
-            specialists.forEach(specialist => {
-                html += `<div class="badge bg-primary me-1 mb-1">${specialistNames[specialist] || specialist}</div>`;
+            specialists.forEach((specialist, index) => {
+                const info = getSpecialistDisplayInfo(specialist);
+                html += `
+                    <div class="specialist-item stagger-${index + 1}" data-animate="fadeInLeft" data-delay="${(index + 1) * 100}">
+                        <div class="specialist-icon ${info.class}">
+                            ${info.icon}
+                        </div>
+                        <div class="specialist-info">
+                            <div class="specialist-name">${info.name}</div>
+                            <div class="specialist-role">${info.role}</div>
+                        </div>
+                    </div>
+                `;
             });
             
             container.innerHTML = html;
+            
+            // Trigger animations
+            if (window.animationUtils) {
+                const items = container.querySelectorAll('.specialist-item');
+                window.animationUtils.staggerAnimation(items, 'bounce-in', 100);
+            }
         }
 
         function updateSuggestedActions(actions) {
             const container = document.getElementById('suggestedActions');
+            
             if (!actions || actions.length === 0) {
-                container.innerHTML = '<p class="text-muted small">Şu anda öneri yok</p>';
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-magic opacity-50"></i>
+                        <p class="mb-0 mt-2 small">Şu anda öneri yok</p>
+                    </div>
+                `;
                 return;
             }
             
             let html = '';
-            actions.forEach(action => {
-                html += `<button class="btn btn-outline-secondary btn-sm action-button mb-1 w-100" 
-                         onclick="sendSuggestedAction('${action}')" style="font-size: 0.75rem;">${action}</button>`;
+            actions.forEach((action, index) => {
+                html += `
+                    <button class="action-button" 
+                            onclick="sendSuggestedAction('${action.replace(/'/g, "\\'")}')"
+                            data-animate="fadeInUp" 
+                            data-delay="${(index + 1) * 50}">
+                        ${action}
+                    </button>
+                `;
             });
             
             container.innerHTML = html;
+            
+            // Trigger animations
+            if (window.animationUtils) {
+                const buttons = container.querySelectorAll('.action-button');
+                window.animationUtils.staggerAnimation(buttons, 'bounce-in', 50);
+            }
         }
 
         function sendSuggestedAction(action) {
@@ -430,12 +869,66 @@
             const chatContainer = document.getElementById('chatContainer');
             
             if (show) {
-                loading.style.display = 'block';
+                loading.style.display = 'flex';
                 chatContainer.style.opacity = '0.7';
             } else {
                 loading.style.display = 'none';
                 chatContainer.style.opacity = '1';
             }
+        }
+
+        function getSpecialistDisplayInfo(specialistKey) {
+            const specialists = {
+                'project_manager': {
+                    name: 'Proje Yöneticisi',
+                    role: 'Koordinasyon & Planlama',
+                    icon: '<i class="fas fa-clipboard-check"></i>',
+                    class: 'pm'
+                },
+                'lead_developer': {
+                    name: 'Kıdemli Geliştirici',
+                    role: 'Teknik Geliştirme',
+                    icon: '<i class="fas fa-code"></i>',
+                    class: 'dev'
+                },
+                'business_analyst': {
+                    name: 'İş Analisti',
+                    role: 'İş Süreçleri',
+                    icon: '<i class="fas fa-chart-line"></i>',
+                    class: 'analyst'
+                },
+                'ui_ux_designer': {
+                    name: 'UI/UX Tasarımcı',
+                    role: 'Kullanıcı Deneyimi',
+                    icon: '<i class="fas fa-palette"></i>',
+                    class: 'designer'
+                },
+                'marketing_specialist': {
+                    name: 'Pazarlama Uzmanı',
+                    role: 'Pazarlama & Strateji',
+                    icon: '<i class="fas fa-bullhorn"></i>',
+                    class: 'marketing'
+                },
+                'qa_engineer': {
+                    name: 'QA Mühendisi',
+                    role: 'Kalite Güvence',
+                    icon: '<i class="fas fa-bug"></i>',
+                    class: 'qa'
+                },
+                'devops_engineer': {
+                    name: 'DevOps Mühendisi',
+                    role: 'Altyapı & Deployment',
+                    icon: '<i class="fas fa-server"></i>',
+                    class: 'devops'
+                }
+            };
+            
+            return specialists[specialistKey] || {
+                name: specialistKey,
+                role: 'Uzman',
+                icon: '<i class="fas fa-user"></i>',
+                class: 'default'
+            };
         }
 
         async function showSpecialistInfo() {
@@ -448,29 +941,37 @@
                     const specialists = data.specialists;
                     
                     for (const [key, info] of Object.entries(specialists)) {
-                        const icons = {
-                            'project_manager': '📋',
-                            'lead_developer': '💻',
-                            'business_analyst': '📊',
-                            'ui_ux_designer': '🎨',
-                            'marketing_specialist': '📈', 
-                            'qa_engineer': '🔍',
-                            'devops_engineer': '⚙️'
-                        };
+                        const displayInfo = getSpecialistDisplayInfo(key);
                         
                         html += `
-                            <div class="specialist-info-card">
-                                <h5>${icons[key] || '🤖'} ${info.name}</h5>
-                                <p>${info.description}</p>
-                                <div>
-                                    <strong>Uzmanlık Alanları:</strong>
-                                    ${info.expertise.map(exp => `<span class="badge bg-secondary me-1">${exp}</span>`).join('')}
+                            <div class="specialist-card ${displayInfo.class} mb-4" data-animate="fadeInUp">
+                                <div class="d-flex align-items-start">
+                                    <div class="specialist-icon ${displayInfo.class} me-3">
+                                        ${displayInfo.icon}
+                                    </div>
+                                    <div>
+                                        <h5>${displayInfo.name}</h5>
+                                        <p class="text-secondary">${info.description}</p>
+                                        <div>
+                                            <strong>Uzmanlık Alanları:</strong>
+                                            <div class="mt-2">
+                                                ${info.expertise.map(exp => `<span class="badge bg-secondary me-1 mb-1">${exp}</span>`).join('')}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `;
                     }
                     
                     document.getElementById('specialistInfo').innerHTML = html;
+                    
+                    // Trigger animations
+                    if (window.animationUtils) {
+                        const cards = document.querySelectorAll('#specialistInfo .specialist-card');
+                        window.animationUtils.staggerAnimation(cards, 'bounce-in', 100);
+                    }
+                    
                     new bootstrap.Modal(document.getElementById('specialistModal')).show();
                 } else {
                     alert('Uzman bilgileri alınamadı: ' + data.error);
@@ -485,15 +986,6 @@
             new bootstrap.Modal(document.getElementById('apiModal')).show();
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Focus on input
-            document.getElementById('messageInput').focus();
-            
-            // Load initial system status
-            updateSystemStatus();
-        });
-
         async function updateSystemStatus() {
             try {
                 const response = await fetch('/system_status');
@@ -504,23 +996,50 @@
                     const status = data.status;
                     let statusHtml = '';
                     
+                    // Adapters status
                     if (status.adapters_available > 0) {
-                        statusHtml += `<span class="badge bg-success">✓ ${status.adapters_available} Adapter Hazır</span><br>`;
+                        statusHtml += `
+                            <div class="status-item">
+                                <span>API Adapterleri</span>
+                                <span class="status-badge success">${status.adapters_available} Aktif</span>
+                            </div>
+                        `;
                     } else {
-                        statusHtml += `<span class="badge bg-danger">✗ Adapter Yok</span><br>`;
+                        statusHtml += `
+                            <div class="status-item">
+                                <span>API Adapterleri</span>
+                                <span class="status-badge danger">Yok</span>
+                            </div>
+                        `;
                     }
                     
+                    // Specialists status
                     if (status.specialists_available > 0) {
-                        statusHtml += `<span class="badge bg-info">${status.specialists_available} Uzman Hazır</span>`;
+                        statusHtml += `
+                            <div class="status-item">
+                                <span>Uzmanlar</span>
+                                <span class="status-badge success">${status.specialists_available} Hazır</span>
+                            </div>
+                        `;
                     }
                     
                     statusContainer.innerHTML = statusHtml;
                 } else {
-                    statusContainer.innerHTML = '<span class="badge bg-warning">Durum Bilinmiyor</span>';
+                    statusContainer.innerHTML = `
+                        <div class="status-item">
+                            <span>Durum</span>
+                            <span class="status-badge warning">Bilinmiyor</span>
+                        </div>
+                    `;
                 }
             } catch (error) {
                 console.error('Error loading system status:', error);
-                document.getElementById('systemStatus').innerHTML = '<span class="badge bg-danger">Bağlantı Hatası</span>';
+                document.getElementById('systemStatus').innerHTML = `
+                    <div class="status-item">
+                        <span>Durum</span>
+                        <span class="status-badge danger">Hata</span>
+                    </div>
+                `;
             }
         }
     </script>
