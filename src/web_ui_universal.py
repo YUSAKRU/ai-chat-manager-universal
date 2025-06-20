@@ -15,6 +15,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Hata yönetimi sistemi
 from .error_handler import central_error_handler, safe_execute, async_safe_execute, AIChromeChatError, ErrorTypes
 
+# Document Synthesizer - AI-Powered Document Generation
+from .document_synthesizer import DocumentSynthesizer
+
+# Live Document Canvas - Real-time Collaborative Document Editing
+from .live_document_canvas import (
+    DocumentStateManager, 
+    RealTimeSyncEngine, 
+    CanvasInterface, 
+    AIDocumentIntegration
+)
+
 # TODO: Implement these modules in future versions
 # from project_memory import ProjectMemory
 # from plugin_manager import plugin_manager
@@ -58,6 +69,23 @@ class WebUIUniversal:
             'last_update': None,
             'data': None
         }
+        
+        # Document Synthesizer - AI-Powered Document Generation
+        self.document_synthesizer = DocumentSynthesizer(
+            ai_adapter=self.ai_adapter,
+            output_dir="generated_documents"
+        )
+        print("📄 AI Document Synthesizer başlatıldı!")
+        
+        # Live Document Canvas - Real-time Collaborative Document Editing
+        self.document_state_manager = DocumentStateManager()
+        self.real_time_sync_engine = RealTimeSyncEngine(self.socketio, self.document_state_manager)
+        self.canvas_interface = CanvasInterface()
+        self.ai_document_integration = AIDocumentIntegration(
+            self.document_state_manager, 
+            self.real_time_sync_engine
+        )
+        print("🎨 Live Document Canvas başlatıldı!")
         
         self.setup_routes()
         self.setup_socketio_events()
@@ -490,6 +518,175 @@ class WebUIUniversal:
                         'total_messages': len(conversation['context']['conversation_history'])
                     }
                 })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        # === Document Synthesizer API Endpoints ===
+        
+        @self.app.route('/api/documents/generate', methods=['POST'])
+        def generate_document():
+            """AI-powered document synthesis"""
+            try:
+                data = request.get_json()
+                session_id = data.get('session_id')
+                document_type = data.get('document_type', 'meeting_summary')
+                
+                if not session_id:
+                    return jsonify({'error': 'Session ID gerekli'}), 400
+                
+                # Session'dan conversation data'sını çıkar
+                conversation_data = self.document_synthesizer.get_conversation_data_from_session(
+                    session_id, self.active_conversations
+                )
+                
+                if not conversation_data:
+                    return jsonify({'error': 'Konuşma verisi bulunamadı'}), 404
+                
+                # Background'da document generation çalıştır
+                def run_document_generation():
+                    try:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        
+                        if document_type == 'meeting_summary':
+                            metadata = loop.run_until_complete(
+                                self.document_synthesizer.synthesize_meeting_summary(conversation_data)
+                            )
+                        elif document_type == 'action_items':
+                            metadata = loop.run_until_complete(
+                                self.document_synthesizer.synthesize_action_items(conversation_data)
+                            )
+                        elif document_type == 'decisions_log':
+                            metadata = loop.run_until_complete(
+                                self.document_synthesizer.synthesize_decisions_log(conversation_data)
+                            )
+                        else:
+                            raise ValueError(f"Desteklenmeyen belge türü: {document_type}")
+                        
+                        # Success notification via WebSocket
+                        self.socketio.emit('document_generated', {
+                            'document_id': metadata.document_id,
+                            'title': metadata.title,
+                            'document_type': metadata.document_type,
+                            'session_id': metadata.session_id,
+                            'file_paths': metadata.file_paths,
+                            'insights_summary': metadata.insights_summary,
+                            'timestamp': metadata.created_at
+                        })
+                        
+                    except Exception as e:
+                        self.socketio.emit('document_generation_error', {
+                            'error': str(e),
+                            'session_id': session_id,
+                            'document_type': document_type,
+                            'timestamp': datetime.now().isoformat()
+                        })
+                
+                generation_thread = threading.Thread(target=run_document_generation)
+                generation_thread.daemon = True
+                generation_thread.start()
+                
+                return jsonify({
+                    'status': 'generating',
+                    'document_type': document_type,
+                    'session_id': session_id,
+                    'message': 'AI belge sentezi başlatıldı...'
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/documents', methods=['GET'])
+        def list_documents():
+            """Oluşturulmuş belgeleri listele"""
+            try:
+                document_type = request.args.get('type')
+                documents = self.document_synthesizer.list_documents(document_type)
+                
+                # Serialize documents
+                documents_data = []
+                for doc in documents:
+                    if hasattr(doc, '__dict__'):
+                        documents_data.append(doc.__dict__)
+                    else:
+                        documents_data.append(doc)
+                
+                return jsonify({
+                    'documents': documents_data,
+                    'count': len(documents),
+                    'filter': document_type
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/documents/<document_id>', methods=['GET'])
+        def get_document(document_id):
+            """Belge detaylarını getir"""
+            try:
+                metadata = self.document_synthesizer.get_document_metadata(document_id)
+                
+                if not metadata:
+                    return jsonify({'error': 'Belge bulunamadı'}), 404
+                
+                # Serialize metadata
+                if hasattr(metadata, '__dict__'):
+                    document_data = metadata.__dict__
+                else:
+                    document_data = metadata
+                
+                return jsonify(document_data)
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/documents/<document_id>/download/<file_format>')
+        def download_document(document_id, file_format):
+            """Belgeyi indir"""
+            try:
+                metadata = self.document_synthesizer.get_document_metadata(document_id)
+                
+                if not metadata:
+                    return jsonify({'error': 'Belge bulunamadı'}), 404
+                
+                file_path = metadata.file_paths.get(file_format)
+                if not file_path or not os.path.exists(file_path):
+                    return jsonify({'error': f'{file_format} formatı bulunamadı'}), 404
+                
+                from flask import send_file
+                return send_file(
+                    file_path,
+                    as_attachment=True,
+                    download_name=os.path.basename(file_path)
+                )
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/documents/<document_id>', methods=['DELETE'])
+        def delete_document(document_id):
+            """Belgeyi sil"""
+            try:
+                success = self.document_synthesizer.delete_document(document_id)
+                
+                if not success:
+                    return jsonify({'error': 'Belge silinirken hata oluştu'}), 500
+                
+                return jsonify({
+                    'status': 'deleted',
+                    'document_id': document_id
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/documents/statistics')
+        def get_document_statistics():
+            """Document synthesis istatistikleri"""
+            try:
+                stats = self.document_synthesizer.get_statistics()
+                return jsonify(stats)
                 
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
@@ -1300,6 +1497,99 @@ class WebUIUniversal:
                     'status': 'success',
                     'data': planning_data,
                     'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        # === Live Document Canvas API Endpoints ===
+        
+        @self.app.route('/api/canvas/documents', methods=['POST'])
+        def create_canvas_document():
+            """Yeni canlı belge oluştur"""
+            try:
+                data = request.get_json()
+                title = data.get('title', 'Yeni Belge')
+                content = data.get('content', '')
+                document_type = data.get('type', 'markdown')
+                session_id = data.get('session_id')
+                
+                # Canlı belge oluştur
+                document_id = self.ai_document_integration.create_collaborative_document(
+                    title=title,
+                    initial_content=content,
+                    document_type=document_type,
+                    session_id=session_id
+                )
+                
+                # Canvas window oluştur
+                window_id = self.canvas_interface.create_window(document_id, title)
+                
+                return jsonify({
+                    'status': 'success',
+                    'document_id': document_id,
+                    'window_id': window_id,
+                    'title': title,
+                    'document_type': document_type,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/canvas/documents/<document_id>')
+        def get_canvas_document(document_id):
+            """Canlı belge bilgilerini getir"""
+            try:
+                document_info = self.document_state_manager.get_document_info(document_id)
+                
+                if not document_info:
+                    return jsonify({'error': 'Belge bulunamadı'}), 404
+                
+                return jsonify({
+                    'status': 'success',
+                    'document': document_info,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/canvas/windows', methods=['GET'])
+        def list_canvas_windows():
+            """Aktif canvas window'larını listele"""
+            try:
+                windows = self.canvas_interface.list_active_windows()
+                room_info = self.real_time_sync_engine.list_active_rooms()
+                
+                return jsonify({
+                    'status': 'success',
+                    'windows': windows,
+                    'rooms': room_info,
+                    'total_windows': len(windows),
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/canvas/statistics')
+        def get_canvas_statistics():
+            """Canvas istatistiklerini getir"""
+            try:
+                canvas_stats = self.canvas_interface.get_canvas_statistics()
+                document_stats = self.document_state_manager.get_statistics()
+                
+                combined_stats = {
+                    'canvas': canvas_stats,
+                    'documents': document_stats,
+                    'total_active_documents': len(self.real_time_sync_engine.active_rooms),
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+                return jsonify({
+                    'status': 'success',
+                    'statistics': combined_stats
                 })
                 
             except Exception as e:

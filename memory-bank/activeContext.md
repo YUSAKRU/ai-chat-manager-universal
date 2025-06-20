@@ -35,4 +35,4 @@ Proje temel MVP (Minimum Viable Product) aşamasını tamamlamıştır.
 - Multi-language support
 - Plugin system
 
-Son Güncelleme: 2025-06-20 11:07
+Son Güncelleme: 2025-06-20 13:38

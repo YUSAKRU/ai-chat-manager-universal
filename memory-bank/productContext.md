@@ -30,4 +30,4 @@ AI Chrome Chat Manager kullanıcılara aşağıdaki deneyimi sunar:
 - **Kod Riview**: Bir AI'ın kod yazması, diğerinin review yapması
 - **Proje Planlaması**: PM ve Developer rolleriyle proje planlaması
 
-Güncelleme: 2025-06-20 11:07
+Güncelleme: 2025-06-20 13:38

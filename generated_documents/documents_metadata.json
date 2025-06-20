@@ -1,0 +1,88 @@
+{
+  "meeting_summary_20250620_114139_f4340e9c": {
+    "document_id": "meeting_summary_20250620_114139_f4340e9c",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750408877",
+    "created_at": "2025-06-20T11:41:39.431108",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_114139_f4340e9c_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_114139_f4340e9c_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "action_items_20250620_114208_700981c3": {
+    "document_id": "action_items_20250620_114208_700981c3",
+    "title": "Eylem Planı - Boş Konuşma",
+    "document_type": "action_items",
+    "session_id": "1750408877",
+    "created_at": "2025-06-20T11:42:08.992596",
+    "file_paths": {
+      "markdown": "generated_documents\\action_items_20250620_114208_700981c3_action_items.md"
+    },
+    "insights_summary": {
+      "action_items_count": 0,
+      "high_priority": 0,
+      "medium_priority": 0,
+      "low_priority": 0
+    }
+  },
+  "decisions_log_20250620_124337_e9a099c1": {
+    "document_id": "decisions_log_20250620_124337_e9a099c1",
+    "title": "Karar Defteri - Boş Konuşma",
+    "document_type": "decisions_log",
+    "session_id": "1750412593",
+    "created_at": "2025-06-20T12:43:37.791275",
+    "file_paths": {
+      "markdown": "generated_documents\\decisions_log_20250620_124337_e9a099c1_decisions_log.md"
+    },
+    "insights_summary": {
+      "decisions_count": 0,
+      "high_confidence": 0,
+      "medium_confidence": 0,
+      "low_confidence": 0
+    }
+  },
+  "action_items_20250620_124405_31e87c42": {
+    "document_id": "action_items_20250620_124405_31e87c42",
+    "title": "Eylem Planı - Boş Konuşma",
+    "document_type": "action_items",
+    "session_id": "1750412593",
+    "created_at": "2025-06-20T12:44:05.601262",
+    "file_paths": {
+      "markdown": "generated_documents\\action_items_20250620_124405_31e87c42_action_items.md"
+    },
+    "insights_summary": {
+      "action_items_count": 0,
+      "high_priority": 0,
+      "medium_priority": 0,
+      "low_priority": 0
+    }
+  },
+  "meeting_summary_20250620_124407_e77ffd89": {
+    "document_id": "meeting_summary_20250620_124407_e77ffd89",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750412593",
+    "created_at": "2025-06-20T12:44:07.464738",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_124407_e77ffd89_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_124407_e77ffd89_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  }
+}

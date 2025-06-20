@@ -19,6 +19,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
+    <!-- Rich Text Editor - Tiptap -->
+    <link rel="stylesheet" href="https://unpkg.com/@tiptap/core@2.1.13/dist/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/@tiptap/extension-typography@2.1.13/dist/style.css">
+    
     <!-- Our Design System -->
     <link rel="stylesheet" href="/static/css/design-system.css">
     
@@ -601,6 +605,297 @@
                 display: none !important;
             }
         }
+
+        /* ===== 🎨 LIVE DOCUMENT CANVAS STYLES ===== */
+
+        /* Floating Window Styles */
+        .canvas-window {
+            position: absolute;
+            background: var(--bg-surface);
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            min-width: 400px;
+            min-height: 300px;
+            max-width: 800px;
+            max-height: 600px;
+            resize: both;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            z-index: 1000;
+        }
+
+        .canvas-window:hover {
+            box-shadow: var(--shadow-2xl);
+        }
+
+        .canvas-window.focused {
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(var(--primary-500-rgb), 0.1), var(--shadow-2xl);
+        }
+
+        .canvas-window.minimized {
+            height: 40px !important;
+            overflow: hidden;
+            resize: none;
+        }
+
+        .canvas-window-header {
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-primary);
+            padding: var(--space-2) var(--space-3);
+            cursor: move;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .canvas-window-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .canvas-window-controls {
+            display: flex;
+            gap: var(--space-1);
+        }
+
+        .canvas-window-control {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            transition: all var(--transition-base);
+        }
+
+        .canvas-window-control.minimize {
+            background: var(--warning-400);
+            color: var(--warning-900);
+        }
+
+        .canvas-window-control.maximize {
+            background: var(--success-400);
+            color: var(--success-900);
+        }
+
+        .canvas-window-control.close {
+            background: var(--danger-400);
+            color: var(--danger-900);
+        }
+
+        .canvas-window-control:hover {
+            transform: scale(1.2);
+        }
+
+        .canvas-window-content {
+            height: calc(100% - 41px);
+            padding: var(--space-3);
+            overflow: auto;
+        }
+
+        /* Rich Text Editor Styles */
+        .canvas-editor {
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: var(--font-family-base);
+            font-size: var(--font-size-base);
+            line-height: 1.6;
+            min-height: 200px;
+        }
+
+        .canvas-editor.ProseMirror {
+            border: none !important;
+            outline: none !important;
+        }
+
+        .canvas-editor .ProseMirror {
+            outline: none;
+        }
+
+        .canvas-editor h1 { 
+            font-size: var(--font-size-2xl); 
+            font-weight: 700; 
+            margin: var(--space-4) 0 var(--space-2) 0;
+            color: var(--text-primary);
+        }
+
+        .canvas-editor h2 { 
+            font-size: var(--font-size-xl); 
+            font-weight: 600; 
+            margin: var(--space-3) 0 var(--space-2) 0;
+            color: var(--text-primary);
+        }
+
+        .canvas-editor h3 { 
+            font-size: var(--font-size-lg); 
+            font-weight: 600; 
+            margin: var(--space-3) 0 var(--space-1) 0;
+            color: var(--text-primary);
+        }
+
+        .canvas-editor p { 
+            margin: var(--space-2) 0; 
+        }
+
+        .canvas-editor ul, .canvas-editor ol { 
+            margin: var(--space-2) 0; 
+            padding-left: var(--space-6);
+        }
+
+        .canvas-editor li { 
+            margin: var(--space-1) 0; 
+        }
+
+        .canvas-editor blockquote {
+            border-left: 4px solid var(--primary-500);
+            background: var(--bg-secondary);
+            padding: var(--space-3);
+            margin: var(--space-3) 0;
+            border-radius: var(--radius-md);
+        }
+
+        .canvas-editor code {
+            background: var(--bg-tertiary);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family-mono);
+            font-size: var(--font-size-sm);
+        }
+
+        .canvas-editor pre {
+            background: var(--bg-tertiary);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            margin: var(--space-3) 0;
+        }
+
+        /* Canvas Toolbar */
+        .canvas-toolbar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-primary);
+            padding: var(--space-2);
+            display: flex;
+            gap: var(--space-1);
+            flex-wrap: wrap;
+        }
+
+        .canvas-toolbar-button {
+            background: transparent;
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: var(--space-1) var(--space-2);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .canvas-toolbar-button:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .canvas-toolbar-button.active {
+            background: var(--primary-500);
+            color: white;
+            border-color: var(--primary-500);
+        }
+
+        /* AI Collaboration Indicators */
+        .ai-typing-indicator {
+            position: absolute;
+            bottom: var(--space-3);
+            right: var(--space-3);
+            background: var(--primary-500);
+            color: white;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            animation: pulse 2s infinite;
+        }
+
+        .ai-edit-highlight {
+            background: rgba(var(--primary-500-rgb), 0.2);
+            border-radius: var(--radius-sm);
+            padding: 1px 2px;
+            animation: fadeHighlight 3s ease-out;
+        }
+
+        @keyframes fadeHighlight {
+            0% { background: rgba(var(--primary-500-rgb), 0.4); }
+            100% { background: transparent; }
+        }
+
+        /* Canvas Grid Layout */
+        .canvas-grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(var(--border-primary-rgb), 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--border-primary-rgb), 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .canvas-container:hover .canvas-grid-overlay {
+            opacity: 1;
+        }
+
+        /* Document Type Badges */
+        .canvas-document-type {
+            position: absolute;
+            top: var(--space-1);
+            right: var(--space-3);
+            background: var(--primary-500);
+            color: white;
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+
+        .canvas-document-type.markdown { background: var(--info-500); }
+        .canvas-document-type.rich_text { background: var(--success-500); }
+        .canvas-document-type.collaborative { background: var(--warning-500); }
+        .canvas-document-type.code_notes { background: var(--danger-500); }
+
+        /* Responsive Canvas */
+        @media (max-width: 768px) {
+            .canvas-window {
+                min-width: 300px;
+                max-width: 100%;
+                left: 0 !important;
+                right: 0 !important;
+                width: calc(100% - 20px) !important;
+                margin: 0 10px;
+            }
+            
+            .canvas-toolbar {
+                padding: var(--space-1);
+            }
+            
+            .canvas-toolbar-button {
+                padding: var(--space-1);
+                font-size: var(--font-size-xs);
+            }
+        }
     </style>
 </head>
 <body>
@@ -668,6 +963,12 @@
                 <button class="nav-link focus-ring" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
                     <i class="bi bi-diagram-3"></i>
                     <span class="d-none d-sm-inline ms-2">🧠 AI Orkestra</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link focus-ring" id="canvas-tab" data-bs-toggle="tab" data-bs-target="#canvas" type="button" role="tab">
+                    <i class="bi bi-window-stack"></i>
+                    <span class="d-none d-sm-inline ms-2">🎨 Canlı Belge Tuvali</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -1029,6 +1330,55 @@
                             </div>
                         </div>
 
+                        <!-- 🧠 AI Document Synthesizer Panel -->
+                        <div class="card-modern mb-4" data-animate="fadeInUp" data-delay="700" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <div class="card-header text-white">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    🧠 AI Document Synthesizer
+                                    <span class="badge bg-light text-dark ms-2">Smart Professional Suite</span>
+                                </h6>
+                            </div>
+                            <div class="card-body bg-white">
+                                <div class="mb-3">
+                                    <label class="form-label text-sm">Belge Türü:</label>
+                                    <select id="document-type-selector" class="form-select focus-ring">
+                                        <option value="meeting_summary">📋 Meeting Summary (Toplantı Özeti)</option>
+                                        <option value="action_items">📋 Action Items (Eylem Planı)</option>
+                                        <option value="decisions_log">✅ Decisions Log (Karar Defteri)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button id="generate-document-btn" class="btn-modern btn-primary" disabled onclick="generateDocument()">
+                                        <i class="bi bi-magic"></i>
+                                        AI Belge Üret
+                                    </button>
+                                    <button id="view-documents-btn" class="btn-modern btn-outline-secondary btn-sm" onclick="showDocumentsModal()">
+                                        <i class="bi bi-folder"></i>
+                                        Belgeleri Görüntüle
+                                    </button>
+                                </div>
+                                
+                                <div id="document-generation-status" class="mt-3"></div>
+                                
+                                <hr class="my-3">
+                                
+                                <div class="document-stats">
+                                    <h6 class="text-sm text-muted mb-2">
+                                        <i class="bi bi-bar-chart"></i>
+                                        Document İstatistikleri
+                                    </h6>
+                                    <div id="document-statistics" class="small">
+                                        <div class="text-center text-muted">
+                                            <i class="bi bi-hourglass-split"></i>
+                                            Yükleniyor...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Director Control Panel -->
                         <div class="card-modern" data-animate="fadeInUp" data-delay="800">
                             <div class="card-header">
@@ -1071,6 +1421,235 @@
                                         <i class="bi bi-question-circle"></i>
                                         Karar Noktası
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Document Canvas Tab -->
+            <div class="tab-pane fade" id="canvas" role="tabpanel" aria-labelledby="canvas-tab">
+                <div class="d-flex justify-content-between align-items-center mb-4" data-animate="fadeInUp">
+                    <div>
+                        <h2 class="mb-2">🎨 Canlı Belge Tuvali</h2>
+                        <p class="text-secondary mb-0">AI'lar ve insanlar için gerçek zamanlı işbirlikçi belge düzenleme</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn-modern btn-success" onclick="createNewDocument()">
+                            <i class="bi bi-file-plus"></i>
+                            <span class="d-none d-sm-inline">Yeni Belge</span>
+                        </button>
+                        <button class="btn-modern btn-primary" onclick="showDocumentManager()">
+                            <i class="bi bi-folder2-open"></i>
+                            <span class="d-none d-sm-inline">Belge Yöneticisi</span>
+                        </button>
+                        <button class="btn-modern btn-info" onclick="showCanvasStatistics()">
+                            <i class="bi bi-bar-chart"></i>
+                            <span class="d-none d-sm-inline">İstatistikler</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Control Panel -->
+                <div class="card-modern mb-4" data-animate="fadeInUp" data-delay="100">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gear-wide-connected"></i>
+                            Canvas Kontrol Paneli
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label">Belge Türü</label>
+                                <select class="form-select" id="canvas-document-type">
+                                    <option value="markdown">📝 Markdown Belgesi</option>
+                                    <option value="rich_text">🎨 Zengin Metin</option>
+                                    <option value="collaborative">👥 İşbirlikçi Belge</option>
+                                    <option value="code_notes">💻 Kod Notları</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Belge Başlığı</label>
+                                <input type="text" class="form-control" id="canvas-document-title" placeholder="Yeni Belge Başlığı...">
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn-modern btn-success w-100" onclick="launchCanvasDocument()">
+                                    <i class="bi bi-rocket-takeoff"></i>
+                                    Canvas'ı Başlat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Canvas Windows -->
+                <div class="row g-4">
+                    <!-- Canvas Windows Display -->
+                    <div class="col-lg-8">
+                        <div class="card-modern" data-animate="fadeInLeft" data-delay="200">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-window-stack"></i>
+                                    Aktif Canvas Pencereleri
+                                </h5>
+                                <span class="badge bg-primary" id="active-windows-count">0</span>
+                            </div>
+                            <div class="card-body" style="height: 400px; position: relative; overflow: hidden;">
+                                <!-- Canvas Container -->
+                                <div id="canvas-container" class="position-relative w-100 h-100">
+                                    <div class="text-center text-muted h-100 d-flex align-items-center justify-content-center" id="canvas-empty-state">
+                                        <div>
+                                            <i class="bi bi-window-stack" style="font-size: 48px; opacity: 0.3;"></i>
+                                            <p class="mt-3 mb-2">Henüz aktif canvas penceresi yok</p>
+                                            <small>Yukarıdaki "Canvas'ı Başlat" butonuna tıklayın</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Statistics & Controls -->
+                    <div class="col-lg-4">
+                        <!-- Real-time Statistics -->
+                        <div class="card-modern mb-4" data-animate="fadeInRight" data-delay="200">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-graph-up"></i>
+                                    Gerçek Zamanlı İstatistikler
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2 text-center">
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded">
+                                            <strong class="text-primary" id="canvas-total-documents">0</strong><br>
+                                            <small class="text-muted">Toplam Belge</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded">
+                                            <strong class="text-success" id="canvas-active-users">0</strong><br>
+                                            <small class="text-muted">Aktif Kullanıcı</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded">
+                                            <strong class="text-warning" id="canvas-ai-edits">0</strong><br>
+                                            <small class="text-muted">AI Düzenlemesi</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded">
+                                            <strong class="text-info" id="canvas-sync-status">●</strong><br>
+                                            <small class="text-muted">Sync Durumu</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Users & AI Presence -->
+                        <div class="card-modern mb-4" data-animate="fadeInRight" data-delay="300">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-people"></i>
+                                    Aktif Katılımcılar
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="canvas-participants">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-secondary me-2">👤</span>
+                                        <span class="text-sm">Sen (Ana Kullanıcı)</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2" id="ai-project-manager-presence" style="display: none;">
+                                        <span class="badge bg-primary me-2">🤖</span>
+                                        <span class="text-sm">AI Project Manager</span>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2" id="ai-developer-presence" style="display: none;">
+                                        <span class="badge bg-success me-2">🤖</span>
+                                        <span class="text-sm">AI Lead Developer</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Actions -->
+                        <div class="card-modern" data-animate="fadeInRight" data-delay="400">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-lightning-charge"></i>
+                                    Hızlı Eylemler
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn-modern btn-outline-primary btn-sm" onclick="minimizeAllWindows()">
+                                        <i class="bi bi-dash-square"></i>
+                                        Tümünü Küçült
+                                    </button>
+                                    <button class="btn-modern btn-outline-success btn-sm" onclick="maximizeAllWindows()">
+                                        <i class="bi bi-arrows-fullscreen"></i>
+                                        Tümünü Büyüt
+                                    </button>
+                                    <button class="btn-modern btn-outline-warning btn-sm" onclick="cascadeWindows()">
+                                        <i class="bi bi-layers"></i>
+                                        Kademeli Dizili
+                                    </button>
+                                    <button class="btn-modern btn-outline-danger btn-sm" onclick="closeAllWindows()">
+                                        <i class="bi bi-x-square"></i>
+                                        Tümünü Kapat
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Integration Status -->
+                <div class="card-modern mt-4" data-animate="fadeInUp" data-delay="500">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-robot"></i>
+                            AI Entegrasyon Durumu
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="bi bi-check-circle"></i>
+                                    </span>
+                                    <div>
+                                        <div class="text-sm font-weight-bold">Belge Durumu Yöneticisi</div>
+                                        <small class="text-muted">Aktif ve hazır</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="bi bi-check-circle"></i>
+                                    </span>
+                                    <div>
+                                        <div class="text-sm font-weight-bold">Gerçek Zamanlı Sync</div>
+                                        <small class="text-muted">WebSocket bağlı</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="bi bi-check-circle"></i>
+                                    </span>
+                                    <div>
+                                        <div class="text-sm font-weight-bold">AI Belge Entegrasyonu</div>
+                                        <small class="text-muted">Hazır ve bekliyor</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1124,6 +1703,15 @@
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
+    <!-- Rich Text Editor - Tiptap -->
+    <script src="https://unpkg.com/@tiptap/core@2.1.13/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/@tiptap/starter-kit@2.1.13/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-document@2.1.13/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-text@2.1.13/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-paragraph@2.1.13/dist/umd/index.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-collaboration@2.1.13/dist/umd/index.js"></script>
+    
     <script src="/static/js/theme-manager.js"></script>
     <script src="/static/js/animation-utils.js"></script>
     <script src="/static/js/main.js"></script>
@@ -1149,6 +1737,7 @@
             loadSystemStatus();
             loadRoleAssignments();
             loadInitialAICards(); // Başlangıçta AI kartlarını yükle
+            loadDocumentStatistics(); // Document statistics'i yükle
             
             // Setup event listeners
             setupEventListeners();
@@ -1204,6 +1793,9 @@
                     document.getElementById('pause-orchestration').disabled = false;
                     document.getElementById('send-intervention-btn').disabled = false;
                     document.getElementById('stop-orchestration-btn').disabled = false;
+                    
+                    // Update document generation UI
+                    updateDocumentGenerationUI();
                     
                     addSystemMessage(`🎯 AI Orkestra başlatıldı! Maksimum ${data.max_turns} tur konuşma`);
                 });
@@ -1321,6 +1913,18 @@
                 socket.on('analytics_update', function(data) {
                     console.log('📊 Analytics Update:', data);
                     updateAnalyticsDisplay(data);
+                });
+
+                // Document generation events
+                socket.on('document_generated', function(data) {
+                    console.log('📄 Document Generated:', data);
+                    showDocumentGenerationSuccess(data);
+                    loadDocumentStatistics(); // Stats'i güncelle
+                });
+
+                socket.on('document_generation_error', function(data) {
+                    console.log('🚨 Document Generation Error:', data);
+                    showDocumentGenerationError(data.error);
                 });
 
             } catch (error) {
@@ -1488,6 +2092,9 @@
             
             currentSessionId = null;
             orchestrationActive = false;
+            
+            // Update document generation UI
+            updateDocumentGenerationUI();
         }
 
         // Multi-AI Orchestration Functions
@@ -2688,6 +3295,800 @@
                 });
             }
         }
+
+        // === 🧠 AI Document Synthesizer Functions ===
+
+        function generateDocument() {
+            if (!currentSessionId) {
+                alert('Aktif bir konuşma yok! Önce AI konuşması başlatın.');
+                return;
+            }
+
+            const documentType = document.getElementById('document-type-selector').value;
+            const statusContainer = document.getElementById('document-generation-status');
+            const generateBtn = document.getElementById('generate-document-btn');
+
+            // UI güncellemeleri
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> AI Sentezliyor...';
+            
+            statusContainer.innerHTML = `
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-magic"></i>
+                    <strong>AI Analizi Başlatıldı!</strong><br>
+                    <small>Konuşma analiz ediliyor ve "${getDocumentTypeName(documentType)}" belgesi oluşturuluyor...</small>
+                </div>
+            `;
+
+            console.log(`🧠 Generating ${documentType} for session ${currentSessionId}`);
+
+            fetch('/api/documents/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    document_type: documentType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'generating') {
+                    console.log('✅ Document generation started');
+                    statusContainer.innerHTML = `
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-clock-history"></i>
+                            <strong>İşlem Devam Ediyor...</strong><br>
+                            <small>AI belge sentezi arka planda çalışıyor. Tamamlandığında bildirim alacaksınız.</small>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Bilinmeyen hata');
+                }
+            })
+            .catch(error => {
+                console.error('❌ Document generation error:', error);
+                statusContainer.innerHTML = `
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Hata:</strong> ${error.message}
+                    </div>
+                `;
+            })
+            .finally(() => {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="bi bi-magic"></i> AI Belge Üret';
+            });
+        }
+
+        function showDocumentGenerationSuccess(data) {
+            const statusContainer = document.getElementById('document-generation-status');
+            
+            statusContainer.innerHTML = `
+                <div class="alert alert-success mb-0">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>✅ Belge Başarıyla Oluşturuldu!</strong><br>
+                    <small><strong>${data.title}</strong></small><br>
+                    <div class="mt-2">
+                        ${Object.keys(data.file_paths).map(format => 
+                            `<a href="/api/documents/${data.document_id}/download/${format}" 
+                               class="btn btn-sm btn-outline-success me-1" target="_blank">
+                               <i class="bi bi-download"></i> ${format.toUpperCase()}
+                            </a>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Auto-clear success message after 10 seconds
+            setTimeout(() => {
+                statusContainer.innerHTML = '';
+            }, 10000);
+
+            // Show notification
+            if (window.Notification && Notification.permission === 'granted') {
+                new Notification('AI Belge Hazır!', {
+                    body: `"${data.title}" belgesi başarıyla oluşturuldu.`,
+                    icon: '/static/favicon.ico'
+                });
+            }
+        }
+
+        function showDocumentGenerationError(error) {
+            const statusContainer = document.getElementById('document-generation-status');
+            
+            statusContainer.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Belge Üretim Hatası:</strong><br>
+                    <small>${error}</small>
+                </div>
+            `;
+
+            // Auto-clear error message after 8 seconds
+            setTimeout(() => {
+                statusContainer.innerHTML = '';
+            }, 8000);
+        }
+
+        function loadDocumentStatistics() {
+            const statsContainer = document.getElementById('document-statistics');
+            
+            fetch('/api/documents/statistics')
+                .then(response => response.json())
+                .then(stats => {
+                    console.log('📊 Document Statistics:', stats);
+                    
+                    const statsHtml = `
+                        <div class="row g-2 text-center">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded">
+                                    <strong class="text-primary">${stats.total_documents}</strong><br>
+                                    <small class="text-muted">Toplam Belge</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded">
+                                    <strong class="text-success">${stats.document_types.meeting_summary}</strong><br>
+                                    <small class="text-muted">Meeting Summary</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded">
+                                    <strong class="text-warning">${stats.document_types.action_items}</strong><br>
+                                    <small class="text-muted">Action Items</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded">
+                                    <strong class="text-info">${stats.document_types.decisions_log}</strong><br>
+                                    <small class="text-muted">Decisions Log</small>
+                                </div>
+                            </div>
+                        </div>
+                        ${stats.total_insights ? `
+                        <hr class="my-2">
+                        <div class="text-center">
+                            <small class="text-muted">
+                                📊 ${stats.total_insights.key_points} Key Points • 
+                                ✅ ${stats.total_insights.decisions} Decisions • 
+                                📋 ${stats.total_insights.action_items} Actions
+                            </small>
+                        </div>
+                        ` : ''}
+                    `;
+                    
+                    statsContainer.innerHTML = statsHtml;
+                })
+                .catch(error => {
+                    console.error('❌ Statistics load error:', error);
+                    statsContainer.innerHTML = `
+                        <div class="text-center text-muted">
+                            <small>📊 İstatistik yüklenemedi</small>
+                        </div>
+                    `;
+                });
+        }
+
+        function showDocumentsModal() {
+            // Simple implementation - would show modal in real app
+            fetch('/api/documents')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('📚 Documents Library:', data);
+                    if (data.documents.length === 0) {
+                        alert('Henüz belge oluşturulmamış.');
+                    } else {
+                        let message = `📚 Generated Documents (${data.count}):\n\n`;
+                        data.documents.forEach((doc, index) => {
+                            message += `${index + 1}. ${doc.title}\n`;
+                            message += `   Type: ${doc.document_type}\n`;
+                            message += `   Created: ${new Date(doc.created_at).toLocaleString()}\n\n`;
+                        });
+                        alert(message);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Documents load error:', error);
+                    alert('Belge listesi yüklenemedi: ' + error.message);
+                });
+        }
+
+        function getDocumentTypeName(type) {
+            const typeNames = {
+                'meeting_summary': 'Toplantı Özeti',
+                'action_items': 'Eylem Planı', 
+                'decisions_log': 'Karar Defteri'
+            };
+            return typeNames[type] || type;
+        }
+
+        // Initialize document generation UI states
+        function updateDocumentGenerationUI() {
+            const generateBtn = document.getElementById('generate-document-btn');
+            
+            if (currentSessionId && orchestrationActive) {
+                generateBtn.disabled = false;
+                generateBtn.title = 'Aktif konuşmadan belge üret';
+            } else {
+                generateBtn.disabled = true;
+                generateBtn.title = 'Belge üretmek için önce AI konuşması başlatın';
+            }
+        }
+
+        // Request notification permission
+        if (window.Notification && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // ===== 🎨 LIVE DOCUMENT CANVAS FUNCTIONS ===== //
+
+        // Canvas Variables
+        let canvasWindows = new Map();
+        let canvasSocket = null;
+        let canvasZIndex = 1000;
+        let dragState = { isDragging: false, element: null, offsetX: 0, offsetY: 0 };
+
+        // Initialize Canvas on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCanvas();
+            loadCanvasStatistics();
+        });
+
+        function initializeCanvas() {
+            console.log('🎨 Initializing Live Document Canvas...');
+            
+            // Initialize canvas-specific socket events
+            if (socket) {
+                // Document events
+                socket.on('document_created', function(data) {
+                    console.log('📄 Document created:', data);
+                    updateCanvasStatistics();
+                });
+                
+                socket.on('document_updated', function(data) {
+                    console.log('✏️ Document updated:', data);
+                    // Update specific window content if it's open
+                    const window = canvasWindows.get(data.document_id);
+                    if (window && window.editor) {
+                        // Apply changes to editor
+                        applyDocumentChanges(window.editor, data.changes);
+                    }
+                });
+                
+                socket.on('ai_editing', function(data) {
+                    console.log('🤖 AI is editing:', data);
+                    showAITypingIndicator(data.document_id, data.ai_name);
+                });
+            }
+            
+            console.log('✅ Canvas initialized successfully!');
+        }
+
+        // Canvas Control Functions
+        function createNewDocument() {
+            const documentType = document.getElementById('canvas-document-type').value;
+            const documentTitle = document.getElementById('canvas-document-title').value || `Yeni ${documentType} Belgesi`;
+            
+            console.log(`🎨 Creating new ${documentType} document: ${documentTitle}`);
+            
+            fetch('/api/canvas/documents', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: documentTitle,
+                    document_type: documentType,
+                    content: ''
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✅ Document created successfully:', data);
+                    // Create floating window for this document
+                    createFloatingWindow(data.document);
+                    updateCanvasStatistics();
+                    
+                    // Clear input
+                    document.getElementById('canvas-document-title').value = '';
+                } else {
+                    console.error('❌ Document creation failed:', data);
+                    alert('Belge oluşturulamadı: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            })
+            .catch(error => {
+                console.error('❌ Document creation error:', error);
+                alert('Belge oluşturma hatası: ' + error.message);
+            });
+        }
+
+        function launchCanvasDocument() {
+            createNewDocument();
+        }
+
+        // Floating Window Management
+        function createFloatingWindow(document) {
+            const windowId = `canvas_window_${Date.now()}`;
+            const container = document.getElementById('canvas-container');
+            const emptyState = document.getElementById('canvas-empty-state');
+            
+            // Hide empty state
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+            
+            // Calculate position (cascade style)
+            const windowCount = canvasWindows.size;
+            const offsetX = 20 + (windowCount * 30);
+            const offsetY = 20 + (windowCount * 30);
+            
+            // Create window element
+            const windowElement = document.createElement('div');
+            windowElement.className = 'canvas-window focused';
+            windowElement.id = windowId;
+            windowElement.style.left = `${offsetX}px`;
+            windowElement.style.top = `${offsetY}px`;
+            windowElement.style.width = '600px';
+            windowElement.style.height = '400px';
+            windowElement.style.zIndex = ++canvasZIndex;
+            
+            windowElement.innerHTML = `
+                <div class="canvas-window-header">
+                    <h6 class="canvas-window-title">${document.title}</h6>
+                    <div class="canvas-document-type ${document.document_type}">${document.document_type}</div>
+                    <div class="canvas-window-controls">
+                        <button class="canvas-window-control minimize" onclick="minimizeWindow('${windowId}')" title="Küçült">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <button class="canvas-window-control maximize" onclick="maximizeWindow('${windowId}')" title="Büyüt">
+                            <i class="bi bi-arrows-fullscreen"></i>
+                        </button>
+                        <button class="canvas-window-control close" onclick="closeWindow('${windowId}')" title="Kapat">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="canvas-toolbar">
+                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'bold')" title="Kalın">
+                        <i class="bi bi-type-bold"></i>
+                    </button>
+                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'italic')" title="İtalik">
+                        <i class="bi bi-type-italic"></i>
+                    </button>
+                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'heading', 1)" title="Başlık 1">
+                        H1
+                    </button>
+                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'heading', 2)" title="Başlık 2">
+                        H2
+                    </button>
+                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'bulletList')" title="Liste">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'blockquote')" title="Alıntı">
+                        <i class="bi bi-quote"></i>
+                    </button>
+                    <button class="canvas-toolbar-button" onclick="inviteAI('${windowId}')" title="AI Davet Et">
+                        <i class="bi bi-robot"></i> AI
+                    </button>
+                </div>
+                <div class="canvas-window-content">
+                    <div class="canvas-editor" id="editor_${windowId}"></div>
+                </div>
+            `;
+            
+            // Add to container
+            container.appendChild(windowElement);
+            
+            // Initialize rich text editor
+            const editor = initializeEditor(`editor_${windowId}`, document);
+            
+            // Store window reference
+            canvasWindows.set(windowId, {
+                element: windowElement,
+                document: document,
+                editor: editor,
+                isMinimized: false,
+                originalSize: { width: 600, height: 400 }
+            });
+            
+            // Add event listeners for dragging
+            setupWindowDragging(windowElement);
+            
+            // Focus this window
+            focusWindow(windowId);
+            
+            // Update statistics
+            updateActiveWindowsCount();
+            
+            console.log(`🪟 Created floating window: ${windowId} for document: ${document.title}`);
+        }
+
+        function initializeEditor(elementId, document) {
+            const element = document.getElementById(elementId);
+            if (!element) return null;
+            
+            try {
+                // Initialize Tiptap editor
+                const editor = new Tiptap.Editor({
+                    element: element,
+                    extensions: [
+                        Tiptap.StarterKit,
+                    ],
+                    content: document.content || '<p>Buraya yazmaya başlayın...</p>',
+                    onUpdate: ({ editor }) => {
+                        // Auto-save document changes
+                        const content = editor.getHTML();
+                        saveDocumentContent(document.id, content);
+                    },
+                    editorProps: {
+                        attributes: {
+                            class: 'canvas-editor'
+                        }
+                    }
+                });
+                
+                console.log(`✏️ Editor initialized for ${elementId}`);
+                return editor;
+            } catch (error) {
+                console.error('❌ Editor initialization error:', error);
+                // Fallback to simple contenteditable
+                element.innerHTML = document.content || '<p>Buraya yazmaya başlayın...</p>';
+                element.contentEditable = true;
+                return { getHTML: () => element.innerHTML, setContent: (content) => element.innerHTML = content };
+            }
+        }
+
+        // Window Control Functions
+        function minimizeWindow(windowId) {
+            const window = canvasWindows.get(windowId);
+            if (!window) return;
+            
+            if (window.isMinimized) {
+                // Restore
+                window.element.classList.remove('minimized');
+                window.element.style.height = window.originalSize.height + 'px';
+                window.isMinimized = false;
+            } else {
+                // Minimize
+                window.originalSize.height = window.element.offsetHeight;
+                window.element.classList.add('minimized');
+                window.isMinimized = true;
+            }
+        }
+
+        function maximizeWindow(windowId) {
+            const window = canvasWindows.get(windowId);
+            if (!window) return;
+            
+            const container = document.getElementById('canvas-container');
+            const containerRect = container.getBoundingClientRect();
+            
+            window.element.style.left = '10px';
+            window.element.style.top = '10px';
+            window.element.style.width = (containerRect.width - 20) + 'px';
+            window.element.style.height = (containerRect.height - 20) + 'px';
+            
+            focusWindow(windowId);
+        }
+
+        function closeWindow(windowId) {
+            const window = canvasWindows.get(windowId);
+            if (!window) return;
+            
+            // Destroy editor
+            if (window.editor && window.editor.destroy) {
+                window.editor.destroy();
+            }
+            
+            // Remove element
+            window.element.remove();
+            
+            // Remove from map
+            canvasWindows.delete(windowId);
+            
+            // Update statistics
+            updateActiveWindowsCount();
+            
+            // Show empty state if no windows
+            if (canvasWindows.size === 0) {
+                const emptyState = document.getElementById('canvas-empty-state');
+                if (emptyState) {
+                    emptyState.style.display = 'flex';
+                }
+            }
+            
+            console.log(`🗑️ Closed window: ${windowId}`);
+        }
+
+        function focusWindow(windowId) {
+            // Remove focus from all windows
+            canvasWindows.forEach((window, id) => {
+                window.element.classList.remove('focused');
+            });
+            
+            // Focus this window
+            const window = canvasWindows.get(windowId);
+            if (window) {
+                window.element.classList.add('focused');
+                window.element.style.zIndex = ++canvasZIndex;
+            }
+        }
+
+        // Window Dragging
+        function setupWindowDragging(windowElement) {
+            const header = windowElement.querySelector('.canvas-window-header');
+            
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.canvas-window-controls')) return;
+                
+                dragState.isDragging = true;
+                dragState.element = windowElement;
+                dragState.offsetX = e.clientX - windowElement.offsetLeft;
+                dragState.offsetY = e.clientY - windowElement.offsetTop;
+                
+                document.addEventListener('mousemove', handleWindowDrag);
+                document.addEventListener('mouseup', handleWindowDragEnd);
+                
+                // Focus this window
+                const windowId = windowElement.id;
+                focusWindow(windowId);
+            });
+        }
+
+        function handleWindowDrag(e) {
+            if (!dragState.isDragging || !dragState.element) return;
+            
+            const container = document.getElementById('canvas-container');
+            const containerRect = container.getBoundingClientRect();
+            
+            const newX = e.clientX - dragState.offsetX;
+            const newY = e.clientY - dragState.offsetY;
+            
+            // Keep within container bounds
+            const maxX = containerRect.width - dragState.element.offsetWidth;
+            const maxY = containerRect.height - dragState.element.offsetHeight;
+            
+            dragState.element.style.left = Math.max(0, Math.min(newX, maxX)) + 'px';
+            dragState.element.style.top = Math.max(0, Math.min(newY, maxY)) + 'px';
+        }
+
+        function handleWindowDragEnd() {
+            dragState.isDragging = false;
+            dragState.element = null;
+            
+            document.removeEventListener('mousemove', handleWindowDrag);
+            document.removeEventListener('mouseup', handleWindowDragEnd);
+        }
+
+        // Quick Actions
+        function minimizeAllWindows() {
+            canvasWindows.forEach((window, windowId) => {
+                if (!window.isMinimized) {
+                    minimizeWindow(windowId);
+                }
+            });
+        }
+
+        function maximizeAllWindows() {
+            canvasWindows.forEach((window, windowId) => {
+                maximizeWindow(windowId);
+            });
+        }
+
+        function cascadeWindows() {
+            let index = 0;
+            canvasWindows.forEach((window, windowId) => {
+                const offsetX = 20 + (index * 30);
+                const offsetY = 20 + (index * 30);
+                
+                window.element.style.left = offsetX + 'px';
+                window.element.style.top = offsetY + 'px';
+                window.element.style.width = '600px';
+                window.element.style.height = '400px';
+                
+                index++;
+            });
+        }
+
+        function closeAllWindows() {
+            const windowIds = Array.from(canvasWindows.keys());
+            windowIds.forEach(windowId => {
+                closeWindow(windowId);
+            });
+        }
+
+        // Text Formatting
+        function formatText(windowId, command, value = null) {
+            const window = canvasWindows.get(windowId);
+            if (!window || !window.editor) return;
+            
+            try {
+                switch (command) {
+                    case 'bold':
+                        window.editor.chain().focus().toggleBold().run();
+                        break;
+                    case 'italic':
+                        window.editor.chain().focus().toggleItalic().run();
+                        break;
+                    case 'heading':
+                        window.editor.chain().focus().toggleHeading({ level: value }).run();
+                        break;
+                    case 'bulletList':
+                        window.editor.chain().focus().toggleBulletList().run();
+                        break;
+                    case 'blockquote':
+                        window.editor.chain().focus().toggleBlockquote().run();
+                        break;
+                }
+            } catch (error) {
+                console.error('❌ Text formatting error:', error);
+            }
+        }
+
+        // AI Integration
+        function inviteAI(windowId) {
+            const window = canvasWindows.get(windowId);
+            if (!window) return;
+            
+            const aiAction = prompt('AI\'ya ne yapmasını istiyorsunuz?\n\n1. "özet çıkar" - Belgeyi özetler\n2. "devam et" - Belgeyi devam ettirir\n3. "düzelt" - Gramer ve yazım hatalarını düzeltir\n4. "çevir" - Belgeyi farklı bir dile çevirir');
+            
+            if (!aiAction) return;
+            
+            console.log(`🤖 AI action requested: ${aiAction} for window ${windowId}`);
+            
+            // Show AI typing indicator
+            showAITypingIndicator(window.document.id, 'AI Assistant');
+            
+            // Send AI request
+            fetch('/api/canvas/ai-assist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    document_id: window.document.id,
+                    action: aiAction,
+                    content: window.editor.getHTML()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Apply AI changes
+                    window.editor.setContent(data.content);
+                    console.log('✅ AI assistance applied');
+                } else {
+                    console.error('❌ AI assistance failed:', data.error);
+                    alert('AI yardımı başarısız: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('❌ AI assistance error:', error);
+                alert('AI yardım hatası: ' + error.message);
+            })
+            .finally(() => {
+                hideAITypingIndicator(window.document.id);
+            });
+        }
+
+        // Document Management
+        function saveDocumentContent(documentId, content) {
+            // Auto-save with debouncing
+            clearTimeout(window.saveTimer);
+            window.saveTimer = setTimeout(() => {
+                fetch(`/api/canvas/documents/${documentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('💾 Document auto-saved');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Auto-save error:', error);
+                });
+            }, 1000); // 1 second debounce
+        }
+
+        // Statistics and UI Updates
+        function updateCanvasStatistics() {
+            loadCanvasStatistics();
+        }
+
+        function loadCanvasStatistics() {
+            fetch('/api/canvas/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('📊 Canvas Statistics:', data);
+                    
+                    // Update statistics display
+                    const totalDocs = document.getElementById('canvas-total-documents');
+                    const activeUsers = document.getElementById('canvas-active-users');
+                    const aiEdits = document.getElementById('canvas-ai-edits');
+                    const syncStatus = document.getElementById('canvas-sync-status');
+                    
+                    if (totalDocs) totalDocs.textContent = data.total_documents || 0;
+                    if (activeUsers) activeUsers.textContent = data.active_users || 1;
+                    if (aiEdits) aiEdits.textContent = data.ai_edits || 0;
+                    if (syncStatus) {
+                        syncStatus.textContent = socket && socket.connected ? '🟢' : '🔴';
+                        syncStatus.parentElement.querySelector('small').textContent = 
+                            socket && socket.connected ? 'Bağlı' : 'Bağlantı Kesildi';
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Canvas statistics error:', error);
+                });
+        }
+
+        function updateActiveWindowsCount() {
+            const countElement = document.getElementById('active-windows-count');
+            if (countElement) {
+                countElement.textContent = canvasWindows.size;
+            }
+        }
+
+        // AI Indicators
+        function showAITypingIndicator(documentId, aiName) {
+            // Find window with this document
+            for (const [windowId, window] of canvasWindows) {
+                if (window.document.id === documentId) {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'ai-typing-indicator';
+                    indicator.id = `ai-indicator-${documentId}`;
+                    indicator.innerHTML = `<i class="bi bi-robot"></i> ${aiName} yazıyor...`;
+                    
+                    window.element.querySelector('.canvas-window-content').appendChild(indicator);
+                    break;
+                }
+            }
+        }
+
+        function hideAITypingIndicator(documentId) {
+            const indicator = document.getElementById(`ai-indicator-${documentId}`);
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // Modal Functions
+        function showDocumentManager() {
+            alert('Belge Yöneticisi yakında gelecek! 📚');
+        }
+
+        function showCanvasStatistics() {
+            fetch('/api/canvas/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    const stats = `
+🎨 Canlı Belge Tuvali İstatistikleri:
+
+📄 Toplam Belgeler: ${data.total_documents || 0}
+🪟 Aktif Pencereler: ${canvasWindows.size}
+👥 Aktif Kullanıcılar: ${data.active_users || 1}
+🤖 AI Düzenlemeleri: ${data.ai_edits || 0}
+🔗 Sync Durumu: ${socket && socket.connected ? 'Bağlı ✅' : 'Bağlantı Kesildi ❌'}
+                    `;
+                    alert(stats);
+                })
+                .catch(error => {
+                    console.error('❌ Statistics error:', error);
+                    alert('İstatistikler yüklenemedi: ' + error.message);
+                });
+        }
+
+        console.log('🎨 Live Document Canvas JavaScript loaded successfully!');
+
     </script>
 </body>
 </html> 

@@ -51,4 +51,4 @@ ai-chrome-chat-manager/
 - **Chrome options**: Tarayıcı konfigürasyonu
 - **Flask settings**: Web sunucu ayarları
 
-Güncelleme: 2025-06-20 11:07
+Güncelleme: 2025-06-20 13:38
