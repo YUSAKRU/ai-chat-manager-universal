@@ -403,6 +403,97 @@ class WebUIUniversal:
                 'queue_position': len(self.intervention_queue[session_id])
             })
         
+        @self.app.route('/api/ai/conversation/continue', methods=['POST'])
+        def continue_conversation():
+            """Duraklayan konuşmayı devam ettir"""
+            try:
+                data = request.get_json()
+                session_id = data.get('session_id')
+                additional_turns = data.get('additional_turns', 3)
+                
+                if not session_id:
+                    return jsonify({'error': 'Session ID gerekli'}), 400
+                
+                if session_id not in self.active_conversations:
+                    return jsonify({'error': 'Devam ettirilebilir konuşma bulunamadı'}), 404
+                
+                conversation = self.active_conversations[session_id]
+                if conversation['status'] != 'paused':
+                    return jsonify({'error': 'Konuşma pause durumunda değil'}), 400
+                
+                # Continue işlemini background'da çalıştır
+                def run_continue():
+                    try:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        loop.run_until_complete(
+                            self._continue_conversation(session_id, additional_turns)
+                        )
+                    except Exception as e:
+                        self.socketio.emit('conversation_error', {
+                            'error': str(e),
+                            'session_id': session_id,
+                            'timestamp': datetime.now().isoformat()
+                        })
+                
+                continue_thread = threading.Thread(target=run_continue)
+                continue_thread.daemon = True
+                continue_thread.start()
+                
+                return jsonify({
+                    'status': 'continuing',
+                    'session_id': session_id,
+                    'additional_turns': additional_turns,
+                    'current_completed': conversation['completed_turns'],
+                    'new_max_turns': conversation['max_turns'] + additional_turns
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/ai/conversation/<session_id>/end', methods=['POST'])
+        def end_conversation_permanently(session_id):
+            """Konuşmayı kalıcı olarak sonlandır"""
+            try:
+                if session_id not in self.active_conversations:
+                    return jsonify({'error': 'Konuşma bulunamadı'}), 404
+                
+                self._end_conversation_permanently(session_id)
+                
+                return jsonify({
+                    'status': 'ended',
+                    'session_id': session_id,
+                    'message': 'Konuşma kalıcı olarak sonlandırıldı'
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        @self.app.route('/api/ai/conversation/<session_id>/status', methods=['GET'])
+        def get_conversation_status(session_id):
+            """Konuşma durumunu getir"""
+            try:
+                if session_id not in self.active_conversations:
+                    return jsonify({'error': 'Konuşma bulunamadı'}), 404
+                
+                conversation = self.active_conversations[session_id]
+                
+                return jsonify({
+                    'session_id': session_id,
+                    'status': conversation['status'],
+                    'completed_turns': conversation['completed_turns'],
+                    'max_turns': conversation['max_turns'],
+                    'current_turn': conversation['current_turn'],
+                    'can_continue': conversation['status'] == 'paused',
+                    'context_summary': {
+                        'project_goal': conversation['context']['project_goal'][:100] + '...',
+                        'total_messages': len(conversation['context']['conversation_history'])
+                    }
+                })
+                
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
         # === Memory & Tasks API Endpoints ===
         
         @self.app.route('/api/memory/conversations', methods=['GET'])
@@ -1334,7 +1425,9 @@ class WebUIUniversal:
             self.active_conversations[session_id] = {
                 'status': 'active',
                 'current_turn': 0,
-                'max_turns': max_turns
+                'max_turns': max_turns,
+                'context': conversation_context,  # Context'i sakla
+                'completed_turns': 0
             }
             
             self.socketio.emit('conversation_started', {
@@ -1344,21 +1437,46 @@ class WebUIUniversal:
                 'timestamp': datetime.now().isoformat()
             })
             
-            for turn in range(max_turns):
-                # Müdahale kontrolü
-                intervention_context = self._check_interventions(session_id)
+            await self._execute_conversation_turns(session_id, max_turns)
+            
+        except Exception as e:
+            # Hata durumunda temizlik
+            if session_id in self.active_conversations:
+                del self.active_conversations[session_id]
                 
-                # PM'den yanıt al
-                self.socketio.emit('conversation_turn', {
-                    'turn': turn + 1,
-                    'phase': 'pm_thinking',
-                    'session_id': session_id,
-                    'timestamp': datetime.now().isoformat()
-                })
-                
-                # Zengin PM prompt'u hazırla
-                if turn == 0:
-                    pm_prompt = f"""Sen deneyimli bir proje yöneticisisin. Aşağıdaki proje hakkında analiz yap:
+            self.socketio.emit('conversation_error', {
+                'error': str(e),
+                'session_id': session_id,
+                'timestamp': datetime.now().isoformat()
+            })
+    
+    async def _execute_conversation_turns(self, session_id: str, turns_to_execute: int):
+        """Belirtilen sayıda conversation turn'ü execute et"""
+        if session_id not in self.active_conversations:
+            return
+        
+        conversation = self.active_conversations[session_id]
+        conversation_context = conversation['context']
+        starting_turn = conversation['completed_turns']
+        
+        for turn in range(starting_turn, starting_turn + turns_to_execute):
+            # Müdahale kontrolü
+            intervention_context = self._check_interventions(session_id)
+            
+            # Turn counter güncelle
+            conversation['current_turn'] = turn + 1
+            
+            # PM'den yanıt al
+            self.socketio.emit('conversation_turn', {
+                'turn': turn + 1,
+                'phase': 'pm_thinking',
+                'session_id': session_id,
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            # Zengin PM prompt'u hazırla
+            if turn == 0:
+                pm_prompt = f"""Sen deneyimli bir proje yöneticisisin. Aşağıdaki proje hakkında analiz yap:
 
 🎯 PROJE: {conversation_context['project_goal']}
 
@@ -1369,9 +1487,9 @@ Tur {turn + 1}'de şunları yap:
 • Lead Developer'a hangi sorular sorulmalı?
 
 Kısa ve odaklı bir analiz sun."""
-                else:
-                    recent_history = ' -> '.join(conversation_context['conversation_history'][-3:])
-                    pm_prompt = f"""Proje Yöneticisi Perspektifi - Tur {turn + 1}:
+            else:
+                recent_history = ' -> '.join(conversation_context['conversation_history'][-3:])
+                pm_prompt = f"""Proje Yöneticisi Perspektifi - Tur {turn + 1}:
 
 🎯 PROJE: {conversation_context['project_goal'][:200]}...
 📋 SON GELİŞMELER: {recent_history}
@@ -1383,46 +1501,46 @@ Lead Developer'ın son yorumuna dayanarak:
 • Karar alınması gereken konuları öne çıkar
 
 Yapıcı ve yönlendirici bir yanıt ver."""
+            
+            if intervention_context:
+                pm_prompt += f"\n\n🔔 YÖNETİCİ NOTU: {intervention_context}"
+            
+            pm_response = await self.ai_adapter.send_message(
+                "project_manager", 
+                pm_prompt,
+                f"Proje Değerlendirmesi - Tur {turn + 1}"
+            )
+            
+            if pm_response:
+                # Context'e ekle
+                conversation_context['conversation_history'].append(f"PM: {pm_response.content[:100]}...")
                 
-                if intervention_context:
-                    pm_prompt += f"\n\n🔔 YÖNETİCİ NOTU: {intervention_context}"
-                
-                pm_response = await self.ai_adapter.send_message(
-                    "project_manager", 
-                    pm_prompt,
-                    f"Proje Değerlendirmesi - Tur {turn + 1}"
-                )
-                
-                if pm_response:
-                    # Context'e ekle
-                    conversation_context['conversation_history'].append(f"PM: {pm_response.content[:100]}...")
-                    
-                    self.socketio.emit('conversation_message', {
-                        'speaker': 'project_manager',
-                        'speaker_name': '👔 Proje Yöneticisi',
-                        'message': pm_response.content,
-                        'turn': turn + 1,
-                        'model': pm_response.model,
-                        'usage': pm_response.usage,
-                        'timestamp': datetime.now().isoformat()
-                    })
-                    
-                    # Analytics güncellemesi
-                    self.broadcast_analytics_update()
-                
-                await asyncio.sleep(1)
-                
-                # LD'den yanıt al
-                self.socketio.emit('conversation_turn', {
+                self.socketio.emit('conversation_message', {
+                    'speaker': 'project_manager',
+                    'speaker_name': '👔 Proje Yöneticisi',
+                    'message': pm_response.content,
                     'turn': turn + 1,
-                    'phase': 'ld_thinking',
-                    'session_id': session_id,
+                    'model': pm_response.model,
+                    'usage': pm_response.usage,
                     'timestamp': datetime.now().isoformat()
                 })
                 
-                # Zengin LD prompt'u hazırla
-                if turn == 0:
-                    ld_prompt = f"""Sen deneyimli bir Lead Developer'sın. Proje Yöneticisi'nin analizini değerlendir:
+                # Analytics güncellemesi
+                self.broadcast_analytics_update()
+            
+            await asyncio.sleep(1)
+            
+            # LD'den yanıt al
+            self.socketio.emit('conversation_turn', {
+                'turn': turn + 1,
+                'phase': 'ld_thinking',
+                'session_id': session_id,
+                'timestamp': datetime.now().isoformat()
+            })
+            
+            # Zengin LD prompt'u hazırla
+            if turn == 0:
+                ld_prompt = f"""Sen deneyimli bir Lead Developer'sın. Proje Yöneticisi'nin analizini değerlendir:
 
 🎯 PROJE: {conversation_context['project_goal']}
 
@@ -1435,8 +1553,8 @@ Teknik perspektiften:
 • PM'e hangi teknik sorular sormalı?
 
 Teknik ve uygulanabilir öneriler sun."""
-                else:
-                    ld_prompt = f"""Lead Developer Perspektifi - Tur {turn + 1}:
+            else:
+                ld_prompt = f"""Lead Developer Perspektifi - Tur {turn + 1}:
 
 🎯 PROJE: {conversation_context['project_goal'][:200]}...
 📋 GÖRÜŞMELER: {' -> '.join(conversation_context['conversation_history'][-4:])}
@@ -1450,55 +1568,84 @@ Teknik açıdan:
 • Bir sonraki teknik adımları tanımla
 
 Gerçekçi ve detaylı bir teknik analiz yap."""
-                
-                if intervention_context:
-                    ld_prompt += f"\n\n🔔 YÖNETİCİ NOTU: {intervention_context}"
-                
-                ld_response = await self.ai_adapter.send_message(
-                    "lead_developer",
-                    ld_prompt,
-                    f"Teknik Analiz - Tur {turn + 1}"
-                )
-                
-                if ld_response:
-                    # Context'e ekle
-                    conversation_context['conversation_history'].append(f"LD: {ld_response.content[:100]}...")
-                    
-                    self.socketio.emit('conversation_message', {
-                        'speaker': 'lead_developer',
-                        'speaker_name': '👨‍💻 Lead Developer',
-                        'message': ld_response.content,
-                        'turn': turn + 1,
-                        'model': ld_response.model,
-                        'usage': ld_response.usage,
-                        'timestamp': datetime.now().isoformat()
-                    })
-                    
-                    # Analytics güncellemesi
-                    self.broadcast_analytics_update()
-                
-                await asyncio.sleep(2)
             
-            # Konuşmayı hafızaya kaydet
-            await self._save_conversation_to_memory(session_id, initial_prompt, max_turns)
+            if intervention_context:
+                ld_prompt += f"\n\n🔔 YÖNETİCİ NOTU: {intervention_context}"
             
-            # Konuşma tamamlandı
-            if session_id in self.active_conversations:
-                del self.active_conversations[session_id]
+            ld_response = await self.ai_adapter.send_message(
+                "lead_developer",
+                ld_prompt,
+                f"Teknik Analiz - Tur {turn + 1}"
+            )
+            
+            if ld_response:
+                # Context'e ekle
+                conversation_context['conversation_history'].append(f"LD: {ld_response.content[:100]}...")
+                
+                self.socketio.emit('conversation_message', {
+                    'speaker': 'lead_developer',
+                    'speaker_name': '👨‍💻 Lead Developer',
+                    'message': ld_response.content,
+                    'turn': turn + 1,
+                    'model': ld_response.model,
+                    'usage': ld_response.usage,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+                # Analytics güncellemesi
+                self.broadcast_analytics_update()
+            
+            await asyncio.sleep(2)
+        
+        # Tamamlanan turn sayısını güncelle
+        conversation['completed_turns'] = starting_turn + turns_to_execute
+        conversation['status'] = 'paused'  # Pause durumuna geç
+        
+        # Konuşma durakladı (tamamen bitmedi)
+        self.socketio.emit('conversation_paused', {
+            'total_turns': conversation['completed_turns'],
+            'max_turns': conversation['max_turns'],
+            'session_id': session_id,
+            'can_continue': True,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        # Memory'ye kaydet
+        await self._save_conversation_to_memory(session_id, conversation_context['project_goal'], conversation['completed_turns'])
+    
+    async def _continue_conversation(self, session_id: str, additional_turns: int):
+        """Mevcut konuşmayı devam ettir"""
+        if session_id not in self.active_conversations:
+            raise ValueError("Devam ettirilebilir konuşma bulunamadı")
+        
+        conversation = self.active_conversations[session_id]
+        if conversation['status'] != 'paused':
+            raise ValueError("Konuşma aktif durumda değil")
+        
+        # Durumu aktif yap
+        conversation['status'] = 'active'
+        conversation['max_turns'] += additional_turns
+        
+        # Devam bildirimi gönder
+        self.socketio.emit('conversation_continued', {
+            'session_id': session_id,
+            'additional_turns': additional_turns,
+            'total_max_turns': conversation['max_turns'],
+            'current_completed': conversation['completed_turns'],
+            'timestamp': datetime.now().isoformat()
+        })
+        
+        # Ek turn'leri execute et
+        await self._execute_conversation_turns(session_id, additional_turns)
+    
+    def _end_conversation_permanently(self, session_id: str):
+        """Konuşmayı kalıcı olarak sonlandır"""
+        if session_id in self.active_conversations:
+            conversation = self.active_conversations[session_id]
+            del self.active_conversations[session_id]
             
             self.socketio.emit('conversation_completed', {
-                'total_turns': max_turns,
-                'session_id': session_id,
-                'timestamp': datetime.now().isoformat()
-            })
-            
-        except Exception as e:
-            # Hata durumunda temizlik
-            if session_id in self.active_conversations:
-                del self.active_conversations[session_id]
-                
-            self.socketio.emit('conversation_error', {
-                'error': str(e),
+                'total_turns': conversation['completed_turns'],
                 'session_id': session_id,
                 'timestamp': datetime.now().isoformat()
             })

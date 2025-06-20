@@ -1232,9 +1232,52 @@
                     updateParticipantStats(role, data.usage);
                 });
 
+                socket.on('conversation_paused', function(data) {
+                    console.log('⏸️ Conversation Paused:', data);
+                    updateOrchestrationStatus('Durakladı');
+                    
+                    // Update UI states for paused conversation
+                    document.getElementById('start-multi-ai').disabled = false;
+                    document.getElementById('pause-orchestration').disabled = true;
+                    document.getElementById('send-intervention-btn').disabled = false; // Müdahale hala mümkün
+                    document.getElementById('stop-orchestration-btn').disabled = false;
+                    
+                    // Show continue button
+                    showContinueButton(data.session_id, data.total_turns, data.can_continue);
+                    
+                    // Update participant statuses
+                    updateParticipantStatus('pm', 'Bekliyor', true, 'online');
+                    updateParticipantStatus('dev', 'Bekliyor', true, 'online');
+                    
+                    addSystemMessage(`⏸️ AI Orkestra durakladı! ${data.total_turns} tur tamamlandı. Devam ettirebilirsiniz.`);
+                });
+
+                socket.on('conversation_continued', function(data) {
+                    console.log('🔄 Conversation Continued:', data);
+                    updateOrchestrationStatus('Aktif');
+                    
+                    // Hide continue button
+                    hideContinueButton();
+                    
+                    // Update UI states
+                    document.getElementById('start-multi-ai').disabled = true;
+                    document.getElementById('pause-orchestration').disabled = false;
+                    document.getElementById('send-intervention-btn').disabled = false;
+                    document.getElementById('stop-orchestration-btn').disabled = false;
+                    
+                    // Update participant statuses
+                    updateParticipantStatus('pm', 'Aktif', true, 'online');
+                    updateParticipantStatus('dev', 'Aktif', true, 'online');
+                    
+                    addSystemMessage(`🔄 AI Orkestra devam ediyor! ${data.additional_turns} ek tur eklendi.`);
+                });
+
                 socket.on('conversation_completed', function(data) {
                     console.log('✅ Conversation Completed:', data);
                     updateOrchestrationStatus('Tamamlandı');
+                    
+                    // Hide continue button
+                    hideContinueButton();
                     
                     // Reset UI states
                     document.getElementById('start-multi-ai').disabled = false;
@@ -1435,6 +1478,9 @@
             document.getElementById('send-intervention-btn').disabled = true;
             document.getElementById('stop-orchestration-btn').disabled = true;
             
+            // Continue butonunu gizle
+            hideContinueButton();
+            
             updateParticipantStatus('pm', 'Standby', false);
             updateParticipantStatus('dev', 'Standby', false);
             updateParticipantStatus('boss', 'Ready', false);
@@ -1529,7 +1575,7 @@
                 return;
             }
             
-            if (!currentSessionId || !orchestrationActive) {
+            if (!currentSessionId) {
                 alert('Aktif bir konuşma yok!');
                 return;
             }
@@ -1546,7 +1592,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.status === 'added') {
+                if (data.status === 'received') {
                     document.getElementById('director-intervention-text').value = '';
                     console.log('✅ Director intervention sent');
                 } else {
@@ -1555,6 +1601,132 @@
             })
             .catch(error => {
                 console.error('❌ Intervention error:', error);
+                alert('Bağlantı hatası: ' + error.message);
+            });
+        }
+
+        function showContinueButton(sessionId, completedTurns, canContinue) {
+            if (!canContinue) return;
+            
+            const conversationContainer = document.getElementById('multi-ai-conversation');
+            
+            // Continue button control paneli ekle
+            const continueControlHtml = `
+                <div id="continue-conversation-control" class="card-modern mt-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <div class="card-body text-center">
+                        <h6 class="mb-3">
+                            <i class="bi bi-pause-circle"></i> 
+                            Konuşma Durakladı
+                        </h6>
+                        <p class="mb-3">
+                            <strong>${completedTurns} tur</strong> tamamlandı. 
+                            Aynı context ile devam edebilirsiniz.
+                        </p>
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <input type="number" class="form-control" id="continue-turns" 
+                                       value="3" min="1" max="15" 
+                                       placeholder="Ek tur sayısı">
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-light w-100" onclick="continueConversation()">
+                                    <i class="bi bi-play-circle"></i> Devam Et
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small>
+                                <button class="btn btn-sm btn-outline-light me-2" onclick="continueConversation(5)">
+                                    +5 Tur
+                                </button>
+                                <button class="btn btn-sm btn-outline-light me-2" onclick="continueConversation(10)">
+                                    +10 Tur
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="endConversationPermanently()">
+                                    <i class="bi bi-stop-circle"></i> Sonlandır
+                                </button>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            conversationContainer.insertAdjacentHTML('beforeend', continueControlHtml);
+            conversationContainer.scrollTop = conversationContainer.scrollHeight;
+        }
+
+        function hideContinueButton() {
+            const continueControl = document.getElementById('continue-conversation-control');
+            if (continueControl) {
+                continueControl.remove();
+            }
+        }
+
+        function continueConversation(additionalTurns = null) {
+            if (!currentSessionId) {
+                alert('Devam ettirilebilir konuşma bulunamadı!');
+                return;
+            }
+            
+            const turns = additionalTurns || document.getElementById('continue-turns')?.value || 3;
+            
+            console.log(`🔄 Continuing conversation ${currentSessionId} with ${turns} additional turns`);
+            
+            fetch('/api/ai/conversation/continue', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    additional_turns: parseInt(turns)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'continuing') {
+                    console.log('✅ Conversation continuing successfully');
+                    hideContinueButton();
+                } else {
+                    console.error('❌ Failed to continue conversation:', data);
+                    alert('Konuşma devam ettirilemedi: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            })
+            .catch(error => {
+                console.error('❌ Continue conversation error:', error);
+                alert('Bağlantı hatası: ' + error.message);
+            });
+        }
+
+        function endConversationPermanently() {
+            if (!currentSessionId) {
+                alert('Sonlandırılacak konuşma bulunamadı!');
+                return;
+            }
+            
+            if (!confirm('Konuşmayı kalıcı olarak sonlandırmak istediğinizden emin misiniz?')) {
+                return;
+            }
+            
+            fetch(`/api/ai/conversation/${currentSessionId}/end`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ended') {
+                    console.log('✅ Conversation ended permanently');
+                    hideContinueButton();
+                    resetOrchestrationUI();
+                    addSystemMessage('⏹️ Konuşma kalıcı olarak sonlandırıldı', 'warning');
+                } else {
+                    alert('Konuşma sonlandırılamadı: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            })
+            .catch(error => {
+                console.error('❌ End conversation error:', error);
                 alert('Bağlantı hatası: ' + error.message);
             });
         }
