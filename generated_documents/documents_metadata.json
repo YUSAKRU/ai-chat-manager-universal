@@ -84,5 +84,192 @@
       "total_turns": 0,
       "duration": "Bilinmiyor"
     }
+  },
+  "meeting_summary_20250620_140318_71cecb0e": {
+    "document_id": "meeting_summary_20250620_140318_71cecb0e",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750417358",
+    "created_at": "2025-06-20T14:03:18.728271",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_140318_71cecb0e_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_140318_71cecb0e_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "meeting_summary_20250620_145534_3895bd3e": {
+    "document_id": "meeting_summary_20250620_145534_3895bd3e",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750420516",
+    "created_at": "2025-06-20T14:55:34.015243",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_145534_3895bd3e_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_145534_3895bd3e_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "meeting_summary_20250620_145754_d40cc0ed": {
+    "document_id": "meeting_summary_20250620_145754_d40cc0ed",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750420661",
+    "created_at": "2025-06-20T14:57:54.644595",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_145754_d40cc0ed_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_145754_d40cc0ed_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "meeting_summary_20250620_151240_39e3ef92": {
+    "document_id": "meeting_summary_20250620_151240_39e3ef92",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750421551",
+    "created_at": "2025-06-20T15:12:40.101088",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_151240_39e3ef92_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_151240_39e3ef92_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "meeting_summary_20250620_153651_aeab6d07": {
+    "document_id": "meeting_summary_20250620_153651_aeab6d07",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750423000",
+    "created_at": "2025-06-20T15:36:51.576716",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_153651_aeab6d07_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_153651_aeab6d07_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "meeting_summary_20250620_162114_30975d30": {
+    "document_id": "meeting_summary_20250620_162114_30975d30",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750425671",
+    "created_at": "2025-06-20T16:21:14.142817",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_162114_30975d30_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_162114_30975d30_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "action_items_20250620_163743_72b54aab": {
+    "document_id": "action_items_20250620_163743_72b54aab",
+    "title": "Eylem Planı - Boş Konuşma",
+    "document_type": "action_items",
+    "session_id": "1750426661",
+    "created_at": "2025-06-20T16:37:43.811346",
+    "file_paths": {
+      "markdown": "generated_documents\\action_items_20250620_163743_72b54aab_action_items.md"
+    },
+    "insights_summary": {
+      "action_items_count": 0,
+      "high_priority": 0,
+      "medium_priority": 0,
+      "low_priority": 0
+    }
+  },
+  "meeting_summary_20250620_163903_d0cb5c6e": {
+    "document_id": "meeting_summary_20250620_163903_d0cb5c6e",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750426731",
+    "created_at": "2025-06-20T16:39:03.990971",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_163903_d0cb5c6e_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_163903_d0cb5c6e_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "meeting_summary_20250620_170457_edf42c94": {
+    "document_id": "meeting_summary_20250620_170457_edf42c94",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750428290",
+    "created_at": "2025-06-20T17:04:57.334565",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_170457_edf42c94_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_170457_edf42c94_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
+  },
+  "meeting_summary_20250620_202139_b0a72be9": {
+    "document_id": "meeting_summary_20250620_202139_b0a72be9",
+    "title": "Boş Konuşma",
+    "document_type": "meeting_summary",
+    "session_id": "1750439921",
+    "created_at": "2025-06-20T20:21:39.003505",
+    "file_paths": {
+      "markdown": "generated_documents\\meeting_summary_20250620_202139_b0a72be9_meeting_summary.md",
+      "html": "generated_documents\\meeting_summary_20250620_202139_b0a72be9_meeting_summary.html"
+    },
+    "insights_summary": {
+      "participants_count": 0,
+      "key_points_count": 0,
+      "decisions_count": 0,
+      "action_items_count": 0,
+      "total_turns": 0,
+      "duration": "Bilinmiyor"
+    }
   }
 }

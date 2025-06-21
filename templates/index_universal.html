@@ -19,12 +19,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
-    <!-- Rich Text Editor - Tiptap -->
-    <link rel="stylesheet" href="https://unpkg.com/@tiptap/core@2.1.13/dist/style.css">
-    <link rel="stylesheet" href="https://unpkg.com/@tiptap/extension-typography@2.1.13/dist/style.css">
+    <!-- Rich Text Editor - Tiptap (Local NPM) -->
+    <link rel="stylesheet" href="/node_modules/@tiptap/core/dist/style.css">
+    <link rel="stylesheet" href="/node_modules/@tiptap/extension-typography/dist/style.css">
+    
+    <!-- Interact.js for drag & resize -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.17/dist/interact.min.js"></script>
     
     <!-- Our Design System -->
     <link rel="stylesheet" href="/static/css/design-system.css">
+    <!-- Live Canvas Styles -->
+    <link rel="stylesheet" href="/static/css/canvas.css">
+    
+    <!-- PHASE 6.2: Operational Transform Engine -->
+    <script src="/static/js/canvas/OperationalTransform.js"></script>
     
     <style>
         /* Template-specific enhancements */
@@ -1349,7 +1357,7 @@
                                     </select>
                                 </div>
                                 
-                                <div class="d-grid gap-2">
+                                <div class="d-grid gap-2 document-generation-panel">
                                     <button id="generate-document-btn" class="btn-modern btn-primary" disabled onclick="generateDocument()">
                                         <i class="bi bi-magic"></i>
                                         AI Belge Üret
@@ -1497,13 +1505,13 @@
                                 <span class="badge bg-primary" id="active-windows-count">0</span>
                             </div>
                             <div class="card-body" style="height: 400px; position: relative; overflow: hidden;">
-                                <!-- Canvas Container -->
+                                <!-- Canvas Container (Legacy) -->
                                 <div id="canvas-container" class="position-relative w-100 h-100">
                                     <div class="text-center text-muted h-100 d-flex align-items-center justify-content-center" id="canvas-empty-state">
                                         <div>
                                             <i class="bi bi-window-stack" style="font-size: 48px; opacity: 0.3;"></i>
-                                            <p class="mt-3 mb-2">Henüz aktif canvas penceresi yok</p>
-                                            <small>Yukarıdaki "Canvas'ı Başlat" butonuna tıklayın</small>
+                                            <p class="mt-3 mb-2">Yeni Live Canvas Sistemi Aktif!</p>
+                                            <small>Floating Action Button'u veya "Create Live Document" butonunu kullanın</small>
                                         </div>
                                     </div>
                                 </div>
@@ -1704,13 +1712,87 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     
-    <!-- Rich Text Editor - Tiptap -->
-    <script src="https://unpkg.com/@tiptap/core@2.1.13/dist/umd/index.js"></script>
-    <script src="https://unpkg.com/@tiptap/starter-kit@2.1.13/dist/umd/index.js"></script>
-    <script src="https://unpkg.com/@tiptap/extension-document@2.1.13/dist/umd/index.js"></script>
-    <script src="https://unpkg.com/@tiptap/extension-text@2.1.13/dist/umd/index.js"></script>
-    <script src="https://unpkg.com/@tiptap/extension-paragraph@2.1.13/dist/umd/index.js"></script>
-    <script src="https://unpkg.com/@tiptap/extension-collaboration@2.1.13/dist/umd/index.js"></script>
+    <!-- Rich Text Editor - Professional CDN Implementation -->
+    <script src="/node_modules/@tiptap/core/dist/index.umd.min.js"></script>
+    <script src="/node_modules/@tiptap/starter-kit/dist/index.umd.min.js"></script>
+    <script>
+        // Professional Tiptap initialization with failsafe loading
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                try {
+                    // Multiple loading pattern detection for maximum compatibility
+                    let Editor, StarterKit;
+                    
+                    // Pattern 1: Direct global exports
+                    if (window.TiptapCore && window.TiptapStarterKit) {
+                        Editor = window.TiptapCore.Editor;
+                        StarterKit = window.TiptapStarterKit.StarterKit;
+                    }
+                    // Pattern 2: Nested tiptap namespace
+                    else if (window.tiptap?.core?.Editor) {
+                        Editor = window.tiptap.core.Editor;
+                        StarterKit = window.tiptap.starterKit.StarterKit;
+                    }
+                    // Pattern 3: UMD global exports
+                    else if (typeof window.TiptapEditor !== 'undefined') {
+                        Editor = window.TiptapEditor;
+                        StarterKit = window.TiptapStarterKit || window.StarterKit;
+                    }
+                    // Pattern 4: Check for function constructors directly
+                    else {
+                        // Try to find Editor constructor in global scope
+                        for (let key in window) {
+                            if (window[key] && typeof window[key].Editor === 'function') {
+                                Editor = window[key].Editor;
+                                break;
+                            }
+                        }
+                        // Find StarterKit
+                        for (let key in window) {
+                            if (window[key] && typeof window[key].StarterKit === 'function') {
+                                StarterKit = window[key].StarterKit;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Validate we found both required classes
+                    if (typeof Editor !== 'function') {
+                        throw new Error('Tiptap Editor class not found in any global namespace');
+                    }
+                    if (typeof StarterKit !== 'function') {
+                        throw new Error('Tiptap StarterKit not found in any global namespace');
+                    }
+                    
+                    // Professional Tiptap namespace setup
+                    window.Tiptap = {
+                        Editor: Editor,
+                        StarterKit: StarterKit
+                    };
+                    
+                    console.log('✅ Professional Tiptap Rich Text Editor loaded successfully!');
+                    console.log('📝 Features available: Bold, Italic, Headings (H1-H6), Lists, Blockquotes, Code Blocks');
+                    console.log('🎯 Editor Class:', Editor);
+                    console.log('🚀 StarterKit:', StarterKit);
+                    
+                    // Dispatch ready event for dependent components
+                    window.dispatchEvent(new CustomEvent('tiptap:ready', {
+                        detail: { editor: window.Tiptap }
+                    }));
+                    
+                } catch (error) {
+                    console.error('❌ Critical Error: Tiptap initialization failed:', error);
+                    console.error('🔍 Available global objects:', Object.keys(window).filter(key => key.toLowerCase().includes('tip')));
+                    throw new Error('Rich Text Editor could not be initialized. This is a critical system failure.');
+                }
+            }, 200); // Small delay to ensure CDN scripts fully load
+        });
+    </script>
+    
+    <!-- Live Canvas JavaScript Framework -->
+    <script src="/static/js/canvas/CanvasWindowManager.js"></script>
+    <script src="/static/js/canvas/LiveEditor.js"></script>
+    <script src="/static/js/canvas/main_canvas_logic.js"></script>
     
     <script src="/static/js/theme-manager.js"></script>
     <script src="/static/js/animation-utils.js"></script>
@@ -3586,10 +3668,20 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.status === 'success') {
                     console.log('✅ Document created successfully:', data);
+                    
+                    // Create document object for floating window
+                    const document = {
+                        id: data.document_id,
+                        title: data.title,
+                        document_type: data.document_type,
+                        content: '',
+                        timestamp: data.timestamp
+                    };
+                    
                     // Create floating window for this document
-                    createFloatingWindow(data.document);
+                    createFloatingWindow(document);
                     updateCanvasStatistics();
                     
                     // Clear input
@@ -3610,7 +3702,7 @@
         }
 
         // Floating Window Management
-        function createFloatingWindow(document) {
+        function createFloatingWindow(documentData) {
             const windowId = `canvas_window_${Date.now()}`;
             const container = document.getElementById('canvas-container');
             const emptyState = document.getElementById('canvas-empty-state');
@@ -3637,8 +3729,8 @@
             
             windowElement.innerHTML = `
                 <div class="canvas-window-header">
-                    <h6 class="canvas-window-title">${document.title}</h6>
-                    <div class="canvas-document-type ${document.document_type}">${document.document_type}</div>
+                    <h6 class="canvas-window-title">${documentData.title}</h6>
+                    <div class="canvas-document-type ${documentData.document_type}">${documentData.document_type}</div>
                     <div class="canvas-window-controls">
                         <button class="canvas-window-control minimize" onclick="minimizeWindow('${windowId}')" title="Küçült">
                             <i class="bi bi-dash"></i>
@@ -3651,28 +3743,74 @@
                         </button>
                     </div>
                 </div>
-                <div class="canvas-toolbar">
-                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'bold')" title="Kalın">
-                        <i class="bi bi-type-bold"></i>
-                    </button>
-                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'italic')" title="İtalik">
-                        <i class="bi bi-type-italic"></i>
-                    </button>
-                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'heading', 1)" title="Başlık 1">
-                        H1
-                    </button>
-                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'heading', 2)" title="Başlık 2">
-                        H2
-                    </button>
-                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'bulletList')" title="Liste">
-                        <i class="bi bi-list-ul"></i>
-                    </button>
-                    <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'blockquote')" title="Alıntı">
-                        <i class="bi bi-quote"></i>
-                    </button>
-                    <button class="canvas-toolbar-button" onclick="inviteAI('${windowId}')" title="AI Davet Et">
-                        <i class="bi bi-robot"></i> AI
-                    </button>
+                <div class="canvas-toolbar professional-toolbar">
+                    <!-- Text Formatting Group -->
+                    <div class="toolbar-group">
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'bold')" title="Kalın (Ctrl+B)">
+                            <i class="bi bi-type-bold"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'italic')" title="İtalik (Ctrl+I)">
+                            <i class="bi bi-type-italic"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'strike')" title="Üstü Çizili">
+                            <i class="bi bi-type-strikethrough"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'code')" title="Kod">
+                            <i class="bi bi-code"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Heading Group -->
+                    <div class="toolbar-group">
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'heading', 1)" title="Başlık 1">
+                            H1
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'heading', 2)" title="Başlık 2">
+                            H2
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'heading', 3)" title="Başlık 3">
+                            H3
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'paragraph')" title="Paragraf">
+                            P
+                        </button>
+                    </div>
+                    
+                    <!-- List Group -->
+                    <div class="toolbar-group">
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'bulletList')" title="Madde İşaretli Liste">
+                            <i class="bi bi-list-ul"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'orderedList')" title="Numaralı Liste">
+                            <i class="bi bi-list-ol"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'blockquote')" title="Alıntı">
+                            <i class="bi bi-quote"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'codeBlock')" title="Kod Bloğu">
+                            <i class="bi bi-code-square"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Action Group -->
+                    <div class="toolbar-group">
+                        <button class="canvas-toolbar-button" onclick="formatText('${windowId}', 'horizontalRule')" title="Yatay Çizgi">
+                            <i class="bi bi-hr"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="undoRedo('${windowId}', 'undo')" title="Geri Al (Ctrl+Z)">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                        <button class="canvas-toolbar-button" onclick="undoRedo('${windowId}', 'redo')" title="Yinele (Ctrl+Y)">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- AI Group -->
+                    <div class="toolbar-group ai-group">
+                        <button class="canvas-toolbar-button ai-button" onclick="inviteAI('${windowId}')" title="AI Asistanı">
+                            <i class="bi bi-robot"></i> AI
+                        </button>
+                    </div>
                 </div>
                 <div class="canvas-window-content">
                     <div class="canvas-editor" id="editor_${windowId}"></div>
@@ -3683,12 +3821,12 @@
             container.appendChild(windowElement);
             
             // Initialize rich text editor
-            const editor = initializeEditor(`editor_${windowId}`, document);
+            const editor = initializeEditor(`editor_${windowId}`, documentData);
             
             // Store window reference
             canvasWindows.set(windowId, {
                 element: windowElement,
-                document: document,
+                document: documentData,
                 editor: editor,
                 isMinimized: false,
                 originalSize: { width: 600, height: 400 }
@@ -3703,41 +3841,108 @@
             // Update statistics
             updateActiveWindowsCount();
             
-            console.log(`🪟 Created floating window: ${windowId} for document: ${document.title}`);
+            console.log(`🪟 Created floating window: ${windowId} for document: ${documentData.title}`);
         }
 
-        function initializeEditor(elementId, document) {
+        function initializeEditor(elementId, documentData) {
             const element = document.getElementById(elementId);
-            if (!element) return null;
+            if (!element) {
+                console.error(`❌ Cannot find editor element: ${elementId}`);
+                return null;
+            }
+            
+            // Validate Tiptap is available
+            if (!window.Tiptap?.Editor || !window.Tiptap?.StarterKit) {
+                console.error('❌ Professional Rich Text Editor not available. System initialization failed.');
+                throw new Error('Rich Text Editor dependencies missing. Cannot create document editor.');
+            }
             
             try {
-                // Initialize Tiptap editor
-                const editor = new Tiptap.Editor({
+                // Professional Rich Text Editor initialization
+                const editor = new window.Tiptap.Editor({
                     element: element,
                     extensions: [
-                        Tiptap.StarterKit,
+                        window.Tiptap.StarterKit.configure({
+                            // Configure all rich text features
+                            heading: {
+                                levels: [1, 2, 3, 4, 5, 6],
+                            },
+                            bulletList: {
+                                keepMarks: true,
+                                keepAttributes: true,
+                            },
+                            orderedList: {
+                                keepMarks: true,
+                                keepAttributes: true,
+                            },
+                        }),
                     ],
-                    content: document.content || '<p>Buraya yazmaya başlayın...</p>',
+                    content: documentData.content || '<h1>Yeni Belge</h1><p>Zengin metin düzenlemeye başlayın...</p>',
                     onUpdate: ({ editor }) => {
-                        // Auto-save document changes
+                        // Auto-save rich content
                         const content = editor.getHTML();
-                        saveDocumentContent(document.id, content);
+                        saveDocumentContent(documentData.id, content);
+                        
+                        // Update window title if first heading changed
+                        updateWindowTitleFromContent(elementId, content);
+                        
+                        // Update toolbar states
+                        updateToolbarStates(elementId.replace('editor_', ''), editor);
+                    },
+                    onSelectionUpdate: ({ editor }) => {
+                        // Update toolbar when selection changes
+                        updateToolbarStates(elementId.replace('editor_', ''), editor);
+                    },
+                    onCreate: ({ editor }) => {
+                        console.log(`✅ Professional Rich Text Editor created for ${elementId}`);
+                        console.log('📝 Available commands: Bold, Italic, Headings (H1-H6), Lists, Blockquotes, Code');
                     },
                     editorProps: {
                         attributes: {
-                            class: 'canvas-editor'
+                            class: 'canvas-editor rich-text-editor',
+                            'data-placeholder': 'Zengin metin yazmaya başlayın...',
                         }
                     }
                 });
                 
-                console.log(`✏️ Editor initialized for ${elementId}`);
+                // Add professional styling
+                element.classList.add('tiptap-editor');
+                
                 return editor;
+                
             } catch (error) {
-                console.error('❌ Editor initialization error:', error);
-                // Fallback to simple contenteditable
-                element.innerHTML = document.content || '<p>Buraya yazmaya başlayın...</p>';
-                element.contentEditable = true;
-                return { getHTML: () => element.innerHTML, setContent: (content) => element.innerHTML = content };
+                console.error('❌ Rich Text Editor initialization failed:', error);
+                throw new Error(`Professional editor could not be initialized for ${elementId}: ${error.message}`);
+            }
+        }
+        
+        // Update window title based on first heading in content
+        function updateWindowTitleFromContent(elementId, content) {
+            try {
+                const windowId = elementId.replace('editor_', '');
+                const window = canvasWindows.get(windowId);
+                
+                if (window) {
+                    // Extract first heading from content
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = content;
+                    const firstHeading = tempDiv.querySelector('h1, h2, h3, h4, h5, h6');
+                    
+                    if (firstHeading && firstHeading.textContent.trim()) {
+                        const newTitle = firstHeading.textContent.trim();
+                        
+                        // Update window title
+                        const titleElement = window.element.querySelector('.canvas-window-title');
+                        if (titleElement && titleElement.textContent !== newTitle) {
+                            titleElement.textContent = newTitle;
+                            window.document.title = newTitle;
+                            
+                            console.log(`📝 Window title updated: ${newTitle}`);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating window title:', error);
             }
         }
 
@@ -3900,31 +4105,164 @@
             });
         }
 
-        // Text Formatting
+        // Professional Rich Text Formatting
         function formatText(windowId, command, value = null) {
+            const window = canvasWindows.get(windowId);
+            if (!window || !window.editor) {
+                console.error(`❌ Cannot format text: Window ${windowId} or editor not found`);
+                return;
+            }
+            
+            try {
+                const editor = window.editor;
+                
+                switch (command) {
+                    // Basic Text Formatting
+                    case 'bold':
+                        editor.chain().focus().toggleBold().run();
+                        console.log('📝 Applied: Bold formatting');
+                        break;
+                    case 'italic':
+                        editor.chain().focus().toggleItalic().run();
+                        console.log('📝 Applied: Italic formatting');
+                        break;
+                    case 'strike':
+                        editor.chain().focus().toggleStrike().run();
+                        console.log('📝 Applied: Strikethrough formatting');
+                        break;
+                    case 'code':
+                        editor.chain().focus().toggleCode().run();
+                        console.log('📝 Applied: Inline code formatting');
+                        break;
+                    
+                    // Headings and Paragraphs
+                    case 'heading':
+                        if (value >= 1 && value <= 6) {
+                            editor.chain().focus().toggleHeading({ level: value }).run();
+                            console.log(`📝 Applied: Heading ${value} formatting`);
+                        }
+                        break;
+                    case 'paragraph':
+                        editor.chain().focus().setParagraph().run();
+                        console.log('📝 Applied: Paragraph formatting');
+                        break;
+                    
+                    // Lists
+                    case 'bulletList':
+                        editor.chain().focus().toggleBulletList().run();
+                        console.log('📝 Applied: Bullet list');
+                        break;
+                    case 'orderedList':
+                        editor.chain().focus().toggleOrderedList().run();
+                        console.log('📝 Applied: Ordered list');
+                        break;
+                    
+                    // Block Elements
+                    case 'blockquote':
+                        editor.chain().focus().toggleBlockquote().run();
+                        console.log('📝 Applied: Blockquote');
+                        break;
+                    case 'codeBlock':
+                        editor.chain().focus().toggleCodeBlock().run();
+                        console.log('📝 Applied: Code block');
+                        break;
+                    case 'horizontalRule':
+                        editor.chain().focus().setHorizontalRule().run();
+                        console.log('📝 Applied: Horizontal rule');
+                        break;
+                    
+                    default:
+                        console.warn(`⚠️ Unknown formatting command: ${command}`);
+                }
+                
+                // Update button states after formatting
+                updateToolbarStates(windowId, editor);
+                
+            } catch (error) {
+                console.error(`❌ Rich text formatting error for command '${command}':`, error);
+            }
+        }
+        
+        // Undo/Redo Operations
+        function undoRedo(windowId, action) {
             const window = canvasWindows.get(windowId);
             if (!window || !window.editor) return;
             
             try {
-                switch (command) {
-                    case 'bold':
-                        window.editor.chain().focus().toggleBold().run();
+                const editor = window.editor;
+                
+                switch (action) {
+                    case 'undo':
+                        if (editor.can().undo()) {
+                            editor.chain().focus().undo().run();
+                            console.log('↶ Undo applied');
+                        }
                         break;
-                    case 'italic':
-                        window.editor.chain().focus().toggleItalic().run();
-                        break;
-                    case 'heading':
-                        window.editor.chain().focus().toggleHeading({ level: value }).run();
-                        break;
-                    case 'bulletList':
-                        window.editor.chain().focus().toggleBulletList().run();
-                        break;
-                    case 'blockquote':
-                        window.editor.chain().focus().toggleBlockquote().run();
+                    case 'redo':
+                        if (editor.can().redo()) {
+                            editor.chain().focus().redo().run();
+                            console.log('↷ Redo applied');
+                        }
                         break;
                 }
+                
+                updateToolbarStates(windowId, editor);
+                
             } catch (error) {
-                console.error('❌ Text formatting error:', error);
+                console.error(`❌ Undo/Redo error for action '${action}':`, error);
+            }
+        }
+        
+        // Update toolbar button states based on current selection
+        function updateToolbarStates(windowId, editor) {
+            try {
+                const window = canvasWindows.get(windowId);
+                if (!window) return;
+                
+                const toolbar = window.element.querySelector('.canvas-toolbar');
+                if (!toolbar) return;
+                
+                // Get all toolbar buttons
+                const buttons = toolbar.querySelectorAll('.canvas-toolbar-button');
+                
+                // Reset all button states
+                buttons.forEach(button => button.classList.remove('active'));
+                
+                // Update active states based on current selection
+                if (editor.isActive('bold')) {
+                    toolbar.querySelector('[onclick*="bold"]')?.classList.add('active');
+                }
+                if (editor.isActive('italic')) {
+                    toolbar.querySelector('[onclick*="italic"]')?.classList.add('active');
+                }
+                if (editor.isActive('strike')) {
+                    toolbar.querySelector('[onclick*="strike"]')?.classList.add('active');
+                }
+                if (editor.isActive('code')) {
+                    toolbar.querySelector('[onclick*="code"]')?.classList.add('active');
+                }
+                if (editor.isActive('bulletList')) {
+                    toolbar.querySelector('[onclick*="bulletList"]')?.classList.add('active');
+                }
+                if (editor.isActive('orderedList')) {
+                    toolbar.querySelector('[onclick*="orderedList"]')?.classList.add('active');
+                }
+                if (editor.isActive('blockquote')) {
+                    toolbar.querySelector('[onclick*="blockquote"]')?.classList.add('active');
+                }
+                if (editor.isActive('codeBlock')) {
+                    toolbar.querySelector('[onclick*="codeBlock"]')?.classList.add('active');
+                }
+                
+                // Check for heading levels
+                for (let level = 1; level <= 6; level++) {
+                    if (editor.isActive('heading', { level })) {
+                        toolbar.querySelector(`[onclick*="heading', ${level}"]`)?.classList.add('active');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error updating toolbar states:', error);
             }
         }
 
@@ -3956,7 +4294,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.status === 'success') {
                     // Apply AI changes
                     window.editor.setContent(data.content);
                     console.log('✅ AI assistance applied');
@@ -3990,7 +4328,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.status === 'success') {
                         console.log('💾 Document auto-saved');
                     }
                 })
@@ -4088,7 +4426,72 @@
         }
 
         console.log('🎨 Live Document Canvas JavaScript loaded successfully!');
+        
+        // PHASE 6.1: Auto-start collaboration test if URL parameters present
+        function checkForCollaborationTest() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isCollaborationTest = urlParams.get('test_collaboration');
+            const documentId = urlParams.get('document_id');
+            const userName = urlParams.get('user');
+            
+            if (isCollaborationTest === 'true' && documentId) {
+                console.log('🏁 PHASE 6.1: Auto-starting collaboration test');
+                console.log(`📄 Document ID: ${documentId}`);
+                console.log(`👤 User: ${userName || 'Anonymous'}`);
+                
+                // Wait for socket connection
+                setTimeout(() => {
+                    if (socket && socket.connected) {
+                        console.log('✅ Socket connected, creating collaboration window...');
+                        createCollaborationWindow(documentId, userName || 'Anonymous');
+                    } else {
+                        console.log('❌ Socket not connected, retrying...');
+                        setTimeout(() => checkForCollaborationTest(), 1000);
+                    }
+                }, 1000);
+            }
+        }
+        
+        function createCollaborationWindow(documentId, userName) {
+            // Create a new canvas window for collaboration
+            const windowData = {
+                id: documentId,
+                title: `Collaboration Test - ${userName}`,
+                content: `# Real-Time Collaboration Test\n\n**User: ${userName}**\n\nMove your mouse to test cursor tracking!\n\nThis window is connected to document: \`${documentId}\``,
+                x: userName === 'User1' ? 100 : 600,
+                y: 100,
+                width: 500,
+                height: 400
+            };
+            
+            console.log('🪟 Creating collaboration window:', windowData);
+            
+            // Create the canvas window
+            const windowId = `collaboration-${Date.now()}`;
+            createCanvasWindow(windowId, windowData);
+            
+            // Wait for window to be created, then enable collaboration
+            setTimeout(() => {
+                const canvasWindow = canvasWindows.get(windowId);
+                if (canvasWindow && canvasWindow.editor) {
+                    console.log('🤝 Enabling collaboration for window:', windowId);
+                    enableCollaborationForWindow(windowId, documentId, userName);
+                } else {
+                    console.error('❌ Failed to find created window for collaboration');
+                }
+            }, 500);
+        }
+        
+        // Start collaboration check after everything is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', checkForCollaborationTest);
+        } else {
+            checkForCollaborationTest();
+        }
 
     </script>
+    
+    <!-- Live Canvas Container - Floating windows will be rendered here -->
+    <div id="live-canvas-container"></div>
 </body>
 </html> 
