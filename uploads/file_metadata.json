@@ -58,5 +58,35 @@
     "notes": [
       "30f3bde3-530f-4c58-89d9-3925fcbd94f9"
     ]
+  },
+  "74272e69-9cc5-4ade-85f7-8fba0ff5f891": {
+    "id": "74272e69-9cc5-4ade-85f7-8fba0ff5f891",
+    "original_filename": "WIN_20250602_18_30_03_Pro.jpg",
+    "stored_filename": "74272e69-9cc5-4ade-85f7-8fba0ff5f891.jpg",
+    "file_path": "images\\74272e69-9cc5-4ade-85f7-8fba0ff5f891.jpg",
+    "thumbnail_path": null,
+    "file_size": 235551,
+    "mime_type": "image/jpeg",
+    "category": "images",
+    "hash": "bc194664aa4719e2ac23c6d345194bc5",
+    "upload_date": "2025-06-21T23:53:40.718769",
+    "notes": [
+      "39120a2c-943f-4f2a-acd7-d7204ab2fd9c"
+    ]
+  },
+  "30da93b8-ec9b-43a6-b7e7-05bac03467af": {
+    "id": "30da93b8-ec9b-43a6-b7e7-05bac03467af",
+    "original_filename": "WIN_20250602_18_30_03_Pro.jpg",
+    "stored_filename": "30da93b8-ec9b-43a6-b7e7-05bac03467af.jpg",
+    "file_path": "images\\30da93b8-ec9b-43a6-b7e7-05bac03467af.jpg",
+    "thumbnail_path": null,
+    "file_size": 235551,
+    "mime_type": "image/jpeg",
+    "category": "images",
+    "hash": "bc194664aa4719e2ac23c6d345194bc5",
+    "upload_date": "2025-06-21T23:58:08.135735",
+    "notes": [
+      "1d330d01-4d23-452d-889e-a1ff912ea2e8"
+    ]
   }
 }

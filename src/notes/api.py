@@ -300,22 +300,41 @@ def get_workspace_stats(workspace_id):
 @notes_blueprint.route('/<note_id>/pin', methods=['POST'])
 def pin_note(note_id):
     """Notu sabitle/sabitlemeyi kaldır"""
-    data = request.get_json()
-    pinned = data.get('pinned', True)
-    
-    with notes_db.get_session() as session:
-        note = session.query(Note).filter_by(id=note_id).first()
-        
+    try:
+        # Get note
+        note = notes_db.get_note(note_id)
         if not note:
             return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
         
-        note.is_pinned = pinned
-        session.commit()
-    
-    return jsonify({
-        'success': True,
-        'message': f'Not {"sabitlendi" if pinned else "sabitlemesi kaldırıldı"}'
-    })
+        # Toggle pin status
+        data = request.get_json() or {}
+        new_pin_status = not note.is_pinned  # Toggle current status
+        
+        # If pinned status explicitly provided, use it
+        if 'pinned' in data:
+            new_pin_status = data['pinned']
+        
+        # Update note
+        updated_note = notes_db.update_note(
+            note_id=note_id,
+            is_pinned=new_pin_status,
+            edited_by='default_user'
+        )
+        
+        if not updated_note:
+            return jsonify({'success': False, 'error': 'Pin güncelleme başarısız'}), 500
+        
+        logger.info(f"Note pin status changed: {note_id} -> {new_pin_status}")
+        
+        return jsonify({
+            'success': True,
+            'note': updated_note.to_dict(),
+            'message': f'Not {"sabitlendi" if new_pin_status else "sabitleme kaldırıldı"}'
+        })
+        
+    except Exception as e:
+        logger.error(f"Pin operation failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # AI Endpoints

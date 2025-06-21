@@ -218,6 +218,9 @@ class NotesApp {
             document.getElementById('noteTitle').value = this.currentNote.title || '';
             document.getElementById('noteEditor').innerHTML = this.currentNote.content || 'Notunuzu yazmaya başlayın...';
             
+            // Pin butonunu güncelle
+            this.updatePinButton();
+            
             // Dosyaları yükle
             this.attachedFiles = this.currentNote.files || [];
             this.renderFileList();
@@ -1038,13 +1041,119 @@ class NotesApp {
     }
     
     formatFileSize(bytes) {
-        if (bytes === 0) return '0 B';
-        
+        if (bytes === 0) return '0 Bytes';
         const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Pin ve Delete işlemleri
+    async pinNote(noteId = null) {
+        const targetNoteId = noteId || (this.currentNote ? this.currentNote.id : null);
+        if (!targetNoteId) {
+            this.showStatus('Önce bir not seçin', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/${targetNoteId}/pin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const isPinned = data.note.is_pinned;
+                this.showStatus(
+                    isPinned ? 'Not sabitlendi' : 'Not sabitleme kaldırıldı', 
+                    'success'
+                );
+
+                // Notu güncelle
+                if (this.currentNote && this.currentNote.id === targetNoteId) {
+                    this.currentNote = data.note;
+                    this.updatePinButton();
+                }
+
+                // Listeleri güncelle
+                this.updateNoteInLists(data.note);
+                await this.loadNotes();
+            } else {
+                this.showStatus('Sabitleme işlemi başarısız', 'error', data.error);
+            }
+        } catch (error) {
+            console.error('❌ Pin işlemi hatası:', error);
+            this.showStatus('Sabitleme işlemi başarısız', 'error', 'Bağlantı sorunu');
+        }
+    }
+
+    async deleteNote(noteId = null) {
+        const targetNoteId = noteId || (this.currentNote ? this.currentNote.id : null);
+        if (!targetNoteId) {
+            this.showStatus('Önce bir not seçin', 'warning');
+            return;
+        }
+
+        // Onay iste
+        if (!confirm('Bu notu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/${targetNoteId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showStatus('Not silindi', 'success');
+
+                // Mevcut not siliniyorsa editor'ı temizle
+                if (this.currentNote && this.currentNote.id === targetNoteId) {
+                    this.currentNote = null;
+                    document.getElementById('noteTitle').value = '';
+                    document.getElementById('noteEditor').innerHTML = 'Yeni not seçin veya oluşturun...';
+                    this.attachedFiles = [];
+                    this.renderFileList();
+                }
+
+                // Listeleri güncelle
+                await this.loadNotes();
+            } else {
+                this.showStatus('Silme işlemi başarısız', 'error', data.error);
+            }
+        } catch (error) {
+            console.error('❌ Delete işlemi hatası:', error);
+            this.showStatus('Silme işlemi başarısız', 'error', 'Bağlantı sorunu');
+        }
+    }
+
+    updatePinButton() {
+        const pinButtons = document.querySelectorAll('[onclick="pinCurrentNote()"]');
+        if (pinButtons.length > 0 && this.currentNote) {
+            const isPinned = this.currentNote.is_pinned;
+            pinButtons.forEach(button => {
+                const icon = button.querySelector('i');
+                if (isPinned) {
+                    button.className = 'btn btn-sm btn-warning';
+                    button.title = 'Sabitlemeyi Kaldır';
+                    if (icon) icon.className = 'fas fa-thumbtack';
+                } else {
+                    button.className = 'btn btn-sm btn-outline-secondary';
+                    button.title = 'Sabitle';
+                    if (icon) icon.className = 'fas fa-thumbtack';
+                }
+            });
+        }
     }
 }
 
@@ -1699,12 +1808,12 @@ async function deleteFile(fileId) {
         
         if (data.success) {
             notesApp.showStatus('Dosya silindi', 'success');
-            await notesApp.loadNoteFiles();
+            notesApp.loadNoteFiles();
         } else {
-            notesApp.showStatus(`Silme başarısız: ${data.error}`, 'error');
+            notesApp.showStatus('Dosya silinemedi', 'error', data.error);
         }
     } catch (error) {
-        console.error('File deletion error:', error);
+        console.error('❌ File delete error:', error);
         notesApp.showStatus('Dosya silinemedi', 'error');
     }
 }
@@ -1803,4 +1912,17 @@ document.addEventListener('keydown', (e) => {
         closeFilePreview();
     }
 });
+
+// Global Pin and Delete Functions  
+async function pinCurrentNote() {
+    if (notesApp) {
+        await notesApp.pinNote();
+    }
+}
+
+async function deleteCurrentNote() {
+    if (notesApp) {
+        await notesApp.deleteNote();
+    }
+}
  
