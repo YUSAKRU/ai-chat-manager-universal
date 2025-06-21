@@ -95,6 +95,26 @@ class WebUIUniversal:
             self.canvas_interface = None  
             self.ai_document_integration = None
         
+        # Notes System - AI-Powered Note Taking
+        try:
+            from .notes.api import notes_blueprint, init_ai_integration
+            self.app.register_blueprint(notes_blueprint)
+            
+            # AI entegrasyonunu başlat
+            if self.ai_adapter:
+                # General role oluştur (eğer adapter varsa)
+                if hasattr(self.ai_adapter, 'adapters') and self.ai_adapter.adapters:
+                    first_adapter_id = list(self.ai_adapter.adapters.keys())[0]
+                    self.ai_adapter.assign_role("general", first_adapter_id)
+                    print(f"🤖 General role atandı: {first_adapter_id}")
+                
+                init_ai_integration(self.ai_adapter)
+                print("📝 AI Note Taking System başlatıldı! (AI entegrasyonu aktif)")
+            else:
+                print("📝 AI Note Taking System başlatıldı! (AI entegrasyonu pasif)")
+        except Exception as e:
+            print(f"⚠️ Notes system not available: {e}")
+        
         self.setup_routes()
         self.setup_socketio_events()
         self.setup_message_subscriptions()
@@ -109,6 +129,11 @@ class WebUIUniversal:
         @self.app.route('/api-management')
         def api_management():
             return render_template('api_management.html')
+        
+        @self.app.route('/notes')
+        def notes_app():
+            """AI-Powered Notes Application"""
+            return render_template('notes.html')
         
         @self.app.route('/api/status')
         def get_status():
