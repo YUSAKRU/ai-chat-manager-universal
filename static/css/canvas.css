@@ -1,0 +1,1101 @@
+/* ============================================
+   LIVE DOCUMENT CANVAS STYLES
+   Modern, Floating, Interactive Document Windows
+   ============================================ */
+
+/* Canvas Container */
+#live-canvas-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+/* Canvas Window Base */
+.canvas-window {
+    position: absolute;
+    min-width: 300px;
+    min-height: 200px;
+    max-width: 90vw;
+    max-height: 90vh;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    pointer-events: auto;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.canvas-window:hover {
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.canvas-window.active {
+    border-color: #3B82F6;
+    box-shadow: 
+        0 25px 50px -12px rgba(59, 130, 246, 0.4),
+        0 10px 15px -3px rgba(59, 130, 246, 0.2);
+}
+
+/* Window Header */
+.canvas-window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    cursor: move;
+    user-select: none;
+}
+
+.canvas-window-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.canvas-window-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.canvas-window-control {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.canvas-window-control.minimize {
+    background: #fbbf24;
+}
+
+.canvas-window-control.minimize:hover {
+    background: #f59e0b;
+}
+
+.canvas-window-control.maximize {
+    background: #10b981;
+}
+
+.canvas-window-control.maximize:hover {
+    background: #059669;
+}
+
+.canvas-window-control.close {
+    background: #ef4444;
+}
+
+.canvas-window-control.close:hover {
+    background: #dc2626;
+}
+
+/* Window Content */
+.canvas-window-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Live Editor Styles */
+.live-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+}
+
+.live-editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    min-height: 40px;
+}
+
+.editor-tool-btn {
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.editor-tool-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.editor-tool-btn.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #2563eb;
+}
+
+.live-editor-content {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+}
+
+/* Tiptap Editor Overrides */
+.ProseMirror {
+    outline: none;
+    min-height: 200px;
+}
+
+.ProseMirror p {
+    margin: 0 0 1em 0;
+}
+
+.ProseMirror h1, .ProseMirror h2, .ProseMirror h3 {
+    margin: 1.5em 0 0.5em 0;
+    font-weight: 600;
+}
+
+.ProseMirror h1 { font-size: 1.875rem; }
+.ProseMirror h2 { font-size: 1.5rem; }
+.ProseMirror h3 { font-size: 1.25rem; }
+
+.ProseMirror ul, .ProseMirror ol {
+    margin: 1em 0;
+    padding-left: 1.5em;
+}
+
+.ProseMirror blockquote {
+    border-left: 3px solid #d1d5db;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.ProseMirror code {
+    background: #f3f4f6;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.875em;
+}
+
+/* Resize Handles */
+.canvas-window .resize-handle {
+    position: absolute;
+    background: transparent;
+}
+
+.canvas-window .resize-handle.se {
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    cursor: se-resize;
+}
+
+.canvas-window .resize-handle.e {
+    top: 50%;
+    right: 0;
+    width: 4px;
+    height: 50px;
+    margin-top: -25px;
+    cursor: e-resize;
+}
+
+.canvas-window .resize-handle.s {
+    bottom: 0;
+    left: 50%;
+    width: 50px;
+    height: 4px;
+    margin-left: -25px;
+    cursor: s-resize;
+}
+
+/* Status Indicators */
+.canvas-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.canvas-status.connected {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.canvas-status.saving {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.canvas-status.offline {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Collaborative Cursors */
+.collaboration-cursor {
+    position: relative;
+    margin: 0 -1px;
+    border-left: 2px solid;
+    border-right: 2px solid;
+    word-break: normal;
+    pointer-events: none;
+}
+
+.collaboration-cursor::after {
+    content: attr(data-user);
+    position: absolute;
+    top: -24px;
+    left: -8px;
+    background: inherit;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+/* Animations */
+.canvas-window.entering {
+    animation: windowEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.canvas-window.leaving {
+    animation: windowLeave 0.2s ease-in-out forwards;
+}
+
+@keyframes windowEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes windowLeave {
+    to {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .canvas-window {
+        background: rgba(31, 41, 55, 0.98);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .canvas-window-header {
+        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .canvas-window-title {
+        color: #f3f4f6;
+    }
+    
+    .live-editor {
+        background: #1f2937;
+    }
+    
+    .live-editor-toolbar {
+        background: #374151;
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .live-editor-content {
+        color: #f3f4f6;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .canvas-window {
+        min-width: 280px;
+        max-width: 95vw;
+    }
+    
+    .canvas-window-header {
+        padding: 10px 12px;
+    }
+    
+    .live-editor-content {
+        padding: 12px;
+    }
+}
+
+/* Professional Rich Text Editor Toolbar */
+.professional-toolbar {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 4px;
+    padding: 0 8px;
+    border-right: 1px solid #dee2e6;
+    align-items: center;
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+}
+
+.toolbar-group.ai-group {
+    margin-left: auto;
+    padding-left: 16px;
+    border-left: 2px solid #007bff;
+    border-right: none;
+}
+
+.canvas-toolbar-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 6px 8px;
+    margin: 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.canvas-toolbar-button:hover {
+    background: rgba(0, 123, 255, 0.1);
+    border-color: rgba(0, 123, 255, 0.3);
+    color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.15);
+}
+
+.canvas-toolbar-button.active {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border-color: #0056b3;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.canvas-toolbar-button.active:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-1px);
+}
+
+.ai-button {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-color: #28a745;
+    font-weight: 600;
+}
+
+.ai-button:hover {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    border-color: #20c997;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(32, 201, 151, 0.4);
+}
+
+/* Rich Text Editor Content Styling */
+.tiptap-editor {
+    min-height: 200px;
+    padding: 16px;
+    border: none;
+    outline: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    background: #fff;
+}
+
+.tiptap-editor:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Rich Text Content Styling */
+.tiptap-editor h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 1em 0 0.5em 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.3em;
+}
+
+.tiptap-editor h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin: 0.8em 0 0.4em 0;
+    color: #34495e;
+}
+
+.tiptap-editor h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 0.6em 0 0.3em 0;
+    color: #34495e;
+}
+
+.tiptap-editor p {
+    margin: 0.5em 0;
+    line-height: 1.8;
+}
+
+.tiptap-editor strong {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.tiptap-editor em {
+    font-style: italic;
+    color: #6c757d;
+}
+
+.tiptap-editor code {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+    color: #e83e8c;
+}
+
+.tiptap-editor pre {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 1em 0;
+    overflow-x: auto;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.tiptap-editor blockquote {
+    border-left: 4px solid #007bff;
+    margin: 1em 0;
+    padding: 0.5em 1em;
+    background: rgba(0, 123, 255, 0.05);
+    border-radius: 0 4px 4px 0;
+    font-style: italic;
+    color: #6c757d;
+}
+
+.tiptap-editor ul, .tiptap-editor ol {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+.tiptap-editor li {
+    margin: 0.25em 0;
+    line-height: 1.6;
+}
+
+.tiptap-editor hr {
+    border: none;
+    border-top: 2px solid #dee2e6;
+    margin: 2em 0;
+    background: linear-gradient(90deg, transparent 0%, #dee2e6 50%, transparent 100%);
+}
+
+/* Editor Placeholder */
+.tiptap-editor .ProseMirror-focused {
+    outline: none;
+}
+
+.tiptap-editor[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: #adb5bd;
+    font-style: italic;
+    pointer-events: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .professional-toolbar {
+        gap: 8px;
+        padding: 8px 12px;
+        flex-wrap: wrap;
+    }
+    
+    .toolbar-group {
+        gap: 2px;
+        padding: 0 4px;
+    }
+    
+    .canvas-toolbar-button {
+        min-width: 28px;
+        height: 28px;
+        padding: 4px 6px;
+        font-size: 12px;
+    }
+}
+
+/* ============================================
+   PHASE 6.1: MULTI-USER COLLABORATION STYLES
+   Real-time collaboration UI components
+   ============================================ */
+
+/* User Presence Indicators */
+.user-presence {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 8px;
+}
+
+.user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid white;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.user-avatar:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Remote Cursors */
+.remote-cursors {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.remote-cursor {
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+}
+
+.cursor-pointer {
+    width: 2px;
+    height: 20px;
+    border-left: 2px solid #FF6B6B; /* Default color, overridden by JS */
+    position: relative;
+}
+
+.cursor-pointer::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 6px solid currentColor;
+    border-color: inherit;
+}
+
+.cursor-label {
+    position: absolute;
+    top: -30px;
+    left: 0;
+    background: #FF6B6B; /* Default color, overridden by JS */
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cursor-label::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 8px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid currentColor;
+    border-color: inherit;
+}
+
+/* Remote Selection Highlighting */
+.remote-selection {
+    background: rgba(255, 107, 107, 0.3);
+    border-radius: 2px;
+    pointer-events: none;
+    position: absolute;
+    z-index: 3;
+}
+
+/* Multi-user Status Indicators */
+.canvas-status.collaborative {
+    background: linear-gradient(45deg, #4ECDC4, #45B7D1);
+    animation: pulse-collaborative 2s infinite;
+}
+
+@keyframes pulse-collaborative {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* User Count Badge */
+.user-count-badge {
+    background: #3b82f6;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+/* Collaborative Editor Enhancements */
+.live-editor-content.collaborative {
+    position: relative; /* For remote cursors positioning */
+}
+
+.live-editor-content.collaborative::before {
+    content: '👥 Live Collaboration';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(45deg, #4ECDC4, #45B7D1);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    z-index: 2;
+}
+
+/* Enhanced Presence Indicators */
+.user-presence .user-avatar.current-user {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px #3b82f6, 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+    .user-presence {
+        gap: 2px;
+    }
+    
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+    
+    .cursor-label {
+        font-size: 9px;
+        padding: 1px 4px;
+        top: -25px;
+    }
+    
+    .remote-cursor {
+        transform: scale(0.8);
+    }
+}
+
+/* Dark mode support for collaboration features */
+@media (prefers-color-scheme: dark) {
+    .user-avatar {
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .cursor-label {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    
+    .live-editor-content.collaborative::before {
+        background: linear-gradient(45deg, #2dd4bf, #3b82f6);
+    }
+}
+
+/* ============================================
+   PHASE 6.2: DOCUMENT CONFLICT RESOLUTION UI
+   Conflict detection and resolution interfaces
+   ============================================ */
+
+/* Conflict Dialog */
+.conflict-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-surface, #ffffff);
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    max-width: 500px;
+    width: 90%;
+    animation: conflictAppear 0.3s ease-out;
+}
+
+@keyframes conflictAppear {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.conflict-dialog-content {
+    padding: 24px;
+}
+
+.conflict-dialog h3 {
+    margin: 0 0 16px 0;
+    color: #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.conflict-dialog p {
+    margin: 8px 0;
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.conflict-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: flex-end;
+}
+
+.conflict-actions .btn {
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.conflict-actions .btn:hover {
+    background: #f9fafb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.conflict-actions .btn-primary {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.conflict-actions .btn-primary:hover {
+    background: #2563eb;
+}
+
+.conflict-actions .btn-secondary {
+    background: #6b7280;
+    color: white;
+    border-color: #6b7280;
+}
+
+.conflict-actions .btn-secondary:hover {
+    background: #4b5563;
+}
+
+.conflict-actions .btn-warning {
+    background: #f59e0b;
+    color: white;
+    border-color: #f59e0b;
+}
+
+.conflict-actions .btn-warning:hover {
+    background: #d97706;
+}
+
+/* Conflict Error Messages */
+.conflict-error {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    z-index: 1000;
+}
+
+.conflict-error .alert {
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ef4444;
+    background: #fef2f2;
+    color: #dc2626;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.conflict-error .btn-close {
+    background: none;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    margin-left: 12px;
+    font-weight: bold;
+}
+
+.conflict-error .btn-close:hover {
+    color: #991b1b;
+}
+
+/* OT Operation Indicators */
+.ot-operation-indicator {
+    position: absolute;
+    top: 8px;
+    right: 64px;
+    background: #3b82f6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    z-index: 100;
+    animation: fadeInOut 2s ease-in-out;
+}
+
+.ot-operation-indicator.conflict {
+    background: #ef4444;
+    animation: pulse 1s infinite;
+}
+
+.ot-operation-indicator.insert {
+    background: #10b981;
+}
+
+.ot-operation-indicator.delete {
+    background: #f59e0b;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Version History UI */
+.version-history {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: monospace;
+}
+
+/* Conflict Highlighting in Editor */
+.conflict-highlight {
+    background: linear-gradient(45deg, #fef2f2, #fee2e2);
+    border: 1px dashed #ef4444;
+    border-radius: 2px;
+    padding: 2px;
+    margin: 1px 0;
+    position: relative;
+}
+
+.conflict-highlight::before {
+    content: '⚠️ CONFLICT';
+    position: absolute;
+    top: -20px;
+    left: 0;
+    background: #ef4444;
+    color: white;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+/* Merge Mode UI */
+.merge-mode {
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+    position: relative;
+}
+
+.merge-mode::before {
+    content: '🔄 MERGE MODE';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #f59e0b;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* Responsive Design for Conflict UI */
+@media (max-width: 768px) {
+    .conflict-dialog {
+        width: 95%;
+        max-width: none;
+        margin: 16px;
+    }
+    
+    .conflict-dialog-content {
+        padding: 16px;
+    }
+    
+    .conflict-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .conflict-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .ot-operation-indicator {
+        right: 8px;
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+}
+
+/* Dark Theme Support for Conflicts */
+@media (prefers-color-scheme: dark) {
+    .conflict-dialog {
+        background: #1f2937;
+        border-color: #ef4444;
+    }
+    
+    .conflict-dialog h3 {
+        color: #f87171;
+    }
+    
+    .conflict-dialog p {
+        color: #d1d5db;
+    }
+    
+    .conflict-actions .btn {
+        background: #374151;
+        color: #f9fafb;
+        border-color: #4b5563;
+    }
+    
+    .conflict-actions .btn:hover {
+        background: #4b5563;
+    }
+    
+    .conflict-error .alert {
+        background: #7f1d1d;
+        border-color: #dc2626;
+        color: #fecaca;
+    }
+    
+    .conflict-highlight {
+        background: linear-gradient(45deg, #7f1d1d, #991b1b);
+        border-color: #dc2626;
+    }
+    
+    .merge-mode {
+        background: #451a03;
+        border-left-color: #d97706;
+    }
+} 

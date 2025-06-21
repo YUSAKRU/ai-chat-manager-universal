@@ -1,0 +1,33 @@
+{
+  "name": "ai-chrome-chat-manager",
+  "version": "1.0.0",
+  "description": "**Tek EXE ile AI Uzmanları Koordine Eden Akıllı Sistem**",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YUSAKRU/ai-chat-manager-universal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/YUSAKRU/ai-chat-manager-universal/issues"
+  },
+  "homepage": "https://github.com/YUSAKRU/ai-chat-manager-universal#readme",
+  "dependencies": {
+    "@tiptap/core": "^2.22.0",
+    "@tiptap/extension-color": "^2.22.0",
+    "@tiptap/extension-list-item": "^2.22.0",
+    "@tiptap/extension-text-align": "^2.22.0",
+    "@tiptap/extension-text-style": "^2.22.0",
+    "@tiptap/extension-typography": "^2.22.0",
+    "@tiptap/starter-kit": "^2.22.0"
+  }
+}
