@@ -12,6 +12,7 @@ from sqlalchemy import Column, String, Text, DateTime, Boolean, Integer, Foreign
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.sqlite import JSON
+from sqlalchemy.schema import UniqueConstraint
 import uuid
 
 Base = declarative_base()
@@ -43,6 +44,18 @@ class NoteWorkspace(Base):
     
     # Relationships
     notes = relationship("Note", back_populates="workspace", cascade="all, delete-orphan")
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Workspace objesini dictionary'e çevir"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'owner_id': self.owner_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'settings': self.settings or {}
+        }
 
 
 class Note(Base):
@@ -124,13 +137,18 @@ class NoteTag(Base):
     __tablename__ = 'tags'
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String(100), unique=True, nullable=False)
+    name = Column(String(100), nullable=False)
     color = Column(String(7), default='#808080')  # Hex color
     workspace_id = Column(String, ForeignKey('workspaces.id'))
     created_at = Column(DateTime, default=datetime.now)
     
     # Relationships
     notes = relationship("Note", secondary=note_tags, back_populates="tags")
+    
+    # Add unique constraint for name per workspace
+    __table_args__ = (
+        UniqueConstraint('name', 'workspace_id', name='_workspace_tag_uc'),
+    )
 
 
 @dataclass

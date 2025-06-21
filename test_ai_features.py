@@ -180,3 +180,4 @@ if __name__ == "__main__":
         test_ai_features()
     else:
         print("🚀 Lütfen önce sunucuyu başlatın: python run_production.py")
+ 

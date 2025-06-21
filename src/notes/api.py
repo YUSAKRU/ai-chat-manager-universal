@@ -14,10 +14,12 @@ from .database import NotesDatabase
 from .models import Note, NoteWorkspace
 from .ai_integration import NotesAIIntegration
 from .export_manager import NotesExportManager
+from .file_manager import NotesFileManager
 from ..logger import logger
 import asyncio
 import os
 import tempfile
+from werkzeug.utils import secure_filename
 
 # Blueprint oluştur
 notes_blueprint = Blueprint('notes', __name__, url_prefix='/api/notes')
@@ -31,6 +33,9 @@ ai_integration = None
 # Export Manager
 export_manager = NotesExportManager()
 
+# File Manager
+file_manager = NotesFileManager()
+
 def init_ai_integration(ai_adapter):
     """AI entegrasyonunu başlat"""
     global ai_integration
@@ -38,25 +43,19 @@ def init_ai_integration(ai_adapter):
 
 
 @notes_blueprint.route('/workspaces', methods=['GET'])
-def list_workspaces():
+def get_workspaces():
     """Kullanıcının workspace'lerini listele"""
-    # TODO: Gerçek kullanıcı kimlik doğrulaması eklenecek
     user_id = request.args.get('user_id', 'default_user')
     
-    workspaces = notes_db.list_workspaces(user_id)
-    
-    return jsonify({
-        'success': True,
-        'workspaces': [
-            {
-                'id': ws.id,
-                'name': ws.name,
-                'description': ws.description,
-                'created_at': ws.created_at.isoformat() if ws.created_at else None
-            }
-            for ws in workspaces
-        ]
-    })
+    try:
+        workspaces = notes_db.get_user_workspaces(user_id)
+        return jsonify({
+            'success': True,
+            'workspaces': [workspace.to_dict() for workspace in workspaces]
+        })
+    except Exception as e:
+        logger.error(f"Workspace listing failed for user {user_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/workspaces', methods=['POST'])
@@ -64,64 +63,44 @@ def create_workspace():
     """Yeni workspace oluştur"""
     data = request.get_json()
     
-    # Validation
-    if not data or 'name' not in data:
+    name = data.get('name')
+    description = data.get('description', '')
+    created_by = data.get('created_by', 'default_user')
+    
+    if not name:
         return jsonify({'success': False, 'error': 'Workspace adı gerekli'}), 400
     
-    # TODO: Gerçek kullanıcı kimlik doğrulaması eklenecek
-    user_id = data.get('user_id', 'default_user')
-    
-    workspace = notes_db.create_workspace(
-        name=data['name'],
-        owner_id=user_id,
-        description=data.get('description', '')
-    )
-    
-    return jsonify({
-        'success': True,
-        'workspace': {
-            'id': workspace.id,
-            'name': workspace.name,
-            'description': workspace.description
-        }
-    })
+    try:
+        workspace = notes_db.create_workspace(name, created_by, description)
+        return jsonify({
+            'success': True,
+            'workspace': workspace.to_dict()
+        })
+    except Exception as e:
+        logger.error(f"Workspace creation failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/', methods=['GET'])
-def list_notes():
+def get_notes():
     """Notları listele"""
     workspace_id = request.args.get('workspace_id')
-    
-    if not workspace_id:
-        return jsonify({'success': False, 'error': 'Workspace ID gerekli'}), 400
-    
-    # Arama parametreleri
-    query = request.args.get('q')
-    tags = request.args.getlist('tags')
-    parent_id = request.args.get('parent_id')
-    created_by = request.args.get('created_by')
-    include_archived = request.args.get('include_archived', 'false').lower() == 'true'
     limit = int(request.args.get('limit', 50))
-    offset = int(request.args.get('offset', 0))
+    query = request.args.get('q', '')
     
-    notes = notes_db.search_notes(
-        workspace_id=workspace_id,
-        query=query,
-        tags=tags if tags else None,
-        parent_id=parent_id,
-        created_by=created_by,
-        include_archived=include_archived,
-        limit=limit,
-        offset=offset
-    )
-    
-    return jsonify({
-        'success': True,
-        'notes': [note.to_dict() for note in notes],
-        'count': len(notes),
-        'offset': offset,
-        'limit': limit
-    })
+    try:
+        if query:
+            notes = notes_db.search_notes(workspace_id, query)
+        else:
+            notes = notes_db.get_notes(workspace_id, limit=limit)
+        
+        return jsonify({
+            'success': True,
+            'notes': [note.to_dict() for note in notes]
+        })
+    except Exception as e:
+        logger.error(f"Notes listing failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/', methods=['POST'])
@@ -129,44 +108,52 @@ def create_note():
     """Yeni not oluştur"""
     data = request.get_json()
     
-    # Validation
-    required_fields = ['title', 'workspace_id']
-    for field in required_fields:
-        if not data or field not in data:
-            return jsonify({'success': False, 'error': f'{field} gerekli'}), 400
-    
-    # TODO: Gerçek kullanıcı kimlik doğrulaması eklenecek
+    title = data.get('title', 'Yeni Not')
+    content = data.get('content', 'Notunuzu yazmaya başlayın...')
+    workspace_id = data.get('workspace_id')
     created_by = data.get('created_by', 'default_user')
     
-    note = notes_db.create_note(
-        title=data['title'],
-        workspace_id=data['workspace_id'],
-        created_by=created_by,
-        content=data.get('content', ''),
-        parent_id=data.get('parent_id'),
-        tags=data.get('tags', [])
-    )
+    if not workspace_id:
+        return jsonify({'success': False, 'error': 'Workspace ID gerekli'}), 400
     
-    return jsonify({
-        'success': True,
-        'note': note.to_dict()
-    })
+    try:
+        note = notes_db.create_note(
+            title=title, 
+            workspace_id=workspace_id, 
+            created_by=created_by,
+            content=content
+        )
+        return jsonify({
+            'success': True,
+            'note': note.to_dict()
+        })
+    except Exception as e:
+        logger.error(f"Note creation failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>', methods=['GET'])
 def get_note(note_id):
     """Belirli bir notu getir"""
-    increment_view = request.args.get('increment_view', 'true').lower() == 'true'
+    increment_view = request.args.get('increment_view', 'false').lower() == 'true'
     
-    note = notes_db.get_note(note_id, increment_view=increment_view)
-    
-    if not note:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    return jsonify({
-        'success': True,
-        'note': note.to_dict()
-    })
+    try:
+        note = notes_db.get_note(note_id, increment_view=increment_view)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+        
+        # Note'a ait dosyaları da getir
+        files = file_manager.get_note_files(note_id)
+        note_dict = note.to_dict()
+        note_dict['files'] = files
+        
+        return jsonify({
+            'success': True,
+            'note': note_dict
+        })
+    except Exception as e:
+        logger.error(f"Note fetch failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>', methods=['PUT'])
@@ -174,39 +161,43 @@ def update_note(note_id):
     """Notu güncelle"""
     data = request.get_json()
     
-    # TODO: Gerçek kullanıcı kimlik doğrulaması eklenecek
-    edited_by = data.get('edited_by', 'default_user')
-    
-    note = notes_db.update_note(
-        note_id=note_id,
-        edited_by=edited_by,
-        title=data.get('title'),
-        content=data.get('content'),
-        tags=data.get('tags'),
-        ai_metadata=data.get('ai_metadata')
-    )
-    
-    if not note:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    return jsonify({
-        'success': True,
-        'note': note.to_dict()
-    })
+    try:
+        updated_note = notes_db.update_note(
+            note_id=note_id,
+            title=data.get('title'),
+            content=data.get('content'),
+            is_pinned=data.get('is_pinned'),
+            edited_by=data.get('edited_by', 'default_user')
+        )
+        
+        if updated_note:
+            logger.info(f"Note updated: {note_id} by {data.get('edited_by', 'default_user')}")
+            return jsonify({
+                'success': True,
+                'note': updated_note.to_dict()
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+            
+    except Exception as e:
+        logger.error(f"Note update failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>', methods=['DELETE'])
 def delete_note(note_id):
     """Notu sil"""
-    success = notes_db.delete_note(note_id)
-    
-    if not success:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    return jsonify({
-        'success': True,
-        'message': 'Not başarıyla silindi'
-    })
+    try:
+        success = notes_db.delete_note(note_id)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Not silindi'})
+        else:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+            
+    except Exception as e:
+        logger.error(f"Note deletion failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>/archive', methods=['POST'])
@@ -236,26 +227,32 @@ def get_note_tree(workspace_id):
 
 @notes_blueprint.route('/recent/<workspace_id>', methods=['GET'])
 def get_recent_notes(workspace_id):
-    """Son güncellenen notları getir"""
+    """Son düzenlenen notları getir"""
     limit = int(request.args.get('limit', 10))
     
-    notes = notes_db.get_recent_notes(workspace_id, limit=limit)
-    
-    return jsonify({
-        'success': True,
-        'notes': [note.to_dict() for note in notes]
-    })
+    try:
+        notes = notes_db.get_recent_notes(workspace_id, limit)
+        return jsonify({
+            'success': True,
+            'notes': [note.to_dict() for note in notes]
+        })
+    except Exception as e:
+        logger.error(f"Recent notes fetch failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/pinned/<workspace_id>', methods=['GET'])
 def get_pinned_notes(workspace_id):
     """Sabitlenmiş notları getir"""
-    notes = notes_db.get_pinned_notes(workspace_id)
-    
-    return jsonify({
-        'success': True,
-        'notes': [note.to_dict() for note in notes]
-    })
+    try:
+        notes = notes_db.get_pinned_notes(workspace_id)
+        return jsonify({
+            'success': True,
+            'notes': [note.to_dict() for note in notes]
+        })
+    except Exception as e:
+        logger.error(f"Pinned notes fetch failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/tags/<workspace_id>', methods=['GET'])
@@ -323,174 +320,289 @@ def pin_note(note_id):
 
 # AI Endpoints
 @notes_blueprint.route('/<note_id>/ai/analyze', methods=['POST'])
-def analyze_note_ai(note_id):
-    """AI ile not analizi yap"""
+def ai_analyze_note(note_id):
+    """AI ile not analizi"""
     if not ai_integration:
-        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 503
-    
-    note = notes_db.get_note(note_id)
-    if not note:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    def run_analysis():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(
-            ai_integration.analyze_note(note.title, note.content)
-        )
+        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 500
     
     try:
-        analysis = run_analysis()
+        note = notes_db.get_note(note_id)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
         
-        # AI metadata'yı not'a kaydet
-        notes_db.update_note(
-            note_id=note_id,
-            edited_by='ai_system',
-            ai_metadata={'analysis': analysis}
-        )
+        # AI analizi yap
+        result = asyncio.run(ai_integration.analyze_note(note.content))
         
-        return jsonify({
-            'success': True,
-            'analysis': analysis
-        })
-        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'analysis': result['analysis']
+            })
+        else:
+            return jsonify({'success': False, 'error': result['error']})
+            
     except Exception as e:
         logger.error(f"AI analysis failed for note {note_id}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>/ai/suggest-tags', methods=['POST'])
-def suggest_tags_ai(note_id):
-    """AI ile etiket önerileri al"""
+def ai_suggest_tags(note_id):
+    """AI ile etiket önerisi"""
     if not ai_integration:
-        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 503
-    
-    note = notes_db.get_note(note_id)
-    if not note:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    def run_suggestion():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(
-            ai_integration.suggest_tags(note.title, note.content, note.tags)
-        )
+        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 500
     
     try:
-        suggested_tags = run_suggestion()
+        note = notes_db.get_note(note_id)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+        
+        # Get existing tags
+        existing_tags = [tag.name for tag in note.tags] if note.tags else []
+        
+        # Call with correct parameters
+        suggested_tags = asyncio.run(ai_integration.suggest_tags(note.title, note.content, existing_tags))
         
         return jsonify({
             'success': True,
             'suggested_tags': suggested_tags,
-            'current_tags': [tag.name for tag in note.tags] if note.tags else []
+            'current_tags': existing_tags
         })
-        
+            
     except Exception as e:
         logger.error(f"Tag suggestion failed for note {note_id}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>/ai/summarize', methods=['POST'])
-def summarize_note_ai(note_id):
+def ai_summarize_note(note_id):
     """AI ile not özetleme"""
     if not ai_integration:
-        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 503
+        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 500
     
     data = request.get_json() or {}
-    target_length = data.get('length', 'short')
-    
-    note = notes_db.get_note(note_id)
-    if not note:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    def run_summarization():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(
-            ai_integration.summarize_content(note.title, note.content, target_length)
-        )
+    length = data.get('length', 'medium')
     
     try:
-        summary = run_summarization()
+        note = notes_db.get_note(note_id)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+        
+        # Call with correct parameters
+        summary = asyncio.run(ai_integration.summarize_content(note.title, note.content, length))
         
         return jsonify({
             'success': True,
             'summary': summary,
-            'length': target_length
+            'length': length
         })
-        
+            
     except Exception as e:
         logger.error(f"Summarization failed for note {note_id}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>/ai/improve-writing', methods=['POST'])
-def improve_writing_ai(note_id):
+def ai_improve_writing(note_id):
     """AI ile yazım iyileştirme"""
     if not ai_integration:
-        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 503
-    
-    note = notes_db.get_note(note_id)
-    if not note:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    def run_improvement():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(
-            ai_integration.improve_writing(note.content)
-        )
+        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 500
     
     try:
-        improvements = run_improvement()
+        note = notes_db.get_note(note_id)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+        
+        # Call AI integration method (returns dict directly)
+        result = asyncio.run(ai_integration.improve_writing(note.content))
         
         return jsonify({
             'success': True,
-            'improvements': improvements
+            'improvements': result
         })
-        
+            
     except Exception as e:
         logger.error(f"Writing improvement failed for note {note_id}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @notes_blueprint.route('/<note_id>/ai/related', methods=['GET'])
-def find_related_notes_ai(note_id):
+def ai_find_related_notes(note_id):
     """AI ile ilgili notları bul"""
     if not ai_integration:
-        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 503
-    
-    note = notes_db.get_note(note_id)
-    if not note:
-        return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
-    
-    # Workspace'deki diğer notları al
-    all_notes = notes_db.search_notes(
-        workspace_id=note.workspace_id,
-        limit=50,
-        include_archived=False
-    )
-    
-    # Mevcut notu hariç tut
-    other_notes = [n.to_dict() for n in all_notes if n.id != note_id]
-    
-    def run_related_search():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(
-            ai_integration.find_related_notes(note.title, note.content, other_notes)
-        )
+        return jsonify({'success': False, 'error': 'AI entegrasyonu mevcut değil'}), 500
     
     try:
-        related_notes = run_related_search()
+        note = notes_db.get_note(note_id)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+        
+        # Aynı workspace'teki diğer notları al - convert to dict format
+        all_notes_objects = notes_db.get_notes(note.workspace_id, limit=100)
+        all_notes = [n.to_dict() for n in all_notes_objects]
+        
+        # Call with correct parameters
+        related_notes = asyncio.run(ai_integration.find_related_notes(note.title, note.content, all_notes))
         
         return jsonify({
             'success': True,
             'related_notes': related_notes
         })
-        
+            
     except Exception as e:
         logger.error(f"Related notes search failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# File Upload Endpoints
+@notes_blueprint.route('/<note_id>/files', methods=['POST'])
+def upload_file_to_note(note_id):
+    """Note'a dosya yükle"""
+    try:
+        # Note'un varlığını kontrol et
+        note = notes_db.get_note(note_id)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+        
+        # Dosya kontrolü
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'Dosya seçilmedi'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'Dosya adı boş'}), 400
+        
+        # Dosya adını güvenli hale getir
+        filename = secure_filename(file.filename)
+        file_data = file.read()
+        
+        # Dosyayı yükle
+        result = file_manager.upload_file(file_data, filename, note_id)
+        
+        if result['success']:
+            logger.info(f"File uploaded to note {note_id}: {filename}")
+            return jsonify({
+                'success': True,
+                'file_id': result['file_id'],
+                'file_info': result['file_info'],
+                'message': 'Dosya başarıyla yüklendi'
+            })
+        else:
+            return jsonify({'success': False, 'error': result['error']})
+            
+    except Exception as e:
+        logger.error(f"File upload failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@notes_blueprint.route('/<note_id>/files', methods=['GET'])
+def get_note_files(note_id):
+    """Note'un dosyalarını listele"""
+    try:
+        # Note'un varlığını kontrol et
+        note = notes_db.get_note(note_id)
+        if not note:
+            return jsonify({'success': False, 'error': 'Not bulunamadı'}), 404
+        
+        files = file_manager.get_note_files(note_id)
+        
+        return jsonify({
+            'success': True,
+            'files': files,
+            'count': len(files)
+        })
+        
+    except Exception as e:
+        logger.error(f"File listing failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@notes_blueprint.route('/files/<file_id>', methods=['GET'])
+def download_file(file_id):
+    """Dosyayı indir"""
+    try:
+        file_info = file_manager.get_file_info(file_id)
+        if not file_info:
+            return jsonify({'success': False, 'error': 'Dosya bulunamadı'}), 404
+        
+        file_path = file_manager.get_file_path(file_id)
+        if not file_path or not file_path.exists():
+            return jsonify({'success': False, 'error': 'Dosya fiziksel olarak bulunamadı'}), 404
+        
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=file_info['original_filename'],
+            mimetype=file_info.get('mime_type')
+        )
+        
+    except Exception as e:
+        logger.error(f"File download failed for file {file_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@notes_blueprint.route('/files/<file_id>/thumbnail', methods=['GET'])
+def get_file_thumbnail(file_id):
+    """Dosya thumbnail'ını getir"""
+    try:
+        file_info = file_manager.get_file_info(file_id)
+        if not file_info:
+            return jsonify({'success': False, 'error': 'Dosya bulunamadı'}), 404
+        
+        thumbnail_path = file_manager.get_thumbnail_path(file_id)
+        if not thumbnail_path or not thumbnail_path.exists():
+            return jsonify({'success': False, 'error': 'Thumbnail bulunamadı'}), 404
+        
+        return send_file(thumbnail_path, mimetype='image/jpeg')
+        
+    except Exception as e:
+        logger.error(f"Thumbnail fetch failed for file {file_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@notes_blueprint.route('/files/<file_id>/info', methods=['GET'])
+def get_file_info(file_id):
+    """Dosya bilgilerini getir"""
+    try:
+        file_info = file_manager.get_file_info(file_id)
+        if not file_info:
+            return jsonify({'success': False, 'error': 'Dosya bulunamadı'}), 404
+        
+        return jsonify({
+            'success': True,
+            'file_info': file_info
+        })
+        
+    except Exception as e:
+        logger.error(f"File info fetch failed for file {file_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@notes_blueprint.route('/files/<file_id>', methods=['DELETE'])
+def delete_file(file_id):
+    """Dosyayı sil"""
+    note_id = request.args.get('note_id')
+    
+    try:
+        result = file_manager.delete_file(file_id, note_id)
+        
+        if result['success']:
+            logger.info(f"File deleted: {file_id}")
+            return jsonify(result)
+        else:
+            return jsonify(result), 404
+            
+    except Exception as e:
+        logger.error(f"File deletion failed for file {file_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Storage Statistics
+@notes_blueprint.route('/storage/stats', methods=['GET'])
+def get_storage_stats():
+    """Storage istatistiklerini getir"""
+    try:
+        stats = file_manager.get_storage_stats()
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+    except Exception as e:
+        logger.error(f"Storage stats fetch failed: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -511,120 +623,25 @@ def export_single_note(note_id, format_type):
         
         return jsonify({
             'success': True,
-            'message': f'Not {format_type} formatında export edildi',
-            'filepath': filepath,
-            'filename': filename,
-            'download_url': f'/api/notes/download/{filename}'
+            'download_url': f'/api/notes/download/{filename}',
+            'file_path': filepath,
+            'format': format_type
         })
         
-    except ValueError as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
     except Exception as e:
-        logger.error(f"Export failed for note {note_id}: {e}")
-        return jsonify({'success': False, 'error': f'Export hatası: {str(e)}'}), 500
-
-
-@notes_blueprint.route('/workspace/<workspace_id>/export', methods=['POST'])
-def export_workspace_notes(workspace_id):
-    """Workspace'deki notları export et"""
-    data = request.get_json() or {}
-    format_type = data.get('format', 'markdown')
-    export_type = data.get('type', 'multiple')  # 'multiple' or 'summary'
-    
-    # Workspace'deki notları al
-    notes = notes_db.search_notes(
-        workspace_id=workspace_id,
-        limit=1000,  # Maksimum 1000 not
-        include_archived=False
-    )
-    
-    if not notes:
-        return jsonify({'success': False, 'error': 'Export edilecek not bulunamadı'}), 404
-    
-    try:
-        notes_data = [note.to_dict() for note in notes]
-        
-        if export_type == 'summary':
-            # Workspace özeti oluştur
-            workspace = notes_db.get_workspace(workspace_id)
-            workspace_name = workspace.name if workspace else f"Workspace_{workspace_id}"
-            
-            filepath = export_manager.export_workspace_summary(workspace_name, notes_data)
-            filename = os.path.basename(filepath)
-            
-            return jsonify({
-                'success': True,
-                'message': f'Workspace özeti oluşturuldu',
-                'filepath': filepath,
-                'filename': filename,
-                'download_url': f'/api/notes/download/{filename}',
-                'notes_count': len(notes_data)
-            })
-        else:
-            # Tüm notları export et
-            exported_files = export_manager.export_multiple_notes(notes_data, format_type)
-            
-            return jsonify({
-                'success': True,
-                'message': f'{len(exported_files)} not {format_type} formatında export edildi',
-                'exported_files': [os.path.basename(f) for f in exported_files],
-                'download_urls': [f'/api/notes/download/{os.path.basename(f)}' for f in exported_files],
-                'notes_count': len(exported_files)
-            })
-            
-    except Exception as e:
-        logger.error(f"Workspace export failed: {e}")
-        return jsonify({'success': False, 'error': f'Export hatası: {str(e)}'}), 500
-
+        logger.error(f"Note export failed for note {note_id}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @notes_blueprint.route('/export/formats', methods=['GET'])
 def get_export_formats():
-    """Kullanılabilir export formatlarını döndür"""
-    formats = export_manager.get_available_formats()
-    
-    format_descriptions = {
-        'markdown': 'Markdown (.md) - GitHub flavored markdown format',
-        'html': 'HTML (.html) - Web sayfası formatı',
-        'json': 'JSON (.json) - Yapılandırılmış veri formatı',
-        'txt': 'Plain Text (.txt) - Düz metin formatı'
-    }
-    
-    available_formats = []
-    for format_name, available in formats.items():
-        if available:
-            available_formats.append({
-                'name': format_name,
-                'description': format_descriptions.get(format_name, f'{format_name} format'),
-                'extension': f'.{format_name}'
-            })
-    
-    return jsonify({
-        'success': True,
-        'formats': available_formats,
-        'count': len(available_formats)
-    })
-
-
-@notes_blueprint.route('/download/<filename>', methods=['GET'])
-def download_exported_file(filename):
-    """Export edilmiş dosyayı indir"""
+    """Kullanılabilir export formatlarını getir"""
     try:
-        filepath = os.path.join(export_manager.output_dir, filename)
-        
-        if not os.path.exists(filepath):
-            return jsonify({'success': False, 'error': 'Dosya bulunamadı'}), 404
-        
-        # Güvenlik kontrolü - sadece export dizinindeki dosyalar
-        if not os.path.commonpath([filepath, export_manager.output_dir]) == export_manager.output_dir:
-            return jsonify({'success': False, 'error': 'Geçersiz dosya yolu'}), 403
-        
-        return send_file(
-            filepath,
-            as_attachment=True,
-            download_name=filename,
-            mimetype='application/octet-stream'
-        )
-        
+        formats = export_manager.available_formats
+        return jsonify({
+            'success': True,
+            'formats': list(formats.keys()),
+            'format_details': formats
+        })
     except Exception as e:
-        logger.error(f"File download failed: {e}")
-        return jsonify({'success': False, 'error': f'İndirme hatası: {str(e)}'}), 500 
+        logger.error(f"Export formats fetch failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500 

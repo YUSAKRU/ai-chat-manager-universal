@@ -13,6 +13,9 @@ class NotesApp {
         this.autoSaveTimeout = null;
         this.apiBaseUrl = '/api/notes';
         this.exportFormats = [];
+        this.attachedFiles = [];
+        this.uploadQueue = [];
+        this.isUploading = false;
         
         this.init();
     }
@@ -22,6 +25,9 @@ class NotesApp {
         
         // Event listeners
         this.setupEventListeners();
+        
+        // File upload sistemini başlat
+        this.initFileUpload();
         
         // İlk workspace ve notları yükle
         await this.loadWorkspaces();
@@ -156,7 +162,7 @@ class NotesApp {
             
         } catch (error) {
             console.error('❌ Notlar yükleme hatası:', error);
-            this.showStatus('Notlar yüklenemedi', 'error', 'Bağlantı sorunu olabilir');
+            this.showStatus('Notlar yüklenemedi', 'error', 'Bağlantı sorunu');
             
             // Error states göster
             this.renderErrorState('pinnedNotes', 'Yükleme hatası');
@@ -199,30 +205,40 @@ class NotesApp {
     }
     
     async openNote(note) {
-        try {
-            this.currentNote = note;
+        this.currentNote = note;
+        
+        // Not detaylarını getir
+        const response = await fetch(`${this.apiBaseUrl}/${note.id}?increment_view=true`);
+        const data = await response.json();
+        
+        if (data.success) {
+            this.currentNote = data.note;
             
             // UI'ı güncelle
-            this.updateActiveNote();
+            document.getElementById('noteTitle').value = this.currentNote.title || '';
+            document.getElementById('noteEditor').innerHTML = this.currentNote.content || 'Notunuzu yazmaya başlayın...';
             
-            // Not detaylarını yükle
-            const response = await fetch(`${this.apiBaseUrl}/${note.id}?increment_view=true`);
-            const data = await response.json();
+            // Dosyaları yükle
+            this.attachedFiles = this.currentNote.files || [];
+            this.renderFileList();
             
-            if (data.success) {
-                const fullNote = data.note;
-                
-                // Editor'ı güncelle
-                document.getElementById('noteTitle').value = fullNote.title || '';
-                document.getElementById('noteEditor').innerHTML = fullNote.content || '<p>Notunuzu yazmaya başlayın...</p>';
-                
-                this.currentNote = fullNote;
-                console.log(`📖 Not açıldı: ${fullNote.title}`);
-            }
+            // Not listesinde aktif notu işaretle
+            this.highlightActiveNote(note.id);
             
-        } catch (error) {
-            console.error('❌ Not açma hatası:', error);
-            this.showStatus('Not açılamadı', 'error');
+            console.log('📝 Not açıldı:', this.currentNote.title);
+        }
+    }
+    
+    highlightActiveNote(noteId) {
+        // Önceki aktif not'u kaldır
+        document.querySelectorAll('.note-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Yeni aktif not'u işaretle
+        const activeNoteElement = document.querySelector(`[onclick*="${noteId}"]`);
+        if (activeNoteElement) {
+            activeNoteElement.classList.add('active');
         }
     }
     
@@ -703,6 +719,333 @@ class NotesApp {
             console.error('❌ Export formatları yüklenemedi:', error);
         }
     }
+    
+    // File Upload System
+    initFileUpload() {
+        const fileInput = document.getElementById('fileInput');
+        const uploadZone = document.getElementById('fileUploadZone');
+        
+        if (!fileInput || !uploadZone) return;
+        
+        // File input change event
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            this.handleFileSelection(files);
+            fileInput.value = ''; // Reset input
+        });
+        
+        // Drag and Drop events
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files);
+            this.handleFileSelection(files);
+        });
+        
+        // Prevent default drag behaviors on the document
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => e.preventDefault());
+        
+        console.log('📎 File upload system initialized');
+    }
+    
+    handleFileSelection(files) {
+        if (!this.currentNote) {
+            this.showStatus('Önce bir not seçin', 'warning');
+            return;
+        }
+        
+        if (files.length === 0) return;
+        
+        // Validate files
+        const validFiles = [];
+        const invalidFiles = [];
+        
+        files.forEach(file => {
+            const validation = this.validateFile(file);
+            if (validation.valid) {
+                validFiles.push(file);
+            } else {
+                invalidFiles.push({file, error: validation.error});
+            }
+        });
+        
+        // Show errors for invalid files
+        invalidFiles.forEach(({file, error}) => {
+            this.showStatus(`${file.name}: ${error}`, 'error');
+        });
+        
+        // Upload valid files
+        if (validFiles.length > 0) {
+            this.uploadFiles(validFiles);
+        }
+    }
+    
+    validateFile(file) {
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        const allowedTypes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf',
+            'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain', 'text/markdown'
+        ];
+        
+        if (file.size > maxSize) {
+            return {valid: false, error: 'Dosya çok büyük (maks: 50MB)'};
+        }
+        
+        if (!allowedTypes.includes(file.type)) {
+            return {valid: false, error: 'Desteklenmeyen dosya türü'};
+        }
+        
+        return {valid: true};
+    }
+    
+    async uploadFiles(files) {
+        if (this.isUploading) {
+            this.showStatus('Başka dosyalar yükleniyor, lütfen bekleyin', 'warning');
+            return;
+        }
+        
+        this.isUploading = true;
+        this.uploadQueue = [...files];
+        
+        const progressContainer = this.createUploadProgress();
+        
+        for (const file of files) {
+            await this.uploadSingleFile(file, progressContainer);
+        }
+        
+        this.isUploading = false;
+        this.hideUploadProgress();
+        
+        // Refresh file list
+        await this.loadNoteFiles();
+    }
+    
+    async uploadSingleFile(file, progressContainer) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const progressItem = this.addProgressItem(file.name, progressContainer);
+        
+        try {
+            const xhr = new XMLHttpRequest();
+            
+            return new Promise((resolve, reject) => {
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = (e.loaded / e.total) * 100;
+                        this.updateProgressItem(progressItem, percent, 'Yükleniyor...');
+                    }
+                });
+                
+                xhr.addEventListener('load', async () => {
+                    if (xhr.status === 200) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                this.updateProgressItem(progressItem, 100, 'Tamamlandı');
+                                this.showStatus(`${file.name} yüklendi`, 'success');
+                                resolve(data);
+                            } else {
+                                this.updateProgressItem(progressItem, 0, `Hata: ${data.error}`);
+                                this.showStatus(`${file.name} yüklenemedi: ${data.error}`, 'error');
+                                reject(new Error(data.error));
+                            }
+                        } catch (e) {
+                            this.updateProgressItem(progressItem, 0, 'Yanıt hatası');
+                            reject(e);
+                        }
+                    } else {
+                        this.updateProgressItem(progressItem, 0, `HTTP ${xhr.status}`);
+                        reject(new Error(`HTTP ${xhr.status}`));
+                    }
+                });
+                
+                xhr.addEventListener('error', () => {
+                    this.updateProgressItem(progressItem, 0, 'Bağlantı hatası');
+                    reject(new Error('Network error'));
+                });
+                
+                xhr.open('POST', `${this.apiBaseUrl}/${this.currentNote.id}/files`);
+                xhr.send(formData);
+            });
+            
+        } catch (error) {
+            console.error('File upload error:', error);
+            this.updateProgressItem(progressItem, 0, 'Hata');
+            this.showStatus(`${file.name} yüklenemedi`, 'error');
+        }
+    }
+    
+    createUploadProgress() {
+        const existing = document.getElementById('fileUploadProgress');
+        if (existing) existing.remove();
+        
+        const container = document.createElement('div');
+        container.id = 'fileUploadProgress';
+        container.className = 'file-upload-progress show';
+        
+        container.innerHTML = `
+            <div class="upload-progress-header">
+                <i class="fas fa-cloud-upload-alt"></i>
+                Dosyalar Yükleniyor
+            </div>
+            <div class="upload-items" id="uploadItems"></div>
+        `;
+        
+        document.body.appendChild(container);
+        return container;
+    }
+    
+    addProgressItem(fileName, container) {
+        const itemsContainer = container.querySelector('#uploadItems');
+        const item = document.createElement('div');
+        item.className = 'upload-progress-item';
+        
+        item.innerHTML = `
+            <div class="upload-file-name">${fileName}</div>
+            <div class="upload-progress-bar">
+                <div class="upload-progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="upload-status">
+                <span>Başlatılıyor...</span>
+                <span class="upload-percent">0%</span>
+            </div>
+        `;
+        
+        itemsContainer.appendChild(item);
+        return item;
+    }
+    
+    updateProgressItem(item, percent, status) {
+        const progressFill = item.querySelector('.upload-progress-fill');
+        const statusText = item.querySelector('.upload-status span:first-child');
+        const percentText = item.querySelector('.upload-percent');
+        
+        progressFill.style.width = `${percent}%`;
+        statusText.textContent = status;
+        percentText.textContent = `${Math.round(percent)}%`;
+        
+        if (percent === 100) {
+            progressFill.style.background = 'linear-gradient(90deg, #27ae60, #2ecc71)';
+        } else if (percent === 0 && status.includes('Hata')) {
+            progressFill.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
+        }
+    }
+    
+    hideUploadProgress() {
+        setTimeout(() => {
+            const container = document.getElementById('fileUploadProgress');
+            if (container) {
+                container.classList.remove('show');
+                setTimeout(() => container.remove(), 300);
+            }
+        }, 2000);
+    }
+    
+    async loadNoteFiles() {
+        if (!this.currentNote) return;
+        
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/${this.currentNote.id}/files`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.attachedFiles = data.files;
+                this.renderFileList();
+                console.log(`📎 ${data.files.length} dosya yüklendi`);
+            }
+        } catch (error) {
+            console.error('File list loading error:', error);
+        }
+    }
+    
+    renderFileList() {
+        const fileAttachments = document.getElementById('fileAttachments');
+        const fileList = document.getElementById('fileList');
+        const fileCount = document.getElementById('fileCount');
+        
+        if (!fileAttachments || !fileList || !fileCount) return;
+        
+        fileCount.textContent = this.attachedFiles.length;
+        
+        if (this.attachedFiles.length === 0) {
+            fileAttachments.style.display = 'none';
+            return;
+        }
+        
+        fileAttachments.style.display = 'block';
+        
+        fileList.innerHTML = this.attachedFiles.map(file => {
+            const icon = this.getFileIcon(file.category, file.mime_type);
+            const size = this.formatFileSize(file.file_size);
+            const date = new Date(file.upload_date).toLocaleDateString('tr-TR');
+            
+            return `
+                <div class="file-item" data-file-id="${file.id}">
+                    ${file.thumbnail_path ? 
+                        `<img src="/api/notes/files/${file.id}/thumbnail" class="file-thumbnail" alt="${file.original_filename}">` :
+                        `<div class="file-icon ${file.category}">${icon}</div>`
+                    }
+                    <div class="file-info">
+                        <div class="file-name" title="${file.original_filename}">${file.original_filename}</div>
+                        <div class="file-meta">
+                            <span>${size}</span>
+                            <span>${date}</span>
+                            ${file.category ? `<span>${file.category}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action-btn download" onclick="downloadFile('${file.id}')" title="İndir">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        ${file.category === 'images' ? 
+                            `<button class="file-action-btn preview" onclick="previewFile('${file.id}')" title="Önizle">
+                                <i class="fas fa-eye"></i>
+                            </button>` : ''
+                        }
+                        <button class="file-action-btn delete" onclick="deleteFile('${file.id}')" title="Sil">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    getFileIcon(category, mimeType) {
+        const icons = {
+            'images': '🖼️',
+            'documents': '📄',
+            'spreadsheets': '📊',
+            'other': '📎'
+        };
+        
+        return icons[category] || '📎';
+    }
+    
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
 }
 
 // AI İşlemleri
@@ -918,6 +1261,28 @@ function saveNote() {
 
 // Modal Functions for AI Results
 function showAnalysisModal(analysis) {
+    // AI analysis string olarak geliyor, object değil
+    if (typeof analysis === 'string') {
+        const modalHtml = `
+            <div class="ai-result-modal" onclick="closeModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3>📊 AI Analiz Sonuçları</h3>
+                        <button onclick="closeModal()" class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="analysis-content">
+                            <pre style="white-space: pre-wrap; font-family: inherit;">${analysis}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        showModal(modalHtml);
+        return;
+    }
+    
+    // Object formatında gelirse eski yöntem
     const modalHtml = `
         <div class="ai-result-modal" onclick="closeModal(event)">
             <div class="modal-content" onclick="event.stopPropagation()">
@@ -926,13 +1291,13 @@ function showAnalysisModal(analysis) {
                     <button onclick="closeModal()" class="close-btn">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="analysis-item"><strong>Kategori:</strong> ${analysis.category}</div>
-                    <div class="analysis-item"><strong>Duygu Durumu:</strong> ${analysis.sentiment}</div>
-                    <div class="analysis-item"><strong>Zorluk Seviyesi:</strong> ${analysis.difficulty}</div>
-                    <div class="analysis-item"><strong>Tahmini Okuma Süresi:</strong> ${analysis.estimated_read_time} dakika</div>
-                    <div class="analysis-item"><strong>Özet:</strong> ${analysis.summary}</div>
-                    <div class="analysis-item"><strong>Anahtar Kelimeler:</strong> ${analysis.keywords.join(', ')}</div>
-                    <div class="analysis-item"><strong>Güven Oranı:</strong> %${Math.round(analysis.confidence * 100)}</div>
+                    <div class="analysis-item"><strong>Kategori:</strong> ${analysis.category || 'N/A'}</div>
+                    <div class="analysis-item"><strong>Duygu Durumu:</strong> ${analysis.sentiment || 'N/A'}</div>
+                    <div class="analysis-item"><strong>Zorluk Seviyesi:</strong> ${analysis.difficulty || 'N/A'}</div>
+                    <div class="analysis-item"><strong>Tahmini Okuma Süresi:</strong> ${analysis.estimated_read_time || 'N/A'} dakika</div>
+                    <div class="analysis-item"><strong>Özet:</strong> ${analysis.summary || 'N/A'}</div>
+                    <div class="analysis-item"><strong>Anahtar Kelimeler:</strong> ${analysis.keywords ? analysis.keywords.join(', ') : 'N/A'}</div>
+                    <div class="analysis-item"><strong>Güven Oranı:</strong> ${analysis.confidence ? Math.round(analysis.confidence * 100) + '%' : 'N/A'}</div>
                 </div>
             </div>
         </div>
@@ -1314,3 +1679,128 @@ let notesApp;
 document.addEventListener('DOMContentLoaded', () => {
     notesApp = new NotesApp();
 });
+
+// Global File Functions
+async function downloadFile(fileId) {
+    window.open(`${notesApp.apiBaseUrl}/files/${fileId}`, '_blank');
+}
+
+async function deleteFile(fileId) {
+    if (!confirm('Bu dosyayı silmek istediğinizden emin misiniz?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${notesApp.apiBaseUrl}/files/${fileId}?note_id=${notesApp.currentNote.id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            notesApp.showStatus('Dosya silindi', 'success');
+            await notesApp.loadNoteFiles();
+        } else {
+            notesApp.showStatus(`Silme başarısız: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('File deletion error:', error);
+        notesApp.showStatus('Dosya silinemedi', 'error');
+    }
+}
+
+async function previewFile(fileId) {
+    try {
+        const response = await fetch(`${notesApp.apiBaseUrl}/files/${fileId}/info`);
+        const data = await response.json();
+        
+        if (!data.success) {
+            notesApp.showStatus('Dosya bilgileri alınamadı', 'error');
+            return;
+        }
+        
+        const fileInfo = data.file_info;
+        showFilePreview(fileInfo);
+        
+    } catch (error) {
+        console.error('File preview error:', error);
+        notesApp.showStatus('Önizleme başarısız', 'error');
+    }
+}
+
+function showFilePreview(fileInfo) {
+    const modal = document.getElementById('filePreviewModal');
+    const title = document.getElementById('previewTitle');
+    const body = document.getElementById('previewBody');
+    
+    title.textContent = fileInfo.original_filename;
+    
+    let previewContent = '';
+    
+    if (fileInfo.category === 'images') {
+        if (fileInfo.thumbnail_path) {
+            previewContent = `
+                <img src="/api/notes/files/${fileInfo.id}/thumbnail" class="file-preview-image" alt="${fileInfo.original_filename}">
+            `;
+        } else {
+            previewContent = `
+                <img src="/api/notes/files/${fileInfo.id}" class="file-preview-image" alt="${fileInfo.original_filename}">
+            `;
+        }
+    } else {
+        previewContent = `
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-file-alt" style="font-size: 64px; color: #6c757d; margin-bottom: 16px;"></i>
+                <h4>${fileInfo.original_filename}</h4>
+                <p>Bu dosya türü için önizleme mevcut değil.</p>
+                <button class="btn btn-primary" onclick="downloadFile('${fileInfo.id}')">
+                    <i class="fas fa-download"></i> İndir
+                </button>
+            </div>
+        `;
+    }
+    
+    previewContent += `
+        <div class="file-preview-info">
+            <div class="file-preview-detail">
+                <span class="file-preview-detail-label">Dosya Boyutu:</span>
+                <span class="file-preview-detail-value">${notesApp.formatFileSize(fileInfo.file_size)}</span>
+            </div>
+            <div class="file-preview-detail">
+                <span class="file-preview-detail-label">Dosya Türü:</span>
+                <span class="file-preview-detail-value">${fileInfo.mime_type || 'Bilinmiyor'}</span>
+            </div>
+            <div class="file-preview-detail">
+                <span class="file-preview-detail-label">Yüklenme Tarihi:</span>
+                <span class="file-preview-detail-value">${new Date(fileInfo.upload_date).toLocaleString('tr-TR')}</span>
+            </div>
+            <div class="file-preview-detail">
+                <span class="file-preview-detail-label">Kategori:</span>
+                <span class="file-preview-detail-value">${fileInfo.category}</span>
+            </div>
+        </div>
+    `;
+    
+    body.innerHTML = previewContent;
+    modal.classList.add('show');
+}
+
+function closeFilePreview() {
+    const modal = document.getElementById('filePreviewModal');
+    modal.classList.remove('show');
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', (e) => {
+    if (e.target.id === 'filePreviewModal') {
+        closeFilePreview();
+    }
+});
+
+// Close modal on ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeFilePreview();
+    }
+});
+ 

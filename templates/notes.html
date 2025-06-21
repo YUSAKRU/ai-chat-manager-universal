@@ -483,8 +483,62 @@
             
             <div class="editor-container">
                 <div class="editor-main">
-                    <div class="editor-content" id="noteEditor" contenteditable="true">
-                        <p>Notunuzu yazmaya başlayın...</p>
+                    <div class="note-editor">
+                        <div class="note-header">
+                            <input type="text" id="noteTitle" class="note-title-input" placeholder="Başlık...">
+                            <div class="note-actions">
+                                <button class="btn btn-sm btn-outline-secondary" title="Pin/Unpin">
+                                    <i class="fas fa-thumbtack"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Rich Text Editor -->
+                        <div id="noteEditor" class="note-content" contenteditable="true">
+                            Notunuzu yazmaya başlayın...
+                        </div>
+                        
+                        <!-- File Upload Zone -->
+                        <div class="file-upload-section">
+                            <div class="file-upload-zone" id="fileUploadZone" onclick="document.getElementById('fileInput').click()">
+                                <div class="file-upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="file-upload-text">Dosya eklemek için tıklayın veya sürükleyin</div>
+                                <div class="file-upload-hint">Desteklenen formatlar: JPG, PNG, PDF, DOC, TXT (Maks: 50MB)</div>
+                                <button class="file-upload-button" type="button">
+                                    <i class="fas fa-plus"></i> Dosya Seç
+                                </button>
+                            </div>
+                            <input type="file" id="fileInput" class="file-input-hidden" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt,.md">
+                        </div>
+                        
+                        <!-- File Attachments -->
+                        <div class="file-attachments" id="fileAttachments" style="display: none;">
+                            <div class="file-attachments-header">
+                                <div class="file-attachments-title">
+                                    <i class="fas fa-paperclip"></i>
+                                    Ekler
+                                    <span class="file-count" id="fileCount">0</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" id="toggleAttachments" title="Gizle/Göster">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="file-list" id="fileList">
+                                <!-- Files will be dynamically added here -->
+                            </div>
+                        </div>
+                        
+                        <!-- File Upload Progress (will be created dynamically) -->
+                        
+                        <!-- Note Metadata -->
+                        <div class="note-metadata">
+                            <small class="text-muted" id="noteMetadata">Son güncelleme: Henüz kaydedilmedi</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -573,6 +627,21 @@
             <div class="loading-spinner"></div>
             <div class="loading-text">Yükleniyor...</div>
             <div class="loading-subtext"></div>
+        </div>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div class="file-preview-modal" id="filePreviewModal">
+        <div class="file-preview-content">
+            <div class="file-preview-header">
+                <h5 class="file-preview-title" id="previewTitle">Dosya Önizleme</h5>
+                <button class="file-preview-close" onclick="closeFilePreview()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="file-preview-body" id="previewBody">
+                <!-- Preview content will be loaded here -->
+            </div>
         </div>
     </div>
 

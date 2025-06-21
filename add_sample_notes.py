@@ -136,3 +136,4 @@ def handle_notes():
 if __name__ == "__main__":
     print("📝 Örnek notlar oluşturuluyor...\n")
     create_sample_notes()
+ 

@@ -1,0 +1,62 @@
+{
+  "acf361dd-a33d-4222-a5b0-6873371f9974": {
+    "id": "acf361dd-a33d-4222-a5b0-6873371f9974",
+    "original_filename": "WIN_20250602_18_29_55_Pro.jpg",
+    "stored_filename": "acf361dd-a33d-4222-a5b0-6873371f9974.jpg",
+    "file_path": "images\\acf361dd-a33d-4222-a5b0-6873371f9974.jpg",
+    "thumbnail_path": null,
+    "file_size": 230281,
+    "mime_type": "image/jpeg",
+    "category": "images",
+    "hash": "a77d1877a7bebbf62df3441f8fd155a1",
+    "upload_date": "2025-06-21T23:09:17.082841",
+    "notes": [
+      "1e37744c-d540-491f-b8d5-f5d21e858782"
+    ]
+  },
+  "9498e51e-0e84-4022-98a2-04440e624547": {
+    "id": "9498e51e-0e84-4022-98a2-04440e624547",
+    "original_filename": "WIN_20250602_18_30_03_Pro.jpg",
+    "stored_filename": "9498e51e-0e84-4022-98a2-04440e624547.jpg",
+    "file_path": "images\\9498e51e-0e84-4022-98a2-04440e624547.jpg",
+    "thumbnail_path": null,
+    "file_size": 235551,
+    "mime_type": "image/jpeg",
+    "category": "images",
+    "hash": "bc194664aa4719e2ac23c6d345194bc5",
+    "upload_date": "2025-06-21T23:09:23.290102",
+    "notes": [
+      "1e37744c-d540-491f-b8d5-f5d21e858782"
+    ]
+  },
+  "109d9651-1e63-4d2b-93aa-25dea7daa7a0": {
+    "id": "109d9651-1e63-4d2b-93aa-25dea7daa7a0",
+    "original_filename": "WIN_20250602_18_30_03_Pro.jpg",
+    "stored_filename": "109d9651-1e63-4d2b-93aa-25dea7daa7a0.jpg",
+    "file_path": "images\\109d9651-1e63-4d2b-93aa-25dea7daa7a0.jpg",
+    "thumbnail_path": null,
+    "file_size": 235551,
+    "mime_type": "image/jpeg",
+    "category": "images",
+    "hash": "bc194664aa4719e2ac23c6d345194bc5",
+    "upload_date": "2025-06-21T23:28:56.598904",
+    "notes": [
+      "39120a2c-943f-4f2a-acd7-d7204ab2fd9c"
+    ]
+  },
+  "62b6f40c-e29d-488c-8c0b-5ebdefe9db30": {
+    "id": "62b6f40c-e29d-488c-8c0b-5ebdefe9db30",
+    "original_filename": "WIN_20250602_18_30_03_Pro.jpg",
+    "stored_filename": "62b6f40c-e29d-488c-8c0b-5ebdefe9db30.jpg",
+    "file_path": "images\\62b6f40c-e29d-488c-8c0b-5ebdefe9db30.jpg",
+    "thumbnail_path": null,
+    "file_size": 235551,
+    "mime_type": "image/jpeg",
+    "category": "images",
+    "hash": "bc194664aa4719e2ac23c6d345194bc5",
+    "upload_date": "2025-06-21T23:33:58.753596",
+    "notes": [
+      "30f3bde3-530f-4c58-89d9-3925fcbd94f9"
+    ]
+  }
+}

@@ -280,3 +280,4 @@ class NotesExportManager:
     def get_available_formats(self) -> Dict[str, bool]:
         """Kullanılabilir export formatlarını döndür"""
         return self.available_formats.copy()
+ 

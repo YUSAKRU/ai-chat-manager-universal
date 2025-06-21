@@ -7,6 +7,7 @@ Not alma sisteminin temel fonksiyonlarını test eder.
 
 import os
 import sys
+import asyncio
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from src.notes.database import NotesDatabase
@@ -91,54 +92,76 @@ def test_database_operations():
     return workspace, [note1, note2, subnote]
 
 
-def test_ai_agent():
-    """AI Agent'ı test et"""
-    print("\n\n🤖 AI Agent Testleri Başlıyor...")
+def test_ai_agents(workspace, notes):
+    """AI agent'ları test et"""
+    print("\n🤖 AI Agent Testleri Başlıyor...")
     
-    # Config ve adapter hazırla
-    config = SecureConfigManager()
+    # Mock AI adapter oluştur
+    from unittest.mock import Mock, AsyncMock
+    from dataclasses import dataclass
     
-    # Gemini anahtarı yoksa test'i atla
-    if not config.get_api_key('gemini'):
-        print("⚠️ Gemini API anahtarı bulunamadı, AI testleri atlanıyor")
-        return
+    @dataclass
+    class MockAIResponse:
+        content: str
+        model: str = "gemini-1.5-flash"
+        usage: dict = None
+        
+        def __post_init__(self):
+            if self.usage is None:
+                self.usage = {
+                    'input_tokens': 100,
+                    'output_tokens': 50,
+                    'total_tokens': 150,
+                    'cost': 0.001
+                }
     
-    adapter = UniversalAIAdapter(config)
-    adapter.add_adapter('gemini', api_key=config.get_api_key('gemini'))
+    # Create mock adapter
+    mock_adapter = Mock()
     
-    # Database ve agent oluştur
-    db = NotesDatabase(db_path="data/test_notes.db")
-    organizer = NoteOrganizerAgent(adapter, db)
+    # Configure async method
+    async def mock_send_message(role_id, message):
+        # Simulate different responses based on prompt content
+        if "analiz et" in message:
+            return MockAIResponse(
+                content="""Ana konu: Python programlama ve AI entegrasyonu
+Anahtar noktalar:
+- Python'da async/await kullanımı
+- AI modellerle entegrasyon
+- Database işlemleri
+
+Duygu analizi: Pozitif
+Önerilen etiketler: python, ai, programlama, tutorial, async
+İçerik kalitesi skoru: 8/10"""
+            )
+        elif "etiket" in message:
+            return MockAIResponse(content="python, ai, programlama, veritabanı, tutorial")
+        else:
+            return MockAIResponse(content="Test yanıtı")
     
-    # Test notu analiz et
+    mock_adapter.send_message = AsyncMock(side_effect=mock_send_message)
+    
+    # AI integration test et
+    from src.notes.ai_integration import NotesAIIntegration
+    ai_integration = NotesAIIntegration(mock_adapter)
+    
     print("\n1️⃣ Not analizi yapılıyor...")
-    analysis = organizer.analyze_note(
-        note_content="""
-        # React Hooks Kullanımı
-        
-        React Hooks, fonksiyonel componentlerde state ve lifecycle kullanmamızı sağlar.
-        
-        ## useState Hook
-        State yönetimi için kullanılır. Örnek:
-        ```javascript
-        const [count, setCount] = useState(0);
-        ```
-        
-        ## useEffect Hook  
-        Side effect'ler için kullanılır. Component mount, update ve unmount durumlarında çalışır.
-        """,
-        note_title="React Hooks Tutorial",
-        existing_tags=["react", "javascript"]
-    )
+    note_content = notes[0].content if notes else "Test içeriği"
+    result = asyncio.run(ai_integration.analyze_note(note_content))
     
-    if analysis["success"]:
-        print("✅ Not analizi tamamlandı:")
-        if analysis["analysis"]:
-            print(f"   - Önerilen etiketler: {analysis['analysis'].get('suggested_tags', [])}")
-            print(f"   - Kategori: {analysis['analysis'].get('category', 'N/A')}")
-            print(f"   - Anahtar kelimeler: {analysis['analysis'].get('keywords', [])}")
+    if result['success']:
+        print("✅ Not analizi başarılı")
+        print(f"   Analiz: {result['analysis'][:200]}...")
     else:
-        print(f"❌ Not analizi başarısız: {analysis.get('error', 'Unknown error')}")
+        print(f"❌ Not analizi başarısız: {result['error']}")
+    
+    print("\n2️⃣ Etiket önerisi yapılıyor...")
+    note_title = notes[0].title if notes else "Test Başlık"
+    try:
+        tags = asyncio.run(ai_integration.suggest_tags(note_title, note_content))
+        print("✅ Etiket önerisi başarılı")
+        print(f"   Önerilen etiketler: {tags}")
+    except Exception as e:
+        print(f"❌ Etiket önerisi başarısız: {e}")
 
 
 def main():
@@ -151,7 +174,7 @@ def main():
         workspace, notes = test_database_operations()
         
         # AI Agent testleri
-        test_ai_agent()
+        test_ai_agents(workspace, notes)
         
         print("\n\n✅ Tüm testler tamamlandı!")
         print("\n💡 Not sistemi başarıyla çalışıyor.")

@@ -17,58 +17,45 @@ class NotesAIIntegration:
     def __init__(self, ai_adapter: UniversalAIAdapter):
         self.ai_adapter = ai_adapter
     
-    async def analyze_note(self, title: str, content: str) -> Dict[str, Any]:
-        """Not analizi yap"""
+    async def analyze_note(self, content: str) -> Dict[str, Any]:
+        """Not içeriğini AI ile analiz et"""
+        if not self.ai_adapter:
+            return {'success': False, 'error': 'AI adapter mevcut değil'}
+        
         try:
-            prompt = f"""
-Aşağıdaki not için detaylı analiz yap:
+            prompt = f"""Not içeriğini analiz et ve aşağıdaki bilgileri sağla:
+1. Ana konu/tema
+2. Anahtar noktalar (bullet points)
+3. Duygu analizi (pozitif/nötr/negatif)
+4. Önerilen etiketler
+5. İçerik kalitesi skoru (1-10)
 
-Başlık: {title}
-İçerik: {content}
-
-Lütfen şu bilgileri JSON formatında ver:
-{{
-    "category": "kategorisi (teknik, proje, kişisel, vs.)",
-    "sentiment": "duygu durumu (positive, negative, neutral)",
-    "keywords": ["anahtar", "kelimeler", "listesi"],
-    "difficulty": "zorluk seviyesi (beginner, intermediate, advanced)",
-    "estimated_read_time": "tahmini okuma süresi (dakika)",
-    "summary": "kısa özet (1-2 cümle)",
-    "confidence": 0.95
-}}
-
-Sadece geçerli JSON formatında yanıt ver, başka açıklama yapma.
-            """
+Not içeriği:
+{content[:1000]}"""  # İlk 1000 karakter
             
+            # Use the correct method name
             response = await self.ai_adapter.send_message(
-                role_id="general", 
+                role_id='general',  # Use role_id
                 message=prompt
             )
             
-            if response and response.content:
-                # JSON parse etmeye çalış
-                import json
-                try:
-                    analysis = json.loads(response.content)
-                    analysis['ai_model'] = response.model
-                    analysis['analyzed_at'] = response.timestamp if hasattr(response, 'timestamp') else None
-                    return analysis
-                except json.JSONDecodeError:
-                    # JSON parse edemediyse basit format döndür
-                    return {
-                        "category": "general",
-                        "sentiment": "neutral",
-                        "keywords": self._extract_keywords(content),
-                        "summary": response.content[:200] + "...",
-                        "confidence": 0.7,
-                        "ai_model": response.model
-                    }
-            
-            return self._fallback_analysis(title, content)
-            
+            if response:
+                return {
+                    'success': True,
+                    'analysis': response.content
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': 'AI yanıt vermedi'
+                }
+                
         except Exception as e:
             logger.error(f"Note analysis failed: {e}")
-            return self._fallback_analysis(title, content)
+            return {
+                'success': False,
+                'error': str(e)
+            }
     
     async def suggest_tags(self, title: str, content: str, existing_tags: List[str] = None) -> List[str]:
         """Etiket önerileri al"""

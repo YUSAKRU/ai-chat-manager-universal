@@ -62,6 +62,22 @@ class NotesDatabase:
         with self.get_session() as session:
             return session.query(NoteWorkspace).filter_by(owner_id=owner_id).all()
     
+    def get_user_workspaces(self, user_id: str) -> List[NoteWorkspace]:
+        """Kullanıcının workspace'lerini getir (backward compatibility)"""
+        return self.list_workspaces(user_id)
+    
+    def get_notes(self, workspace_id: str, limit: int = 50) -> List[Note]:
+        """Workspace'deki notları getir"""
+        with self.get_session() as session:
+            from sqlalchemy.orm import joinedload
+            
+            return session.query(Note)\
+                .options(joinedload(Note.tags))\
+                .filter_by(workspace_id=workspace_id, is_archived=False)\
+                .order_by(desc(Note.updated_at))\
+                .limit(limit)\
+                .all()
+    
     # Note Operations
     def create_note(self, 
                    title: str,
@@ -117,7 +133,8 @@ class NotesDatabase:
                    title: Optional[str] = None,
                    content: Optional[str] = None,
                    tags: Optional[List[str]] = None,
-                   ai_metadata: Optional[Dict[str, Any]] = None) -> Optional[Note]:
+                   ai_metadata: Optional[Dict[str, Any]] = None,
+                   is_pinned: Optional[bool] = None) -> Optional[Note]:
         """Notu güncelle"""
         with self.get_session() as session:
             from sqlalchemy.orm import joinedload
@@ -136,7 +153,9 @@ class NotesDatabase:
             if content is not None:
                 note.content = content
                 note.edit_count += 1
-            
+            if is_pinned is not None:
+                note.is_pinned = is_pinned
+
             note.last_edited_by = edited_by
             note.updated_at = datetime.now()
             note.version += 1
